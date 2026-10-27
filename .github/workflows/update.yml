@@ -1,0 +1,81 @@
+name: update-data
+
+# Mise à jour automatique : récupère SEC + cours, recalcule, publie le site.
+on:
+  schedule:
+    - cron: "37 21 * * 1-5"   # ~22h37 Paris l'hiver : après la clôture US (résultats publiés après la séance)
+    - cron: "07 13 * * 1-5"   # ~14h07 Paris : rattrape les 10-Q/10-K déposés le matin avant l'ouverture US
+  workflow_dispatch: {}        # bouton "Run workflow" dans l'onglet Actions
+  push:
+    branches: [main]
+    paths:
+      - "config/**"
+      - "pipeline/**"
+      - "docs/assets/**"
+      - "docs/index.html"
+      - ".github/workflows/**"
+
+permissions:
+  contents: write   # commit de l'historique (docs/data)
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v4   # pour le test de parité DCF Python ↔ JS
+        with:
+          node-version: "22"
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Tests
+        run: python -m pytest -q
+
+      - name: Pipeline (SEC + marché → valorisation → feed)
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: python -m pipeline.build
+
+      - name: Enregistrer l'historique dans le repo
+        run: |
+          git config user.name "terminal-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data
+          if git diff --cached --quiet; then
+            echo "Aucun changement de données."
+          else
+            git commit -m "data: mise à jour $(date -u +'%Y-%m-%d %H:%M') UTC"
+            git pull --rebase --autostash origin main
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

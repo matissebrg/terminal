@@ -1,0 +1,158 @@
+/* Home (dashboard), Feed, Méthodologie. */
+(function () {
+  "use strict";
+  const T = window.T, F = T.fmt;
+
+  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦" };
+  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture" };
+
+  T.banner = (meta, status) => {
+    let s = "";
+    if (meta && meta.mode === "fixture") {
+      s += `<div class="banner">⚠ <div><b>Données de démonstration synthétiques.</b> Ce site affiche des chiffres inventés pour tester l'interface.
+        Ils seront remplacés automatiquement par les vraies données SEC et de marché à la première exécution du pipeline (GitHub Actions).</div></div>`;
+    }
+    if (status && status.errors && status.errors.length) {
+      s += `<div class="banner">⚠ <div><b>Dernière mise à jour partielle :</b> ${status.errors.map(T.esc).join(" · ")}</div></div>`;
+    }
+    return s;
+  };
+
+  T.renderEvent = (e, opts = {}) => {
+    const isNew = (Date.now() - new Date(e.date + "T00:00:00").getTime()) / 864e5 <= 7;
+    let bridge = "";
+    if (e.bridge && e.bridge.length) {
+      const max = Math.max(...e.bridge.map((b) => Math.abs(b.delta)), 1e-9);
+      bridge = `<div class="bridge">${e.bridge.map((b) => {
+        const w = (Math.abs(b.delta) / max) * 50;
+        const left = b.delta >= 0 ? 50 : 50 - w;
+        return `<span class="sec">${T.esc(b.label)}</span>
+          <span class="bar"><span style="left:${left}%;width:${w}%;background:${b.delta >= 0 ? T.C.up : T.C.down}"></span>
+          <span style="left:50%;width:1px;background:#3a4050"></span></span>
+          <span class="num ${T.cls(b.delta)}" style="text-align:right">${b.delta >= 0 ? "+" : ""}${F.n(b.delta, 2)} $</span>`;
+      }).join("")}</div>`;
+    }
+    const link = e.url ? ` <a href="${T.esc(e.url)}" target="_blank" rel="noopener">Ouvrir sur EDGAR ↗</a>` : "";
+    const tk = opts.hideTicker ? "" : `<a href="#/t/${e.ticker}">${e.ticker}</a> · `;
+    return `<div class="ev">
+      <div class="ic ${e.type}" title="${TYPE_LABEL[e.type] || e.type}">${ICON[e.type] || "•"}</div>
+      <div><div class="t1">${isNew ? '<span class="new">NEW</span>' : ""}${T.esc(e.title)}</div>
+        <div class="t2">${tk}${T.esc(e.detail || "")}${link}</div>${bridge}</div>
+      <div class="dt">${F.date(e.date)}</div></div>`;
+  };
+
+  // ------------------------------------------------------------------ home
+  T.route(/^\/$/, async (view) => {
+    const [u, feed, status] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null)]);
+    const rf = u.risk_free;
+    const rows = u.tickers.map((t) => `<tr data-href="#/t/${t.ticker}" style="cursor:pointer">
+        <td><b>${t.ticker}</b> <span class="muted">${T.esc(t.name)}</span></td>
+        <td class="n">${F.px(t.price)}</td>
+        <td class="n ${T.cls(t.chg_1d)}">${F.pct(t.chg_1d, 2, true)}</td>
+        <td class="n">${F.usd(t.market_cap)}</td>
+        <td class="n">${F.px(t.value_base)}</td>
+        <td class="n">${F.px(t.value_weighted)}</td>
+        <td class="n ${T.cls(t.upside_weighted)}"><b>${F.pct(t.upside_weighted, 1, true)}</b></td>
+        <td style="width:140px">${T.spark(t.spark, 140, 24)}</td>
+        <td class="muted">${T.esc(t.latest_period || "")}</td></tr>`).join("");
+    const benches = Object.entries(u.benchmarks || {}).map(([k, b]) => `
+      <div class="kpi"><div class="l">${T.esc(b.name)}</div>
+        <div class="v">${F.n(b.last)} <span class="${T.cls(b.chg_1d)}" style="font-size:12px">${F.pct(b.chg_1d, 2, true)}</span></div>
+        <div class="s">YTD <span class="${T.cls(b.r_ytd)}">${F.pct(b.r_ytd, 1, true)}</span> · 1 an <span class="${T.cls(b.r_1y)}">${F.pct(b.r_1y, 1, true)}</span></div></div>`).join("");
+    view.innerHTML = `${T.banner(u.meta, status)}
+      <div class="thead"><div class="id"><h1>Tableau de bord</h1>
+        <div class="sub">Mis à jour ${F.dateTime(u.meta.generated_at)} · ${u.tickers.length} valeur(s) suivie(s)</div></div></div>
+      <div class="kpis">${benches}
+        <div class="kpi"><div class="l">Taux sans risque 10 ans US</div><div class="v">${F.pct(rf && rf.value, 2)}</div>
+          <div class="s">${T.esc(rf ? rf.source : "")}${rf && rf.as_of ? " · " + F.date(rf.as_of) : ""}</div></div></div>
+      <div class="grid g-main">
+        <div class="stack">
+          <div class="panel"><h3>Valeurs suivies <span class="hint">potentiel = valeur pondérée des scénarios vs cours</span></h3>
+            <div class="tbl-wrap"><table class="t" id="wlTable"><thead><tr><th>Valeur</th><th class="n">Cours</th><th class="n">1 j</th>
+              <th class="n">Capi.</th><th class="n">DCF base</th><th class="n">DCF pondéré</th><th class="n">Potentiel</th><th>60 j</th><th>Dernier trim.</th></tr></thead>
+              <tbody>${rows}</tbody></table></div></div>
+          <div class="panel"><h3>Comment ça marche</h3>
+            <div class="grid g3">
+              <div><b>1 · Données</b><p class="sec" style="margin:6px 0 0">Chaque jour ouvré, GitHub Actions récupère les états financiers XBRL (SEC) et les cours, puis recalcule tout.</p></div>
+              <div><b>2 · Tes hypothèses</b><p class="sec" style="margin:6px 0 0">Le modèle lit <code>config/assumptions/&lt;TICKER&gt;.yaml</code>. Modifie-le sur GitHub : le site se recalcule.</p></div>
+              <div><b>3 · Le feed</b><p class="sec" style="margin:6px 0 0">Nouvelle publication ou valeur qui bouge → un événement, avec la décomposition données / hypothèses / marché.</p></div>
+            </div></div>
+        </div>
+        <div class="panel"><h3>Feed <a class="hint" href="#/feed">tout voir →</a></h3>
+          <div class="feed">${(feed.events || []).slice(0, 12).map((e) => T.renderEvent(e)).join("") || '<div class="empty">Aucun événement pour l’instant.</div>'}</div></div>
+      </div>`;
+    T.$$("#wlTable tbody tr").forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
+  });
+
+  // ------------------------------------------------------------------ feed
+  T.route(/^\/feed$/, async (view) => {
+    const feed = await T.get("feed.json");
+    const ev = feed.events || [];
+    const types = [...new Set(ev.map((e) => e.type))];
+    const tks = [...new Set(ev.map((e) => e.ticker))];
+    const st = { type: null, tk: null };
+    view.innerHTML = `<div class="thead"><div class="id"><h1>Feed</h1><div class="sub">${ev.length} événement(s) · publications, réévaluations, mouvements</div></div></div>
+      <div class="panel"><div class="row" id="filters" style="margin-bottom:8px">
+        ${types.map((t) => `<button class="chip" data-type="${t}">${ICON[t] || ""} ${TYPE_LABEL[t] || t}</button>`).join("")}
+        <span class="spacer"></span>${tks.map((t) => `<button class="chip" data-tk="${t}">${t}</button>`).join("")}</div>
+        <div class="feed" id="feedList"></div></div>`;
+    const draw = () => {
+      const list = ev.filter((e) => (!st.type || e.type === st.type) && (!st.tk || e.ticker === st.tk));
+      T.$("#feedList").innerHTML = list.map((e) => T.renderEvent(e)).join("") || '<div class="empty">Rien avec ces filtres.</div>';
+      T.$$("#filters .chip").forEach((c) => c.classList.toggle("on", c.dataset.type === st.type || c.dataset.tk === st.tk));
+    };
+    T.$("#filters").addEventListener("click", (e) => {
+      const c = e.target.closest(".chip"); if (!c) return;
+      if (c.dataset.type) st.type = st.type === c.dataset.type ? null : c.dataset.type;
+      if (c.dataset.tk) st.tk = st.tk === c.dataset.tk ? null : c.dataset.tk;
+      draw();
+    });
+    draw();
+  });
+
+  // ------------------------------------------------------------------ methodology
+  T.route(/^\/methodo$/, async (view) => {
+    const status = await T.get("status.json").catch(() => null);
+    const cov = status && status.coverage ? Object.entries(status.coverage) : [];
+    view.innerHTML = `<div class="thead"><div class="id"><h1>Méthodologie & sources</h1><div class="sub">Ce que fait le terminal, et ce qu'il ne fait pas</div></div></div>
+    <div class="grid g2">
+      <div class="panel"><h3>Sources de données</h3>
+        <div class="kv">
+          <div>États financiers (US)</div><div>SEC EDGAR — API XBRL companyfacts</div>
+          <div>Liste des publications</div><div>SEC EDGAR — submissions</div>
+          <div>Cours journaliers</div><div>Yahoo Finance (non officiel) → Stooq → cache</div>
+          <div>Taux sans risque</div><div>FRED DGS10 (Trésor US 10 ans)</div>
+          <div>Fréquence</div><div>2 fois par jour ouvré (GitHub Actions)</div>
+        </div>
+        <p class="note">Les cours sont des <b>clôtures de fin de journée</b>, pas du temps réel. Les sources de cours gratuites ne sont pas officielles : en cas de panne, le terminal garde les derniers cours connus et l'indique.</p></div>
+      <div class="panel"><h3>Reconstruction des états financiers</h3>
+        <p class="sec" style="margin-top:0">Le XBRL de la SEC n'est pas directement exploitable trimestre par trimestre :</p>
+        <ul class="sec" style="padding-left:18px;margin:0">
+          <li>les flux de trésorerie des 10-Q sont publiés <b>en cumul depuis le début d'exercice</b> (3, 6, 9 mois) → trimestres reconstruits par différence ;</li>
+          <li>le T4 n'est jamais publié seul → <b>T4 = exercice − 9 mois</b> ;</li>
+          <li>une même période apparaît dans plusieurs dépôts → on garde la valeur <b>la plus récemment déposée</b> (retraitements) ;</li>
+          <li>les entreprises changent d'étiquette XBRL au fil du temps → chaque ligne a une liste ordonnée d'étiquettes candidates.</li>
+        </ul></div>
+      <div class="panel"><h3>DCF (FCFF, deux phases)</h3>
+        <div class="kv">
+          <div>Flux disponible</div><div>EBIT × (1 − t) + D&A − capex − ΔBFR</div>
+          <div>Croissance</div><div>années explicites puis fondu linéaire vers g</div>
+          <div>Marge</div><div>convergence linéaire vers la marge cible</div>
+          <div>Valeur terminale</div><div>Gordon : FCFF(N+1) / (WACC − g)</div>
+          <div>Actualisation</div><div>convention mi-année (option)</div>
+          <div>WACC</div><div>CAPM : rf + β × prime de risque</div>
+          <div>Bêta</div><div>2 ans hebdo vs SPY, ajusté Blume</div>
+          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements − dette</div>
+        </div>
+        <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le DCF reverse cherche la croissance constante qui justifie le cours, toutes autres hypothèses égales.</p></div>
+      <div class="panel"><h3>Comparables & limites</h3>
+        <p class="sec" style="margin-top:0">Multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF) des pairs, médiane appliquée aux agrégats de la valeur suivie. Les multiples négatifs ou absurdes (&gt; 500x) sont exclus.</p>
+        <p class="sec"><b>Limite majeure :</b> des multiples <i>passés</i> appliqués à une entreprise en très forte croissance sous-estiment sa valeur. Les comparables bruts ne sont pas ajustés de la croissance : c'est un point de repère, pas un objectif de cours.</p>
+        <p class="sec"><b>Ce qui manque encore :</b> consensus des analystes (payant), multiples forward, données européennes (ESEF), registre de prévisions pré-enregistrées.</p></div>
+      <div class="panel span2"><h3>Couverture XBRL (diagnostic du dernier run)</h3>
+        ${cov.length ? cov.map(([tk, c]) => `<div class="group-title">${tk}</div><div class="tbl-wrap"><table class="t"><thead><tr><th>Ligne</th><th>Étiquettes XBRL utilisées</th><th class="n">Exercices</th><th class="n">Trimestres</th></tr></thead><tbody>
+          ${Object.entries(c).map(([k, x]) => `<tr><td>${k}</td><td class="muted">${T.esc((x.tags || []).join(", ") || "—")}</td><td class="n ${x.annual ? "" : "warn"}">${x.annual}</td><td class="n ${x.quarterly ? "" : "warn"}">${x.quarterly}</td></tr>`).join("")}
+          </tbody></table></div>`).join("") : '<div class="empty">Pas encore de diagnostic.</div>'}</div>
+    </div>`;
+  });
+})();

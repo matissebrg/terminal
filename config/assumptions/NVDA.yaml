@@ -1,0 +1,75 @@
+# ============================================================================
+# Hypothèses de valorisation — NVIDIA (NVDA)
+# ----------------------------------------------------------------------------
+# Ce fichier EST ton modèle. Le pipeline relit ce fichier à chaque exécution,
+# recalcule la valorisation et publie un événement dans le feed si la valeur bouge
+# (avec la décomposition : données / hypothèses / marché).
+#
+# Modifier depuis GitHub : ouvre ce fichier sur github.com, clique sur le crayon,
+# commit -> le site se met à jour tout seul en ~2 minutes.
+#
+# ⚠ POINT DE DÉPART, PAS UNE PRÉVISION. Les chiffres ci-dessous ont été posés le
+# 2026-10-27 comme ordres de grandeur pour faire tourner l'outil. Ils sont à
+# challenger : c'est précisément l'exercice. Contexte au moment de l'écriture :
+#   - CA T2 FY2027 (clos le 26/07/2026) : 96,2 Md$ (+106 % sur un an)
+#   - Guidance T3 FY2027 : 108 Md$ ± 2 %, marge brute ~74 %
+#   - Taux d'impôt guidé FY2027 : 16–18 %
+# "auto" = valeur calculée à partir des données (TTM) ou du marché.
+# ============================================================================
+
+ticker: NVDA
+updated: 2026-10-27
+thesis: >
+  Leader des accélérateurs IA. La croissance des 12 prochains mois est largement
+  visible (guidance), la vraie question est la durée du cycle d'investissement des
+  hyperscalers et la pression concurrentielle (ASIC maison, AMD) sur les marges.
+
+dcf:
+  years: 10                       # horizon explicite
+  base_revenue: ttm               # ttm | last_fy | montant en $
+  # Croissance du CA, années 1 à 5. Années 6 à 10 : fondu linéaire vers la croissance terminale.
+  # Année 1 = 12 mois après le dernier trimestre publié (la guidance T3 pèse fortement).
+  revenue_growth: [0.50, 0.20, 0.12, 0.08, 0.06]
+  ebit_margin_start: auto         # auto = marge opérationnelle TTM
+  ebit_margin_target: 0.55        # marge EBIT normalisée (concurrence, prix)
+  margin_years_to_target: 7       # convergence linéaire en N années
+  tax_rate: 0.17
+  d_and_a_pct_revenue: auto       # auto = D&A / CA TTM
+  capex_pct_revenue: auto         # auto = capex / CA TTM
+  nwc_pct_incremental_revenue: 0.15   # BFR consommé par $ de CA additionnel (stocks + créances)
+  terminal_growth: 0.03
+  terminal_roic: null             # ex. 0.30 -> réinvestissement terminal = g / ROIC (plus rigoureux)
+  mid_year: true                  # convention mi-année
+
+wacc:
+  method: capm                    # capm | fixed
+  fixed: 0.10                     # utilisé seulement si method: fixed
+  risk_free: auto                 # auto = taux 10 ans US (FRED DGS10)
+  risk_free_fallback: 0.044
+  beta: auto                      # auto = bêta ajusté (Blume) 2 ans hebdo vs SPY
+  beta_fallback: 1.7
+  equity_risk_premium: 0.045      # prime de risque actions US (ordre de grandeur Damodaran)
+  pre_tax_cost_of_debt: 0.05
+  debt_weight: auto               # auto = poids de marché
+
+scenarios:
+  base:
+    probability: 0.50
+    narrative: Le cycle IA ralentit progressivement, marges qui se normalisent à 55 %.
+  bull:
+    probability: 0.25
+    narrative: Demande IA durable (inférence, IA souveraine), NVIDIA défend ses marges.
+    overrides:
+      dcf:
+        revenue_growth: [0.60, 0.30, 0.18, 0.12, 0.08]
+        ebit_margin_target: 0.62
+  bear:
+    probability: 0.25
+    narrative: Digestion des capex hyperscalers en 2028, montée des ASIC, marges sous pression.
+    overrides:
+      dcf:
+        revenue_growth: [0.35, 0.05, 0.00, 0.02, 0.03]
+        ebit_margin_target: 0.40
+
+comps:
+  peers: [AMD, AVGO, QCOM, INTC, MRVL]

@@ -1,0 +1,173 @@
+"""Market data: daily prices, risk-free rate, beta.
+
+Sources, in order of preference (all free, no key):
+  prices  : Yahoo Finance chart endpoint (unofficial) -> Stooq CSV -> last cached file
+  rf rate : FRED DGS10 CSV (official, US 10Y Treasury) -> Yahoo ^TNX -> assumption file
+
+Unofficial endpoints can break or rate-limit without notice. The pipeline never
+fails because of prices: it falls back to the previous run's data and flags it as stale.
+"""
+from __future__ import annotations
+
+import csv
+import io
+import math
+from datetime import date, datetime, timezone
+
+from . import http
+
+YAHOO_CHART = "https://query{n}.finance.yahoo.com/v8/finance/chart/{sym}"
+STOOQ_CSV = "https://stooq.com/q/d/l/"
+FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+
+
+def _yahoo(sym: str, rng: str = "5y") -> list[dict]:
+    last_exc = None
+    for n in (1, 2):
+        try:
+            r = http.get(YAHOO_CHART.format(n=n, sym=sym), host_key="yahoo", min_interval=0.6,
+                         headers={"User-Agent": http.BROWSER_UA, "Accept": "application/json"},
+                         params={"range": rng, "interval": "1d", "events": "div,splits",
+                                 "includeAdjustedClose": "true"})
+            res = r.json()["chart"]["result"][0]
+            ts = res.get("timestamp") or []
+            q = res["indicators"]["quote"][0]
+            adj = (res["indicators"].get("adjclose") or [{}])[0].get("adjclose") or q["close"]
+            out = []
+            for i, t in enumerate(ts):
+                c = q["close"][i]
+                if c is None:
+                    continue
+                d = datetime.fromtimestamp(t, tz=timezone.utc).date().isoformat()
+                out.append({"t": d, "o": _r(q["open"][i]), "h": _r(q["high"][i]), "l": _r(q["low"][i]),
+                            "c": _r(c), "ac": _r(adj[i]) if adj[i] is not None else _r(c),
+                            "v": int(q["volume"][i] or 0)})
+            if out:
+                return _dedupe(out)
+        except Exception as exc:  # noqa: BLE001 - any failure -> try next source
+            last_exc = exc
+    raise RuntimeError(f"Yahoo indisponible pour {sym}: {last_exc}")
+
+
+def _stooq(sym: str) -> list[dict]:
+    s = sym.lower().replace("^", "")
+    r = http.get(STOOQ_CSV, host_key="stooq", min_interval=0.6, params={"s": f"{s}.us", "i": "d"},
+                 headers={"User-Agent": http.BROWSER_UA})
+    rows = list(csv.DictReader(io.StringIO(r.text)))
+    out = []
+    for row in rows:
+        try:
+            c = float(row["Close"])
+        except (KeyError, ValueError):
+            continue
+        out.append({"t": row["Date"], "o": _r(float(row["Open"])), "h": _r(float(row["High"])),
+                    "l": _r(float(row["Low"])), "c": _r(c), "ac": _r(c), "v": int(float(row.get("Volume") or 0))})
+    if not out:
+        raise RuntimeError(f"Stooq vide pour {sym}")
+    cutoff = date.today().replace(year=date.today().year - 5).isoformat()
+    return [p for p in out if p["t"] >= cutoff]
+
+
+def daily_prices(sym: str, cached: list[dict] | None = None) -> tuple[list[dict], str]:
+    """Returns (bars, source). bars: [{t, o, h, l, c, ac, v}] ascending."""
+    for name, fn in (("yahoo", _yahoo), ("stooq", _stooq)):
+        try:
+            return fn(sym), name
+        except Exception as exc:  # noqa: BLE001
+            print(f"  [prix] {sym}: {name} a échoué ({exc})")
+    if cached:
+        return cached, "cache"
+    return [], "none"
+
+
+def risk_free_10y(fallback: float) -> tuple[float, str, str | None]:
+    """US 10Y Treasury constant-maturity yield, in decimal. Returns (rate, source, as_of)."""
+    try:
+        r = http.get(FRED_CSV, host_key="fred", params={"id": "DGS10"},
+                     headers={"User-Agent": http.BROWSER_UA})
+        rows = [row for row in csv.reader(io.StringIO(r.text))][1:]
+        for d, v in reversed(rows):
+            if v not in (".", ""):
+                return float(v) / 100.0, "FRED DGS10", d
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [rf] FRED a échoué ({exc})")
+    try:
+        bars = _yahoo("^TNX", "1mo")
+        return bars[-1]["c"] / 100.0, "Yahoo ^TNX", bars[-1]["t"]
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [rf] Yahoo ^TNX a échoué ({exc})")
+    return fallback, "hypothèse (fallback)", None
+
+
+def beta(stock: list[dict], bench: list[dict], weeks: int = 104) -> dict | None:
+    """OLS beta of weekly (Friday-to-Friday) log returns over `weeks` weeks, plus Blume adjustment."""
+    def weekly(bars):
+        out = {}
+        for b in bars:
+            d = date.fromisoformat(b["t"])
+            iso = d.isocalendar()
+            out[(iso[0], iso[1])] = b["ac"]  # last close of each ISO week
+        return out
+    ws, wb = weekly(stock), weekly(bench)
+    keys = sorted(set(ws) & set(wb))[-(weeks + 1):]
+    if len(keys) < 30:
+        return None
+    rs = [math.log(ws[b] / ws[a]) for a, b in zip(keys, keys[1:])]
+    rb = [math.log(wb[b] / wb[a]) for a, b in zip(keys, keys[1:])]
+    n = len(rs)
+    ms, mb = sum(rs) / n, sum(rb) / n
+    cov = sum((x - ms) * (y - mb) for x, y in zip(rs, rb)) / (n - 1)
+    var = sum((y - mb) ** 2 for y in rb) / (n - 1)
+    if var <= 0:
+        return None
+    raw = cov / var
+    corr = cov / math.sqrt(var * (sum((x - ms) ** 2 for x in rs) / (n - 1)))
+    return {"raw": round(raw, 3), "adjusted": round(0.67 * raw + 0.33, 3), "r2": round(corr ** 2, 3),
+            "n_weeks": n, "benchmark_note": "rendements hebdomadaires log, 2 ans"}
+
+
+def perf_stats(bars: list[dict]) -> dict:
+    """Trailing returns, annualised volatility, max drawdown, 52-week range."""
+    if not bars:
+        return {}
+    last = bars[-1]
+    d_last = date.fromisoformat(last["t"])
+
+    def ret_since(days=None, ytd=False):
+        if ytd:
+            target = date(d_last.year, 1, 1)
+        else:
+            target = date.fromordinal(d_last.toordinal() - days)
+        base = [b for b in bars if date.fromisoformat(b["t"]) <= target]
+        if not base:
+            return None
+        return last["ac"] / base[-1]["ac"] - 1
+
+    rets = [math.log(b["ac"] / a["ac"]) for a, b in zip(bars[-253:], bars[-252:]) if a["ac"] and b["ac"]]
+    vol = (sum((r - sum(rets) / len(rets)) ** 2 for r in rets) / (len(rets) - 1)) ** 0.5 * math.sqrt(252) \
+        if len(rets) > 20 else None
+    peak, mdd = -1e18, 0.0
+    for b in bars[-756:]:
+        peak = max(peak, b["ac"])
+        mdd = min(mdd, b["ac"] / peak - 1)
+    yr = bars[-252:]
+    return {
+        "last": last["c"], "date": last["t"],
+        "chg_1d": (last["c"] / bars[-2]["c"] - 1) if len(bars) > 1 else None,
+        "r_1w": ret_since(7), "r_1m": ret_since(30), "r_3m": ret_since(91), "r_6m": ret_since(182),
+        "r_ytd": ret_since(ytd=True), "r_1y": ret_since(365), "r_3y": ret_since(1095), "r_5y": ret_since(1826),
+        "vol_1y": vol, "max_dd_3y": mdd,
+        "high_52w": max(b["h"] or b["c"] for b in yr), "low_52w": min(b["l"] or b["c"] for b in yr),
+        "avg_volume_3m": sum(b["v"] for b in bars[-63:]) / max(1, len(bars[-63:])),
+    }
+
+
+def _r(x):
+    return None if x is None else round(float(x), 4)
+
+
+def _dedupe(bars):
+    seen = {}
+    for b in bars:
+        seen[b["t"]] = b
+    return [seen[k] for k in sorted(seen)]
