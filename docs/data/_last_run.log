@@ -1,5 +1,5 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
     [http] sec 403 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
 Traceback (most recent call last):
   File "/home/runner/work/terminal/terminal/pipeline/build.py", line 156, in run
