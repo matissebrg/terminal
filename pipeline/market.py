@@ -1,8 +1,10 @@
 """Market data: daily prices, risk-free rate, beta.
 
-Sources, in order of preference (all free, no key):
-  prices  : Yahoo Finance chart endpoint (unofficial) -> Stooq CSV -> last cached file
-  rf rate : FRED DGS10 CSV (official, US 10Y Treasury) -> Yahoo ^TNX -> assumption file
+Sources, tried in order (all free, no API key):
+  prices  : yfinance (handles Yahoo's cookie/crumb + TLS fingerprint, which avoids most 429s
+            from cloud IPs) -> raw Yahoo chart endpoint -> Nasdaq.com historical API -> Stooq CSV
+            -> last cached file
+  rf rate : FRED DGS10 CSV -> US Treasury daily par yield curve CSV -> yfinance ^TNX -> assumption
 
 Unofficial endpoints can break or rate-limit without notice. The pipeline never
 fails because of prices: it falls back to the previous run's data and flags it as stale.
@@ -12,20 +14,42 @@ from __future__ import annotations
 import csv
 import io
 import math
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from . import http
 
 YAHOO_CHART = "https://query{n}.finance.yahoo.com/v8/finance/chart/{sym}"
 STOOQ_CSV = "https://stooq.com/q/d/l/"
+NASDAQ_HIST = "https://api.nasdaq.com/api/quote/{sym}/historical"
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
+TREASURY_CSV = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
+                "daily-treasury-rates.csv/{year}/all")
+ETFS = {"SPY", "SOXX", "QQQ", "SMH", "IWM", "DIA"}
+
+
+def _yfinance(sym: str, rng: str = "5y") -> list[dict]:
+    import yfinance as yf  # optional dependency
+
+    df = yf.Ticker(sym).history(period=rng, interval="1d", auto_adjust=False, actions=False)
+    if df is None or df.empty:
+        raise RuntimeError("yfinance vide")
+    out = []
+    for idx, row in df.iterrows():
+        c = row.get("Close")
+        if c is None or c != c:  # NaN
+            continue
+        ac = row.get("Adj Close", c)
+        out.append({"t": idx.date().isoformat(), "o": _r(row.get("Open")), "h": _r(row.get("High")),
+                    "l": _r(row.get("Low")), "c": _r(c), "ac": _r(ac if ac == ac else c),
+                    "v": int(row.get("Volume") or 0)})
+    return _dedupe(out)
 
 
 def _yahoo(sym: str, rng: str = "5y") -> list[dict]:
     last_exc = None
     for n in (1, 2):
         try:
-            r = http.get(YAHOO_CHART.format(n=n, sym=sym), host_key="yahoo", min_interval=0.6,
+            r = http.get(YAHOO_CHART.format(n=n, sym=sym), host_key="yahoo", min_interval=0.6, retries=1,
                          headers={"User-Agent": http.BROWSER_UA, "Accept": "application/json"},
                          params={"range": rng, "interval": "1d", "events": "div,splits",
                                  "includeAdjustedClose": "true"})
@@ -49,9 +73,36 @@ def _yahoo(sym: str, rng: str = "5y") -> list[dict]:
     raise RuntimeError(f"Yahoo indisponible pour {sym}: {last_exc}")
 
 
+def _nasdaq(sym: str) -> list[dict]:
+    """Nasdaq.com historical quotes (unadjusted closes; dividends ignored)."""
+    today = date.today()
+    r = http.get(NASDAQ_HIST.format(sym=sym), host_key="nasdaq", min_interval=0.8, retries=2,
+                 headers={"User-Agent": http.BROWSER_UA, "Accept": "application/json, text/plain, */*",
+                          "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"},
+                 params={"assetclass": "etf" if sym in ETFS else "stocks",
+                         "fromdate": (today - timedelta(days=5 * 365 + 5)).isoformat(),
+                         "todate": today.isoformat(), "limit": 9999})
+    rows = (((r.json() or {}).get("data") or {}).get("tradesTable") or {}).get("rows") or []
+    num = lambda x: float(str(x).replace("$", "").replace(",", "")) if x not in (None, "", "N/A") else None  # noqa
+    out = []
+    for row in rows:
+        try:
+            d = datetime.strptime(row["date"], "%m/%d/%Y").date().isoformat()
+            c = num(row["close"])
+        except (KeyError, ValueError):
+            continue
+        if c is None:
+            continue
+        out.append({"t": d, "o": _r(num(row.get("open"))), "h": _r(num(row.get("high"))),
+                    "l": _r(num(row.get("low"))), "c": _r(c), "ac": _r(c), "v": int(num(row.get("volume")) or 0)})
+    if not out:
+        raise RuntimeError(f"Nasdaq vide pour {sym}: {r.text[:120]!r}")
+    return _dedupe(out)
+
+
 def _stooq(sym: str) -> list[dict]:
     s = sym.lower().replace("^", "")
-    r = http.get(STOOQ_CSV, host_key="stooq", min_interval=0.6, params={"s": f"{s}.us", "i": "d"},
+    r = http.get(STOOQ_CSV, host_key="stooq", min_interval=0.6, retries=1, params={"s": f"{s}.us", "i": "d"},
                  headers={"User-Agent": http.BROWSER_UA})
     rows = list(csv.DictReader(io.StringIO(r.text)))
     out = []
@@ -63,27 +114,47 @@ def _stooq(sym: str) -> list[dict]:
         out.append({"t": row["Date"], "o": _r(float(row["Open"])), "h": _r(float(row["High"])),
                     "l": _r(float(row["Low"])), "c": _r(c), "ac": _r(c), "v": int(float(row.get("Volume") or 0))})
     if not out:
-        raise RuntimeError(f"Stooq vide pour {sym}")
+        raise RuntimeError(f"Stooq vide pour {sym}: {r.text[:120]!r}")
     cutoff = date.today().replace(year=date.today().year - 5).isoformat()
     return [p for p in out if p["t"] >= cutoff]
 
 
+SOURCES = (("yfinance", _yfinance), ("yahoo", _yahoo), ("nasdaq", _nasdaq), ("stooq", _stooq))
+
+
 def daily_prices(sym: str, cached: list[dict] | None = None) -> tuple[list[dict], str]:
     """Returns (bars, source). bars: [{t, o, h, l, c, ac, v}] ascending."""
-    for name, fn in (("yahoo", _yahoo), ("stooq", _stooq)):
+    for name, fn in SOURCES:
         try:
-            return fn(sym), name
+            bars = fn(sym)
+            if len(bars) >= 20:
+                return bars, name
+            raise RuntimeError(f"seulement {len(bars)} barres")
         except Exception as exc:  # noqa: BLE001
-            print(f"  [prix] {sym}: {name} a échoué ({exc})")
+            print(f"  [prix] {sym}: {name} a échoué ({str(exc)[:200]})")
     if cached:
         return cached, "cache"
     return [], "none"
 
 
+def _treasury_10y() -> tuple[float, str]:
+    for year in (date.today().year, date.today().year - 1):
+        r = http.get(TREASURY_CSV.format(year=year), host_key="treasury", retries=2, timeout=40,
+                     headers={"User-Agent": http.BROWSER_UA},
+                     params={"type": "daily_treasury_yield_curve", "field_tdr_date_value": year, "_format": "csv"})
+        rows = list(csv.DictReader(io.StringIO(r.text)))
+        rows = [x for x in rows if (x.get("10 Yr") or "").strip()]
+        if rows:
+            latest = max(rows, key=lambda x: datetime.strptime(x["Date"], "%m/%d/%Y"))
+            d = datetime.strptime(latest["Date"], "%m/%d/%Y").date().isoformat()
+            return float(latest["10 Yr"]) / 100.0, d
+    raise RuntimeError("courbe du Trésor vide")
+
+
 def risk_free_10y(fallback: float) -> tuple[float, str, str | None]:
     """US 10Y Treasury constant-maturity yield, in decimal. Returns (rate, source, as_of)."""
     try:
-        r = http.get(FRED_CSV, host_key="fred", params={"id": "DGS10"},
+        r = http.get(FRED_CSV, host_key="fred", params={"id": "DGS10"}, retries=2, timeout=40,
                      headers={"User-Agent": http.BROWSER_UA})
         rows = [row for row in csv.reader(io.StringIO(r.text))][1:]
         for d, v in reversed(rows):
@@ -92,10 +163,16 @@ def risk_free_10y(fallback: float) -> tuple[float, str, str | None]:
     except Exception as exc:  # noqa: BLE001
         print(f"  [rf] FRED a échoué ({exc})")
     try:
-        bars = _yahoo("^TNX", "1mo")
-        return bars[-1]["c"] / 100.0, "Yahoo ^TNX", bars[-1]["t"]
+        v, d = _treasury_10y()
+        return v, "Trésor US (courbe des taux par)", d
     except Exception as exc:  # noqa: BLE001
-        print(f"  [rf] Yahoo ^TNX a échoué ({exc})")
+        print(f"  [rf] Trésor US a échoué ({exc})")
+    for name, fn in (("yfinance", _yfinance), ("yahoo", _yahoo)):
+        try:
+            bars = fn("^TNX", "1mo")
+            return bars[-1]["c"] / 100.0, f"{name} ^TNX", bars[-1]["t"]
+        except Exception as exc:  # noqa: BLE001
+            print(f"  [rf] {name} ^TNX a échoué ({exc})")
     return fallback, "hypothèse (fallback)", None
 
 
@@ -163,7 +240,10 @@ def perf_stats(bars: list[dict]) -> dict:
 
 
 def _r(x):
-    return None if x is None else round(float(x), 4)
+    if x is None:
+        return None
+    x = float(x)
+    return None if x != x else round(x, 4)  # NaN -> None (JSON has no NaN)
 
 
 def _dedupe(bars):

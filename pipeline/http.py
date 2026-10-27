@@ -11,7 +11,9 @@ from typing import Optional
 
 import requests
 
-DEFAULT_SEC_UA = "matissebrg-terminal/1.0 (+https://github.com/matissebrg/terminal)"
+# The SEC asks for "Company/Name contact@email". A GitHub no-reply address keeps a real e-mail
+# out of this public repo; set the SEC_USER_AGENT secret to override it.
+DEFAULT_SEC_UA = "matissebrg-terminal matissebrg@users.noreply.github.com"
 BROWSER_UA = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
@@ -61,6 +63,6 @@ def get(url: str, *, host_key: str, min_interval: float = 0.15, headers: dict | 
 
 
 def sec_get_json(url: str) -> dict:
-    r = get(url, host_key="sec", min_interval=0.15,
+    r = get(url, host_key="sec", min_interval=0.15, timeout=60,
             headers={"User-Agent": sec_user_agent(), "Accept-Encoding": "gzip, deflate"})
     return r.json()

@@ -23,3 +23,13 @@ peer_names:
   QCOM: Qualcomm
   INTC: Intel
   MRVL: Marvell Technology
+
+# CIK SEC (identifiant fixe). Évite de dépendre du fichier ticker -> CIK de la SEC ;
+# pour un nouveau ticker, laisser vide : le pipeline le cherche tout seul.
+ciks:
+  NVDA: 1045810
+  AMD: 2488
+  AVGO: 1730168
+  QCOM: 804328
+  INTC: 50863
+  MRVL: 1835632

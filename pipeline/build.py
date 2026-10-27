@@ -25,11 +25,14 @@ OUT = ROOT / "docs" / "data"
 class LiveSource:
     mode = "live"
 
-    def __init__(self):
+    def __init__(self, known_ciks: dict | None = None):
         self._tickers = None
+        self._known = {k.upper(): int(v) for k, v in (known_ciks or {}).items() if v}
         self._cache: dict = {}
 
     def cik(self, ticker: str) -> int:
+        if ticker.upper() in self._known:
+            return self._known[ticker.upper()]
         if self._tickers is None:
             self._tickers = sec.ticker_map()
         return self._tickers[ticker.upper()]
@@ -304,7 +307,8 @@ def main(argv=None):
     args = ap.parse_args(argv)
     if args.out:
         OUT = args.out
-    src = FixtureSource(args.fixtures) if args.fixtures else LiveSource()
+    universe = yaml.safe_load((ROOT / "config" / "universe.yaml").read_text())
+    src = FixtureSource(args.fixtures) if args.fixtures else LiveSource(universe.get("ciks"))
     return run(src, args.tickers)
 
 
