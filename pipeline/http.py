@@ -14,10 +14,8 @@ import requests
 # The SEC asks for "Company/Name contact@email". A GitHub no-reply address keeps a real e-mail
 # out of this public repo; set the SEC_USER_AGENT secret to override it.
 DEFAULT_SEC_UA = "matissebrg-terminal matissebrg@users.noreply.github.com"
-BROWSER_UA = (
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
-)
+# Honest identification for every non-SEC request (no browser impersonation).
+PROJECT_UA = "matissebrg-terminal/1.0 (+https://github.com/matissebrg/terminal)"
 
 _session: Optional[requests.Session] = None
 _last_call: dict[str, float] = {}

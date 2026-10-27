@@ -12,6 +12,12 @@
       s += `<div class="banner">⚠ <div><b>Données de démonstration synthétiques.</b> Ce site affiche des chiffres inventés pour tester l'interface.
         Ils seront remplacés automatiquement par les vraies données SEC et de marché à la première exécution du pipeline (GitHub Actions).</div></div>`;
     }
+    const secBlocked = status && (status.errors || []).some((e) => /403/.test(e) && /sec\.gov/.test(e));
+    if (secBlocked) {
+      s += `<div class="banner">🔑 <div><b>La SEC refuse l'accès aux données (erreur 403).</b> Elle exige un User-Agent avec un vrai contact.
+        Dans le repo GitHub : <b>Settings → Secrets and variables → Actions → New repository secret</b>, nom <code>SEC_USER_AGENT</code>,
+        valeur <code>Prénom Nom ton.email@exemple.com</code>, puis <b>Actions → update-data → Run workflow</b>.</div></div>`;
+    }
     if (status && status.errors && status.errors.length) {
       s += `<div class="banner">⚠ <div><b>Dernière mise à jour partielle :</b> ${status.errors.map(T.esc).join(" · ")}</div></div>`;
     }
@@ -45,7 +51,8 @@
   T.route(/^\/$/, async (view) => {
     const [u, feed, status] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null)]);
     const rf = u.risk_free;
-    const rows = u.tickers.map((t) => `<tr data-href="#/t/${t.ticker}" style="cursor:pointer">
+    const empty = !u.tickers.length ? `<tr><td colspan="9"><div class="empty">Aucune valeur calculée pour l'instant — voir le message ci-dessus.</div></td></tr>` : "";
+    const rows = empty + u.tickers.map((t) => `<tr data-href="#/t/${t.ticker}" style="cursor:pointer">
         <td><b>${t.ticker}</b> <span class="muted">${T.esc(t.name)}</span></td>
         <td class="n">${F.px(t.price)}</td>
         <td class="n ${T.cls(t.chg_1d)}">${F.pct(t.chg_1d, 2, true)}</td>

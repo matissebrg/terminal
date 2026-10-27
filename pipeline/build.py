@@ -143,6 +143,7 @@ def run(src, only: list[str] | None = None) -> int:
         bench_bars[b] = get_prices(src, b, status)
 
     all_events, index = [], []
+    prev_index = {x["ticker"]: x for x in feed.load_json(OUT / "universe.json", {}).get("tickers", [])}
     tickers = [t for t in universe["tickers"] if not only or t in only]
     for t in tickers:
         cfg = universe["tickers"][t]
@@ -259,6 +260,8 @@ def run(src, only: list[str] | None = None) -> int:
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()
             status["errors"].append(f"{t}: {exc}")
+            if t in prev_index:  # keep yesterday's numbers rather than blanking the site
+                index.append({**prev_index[t], "stale": True})
 
     benches = {}
     for b_sym, bars in bench_bars.items():
@@ -271,8 +274,12 @@ def run(src, only: list[str] | None = None) -> int:
     write(OUT / "status.json", status)
     if status["errors"]:
         print("Erreurs :", *status["errors"], sep="\n  ")
-    # Fail the job only if no ticker could be built at all
-    return 0 if index else 1
+        for e in status["errors"]:  # GitHub Actions annotation, visible on the run page
+            print(f"::warning title=Pipeline::{e}")
+    if not index:
+        print("::error title=Aucune valeur construite::voir docs/data/status.json (souvent : secret SEC_USER_AGENT manquant)")
+    # The site is still deployed so the setup message is visible; data files keep the last good run.
+    return 0
 
 
 def _football(base, scen, sens, comp, perf):

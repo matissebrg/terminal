@@ -1,9 +1,8 @@
 """Market data: daily prices, risk-free rate, beta.
 
 Sources, tried in order (all free, no API key):
-  prices  : yfinance (handles Yahoo's cookie/crumb + TLS fingerprint, which avoids most 429s
-            from cloud IPs) -> raw Yahoo chart endpoint -> Nasdaq.com historical API -> Stooq CSV
-            -> last cached file
+  prices  : yfinance (the standard open-source Yahoo Finance client) -> Yahoo chart endpoint
+            -> Stooq CSV -> last cached file
   rf rate : FRED DGS10 CSV -> US Treasury daily par yield curve CSV -> yfinance ^TNX -> assumption
 
 Unofficial endpoints can break or rate-limit without notice. The pipeline never
@@ -20,7 +19,6 @@ from . import http
 
 YAHOO_CHART = "https://query{n}.finance.yahoo.com/v8/finance/chart/{sym}"
 STOOQ_CSV = "https://stooq.com/q/d/l/"
-NASDAQ_HIST = "https://api.nasdaq.com/api/quote/{sym}/historical"
 FRED_CSV = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 TREASURY_CSV = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
                 "daily-treasury-rates.csv/{year}/all")
@@ -28,7 +26,10 @@ ETFS = {"SPY", "SOXX", "QQQ", "SMH", "IWM", "DIA"}
 
 
 def _yfinance(sym: str, rng: str = "5y") -> list[dict]:
+    import warnings
+
     import yfinance as yf  # optional dependency
+    warnings.filterwarnings("ignore", module="yfinance")
 
     df = yf.Ticker(sym).history(period=rng, interval="1d", auto_adjust=False, actions=False)
     if df is None or df.empty:
@@ -50,7 +51,7 @@ def _yahoo(sym: str, rng: str = "5y") -> list[dict]:
     for n in (1, 2):
         try:
             r = http.get(YAHOO_CHART.format(n=n, sym=sym), host_key="yahoo", min_interval=0.6, retries=1,
-                         headers={"User-Agent": http.BROWSER_UA, "Accept": "application/json"},
+                         headers={"User-Agent": http.PROJECT_UA, "Accept": "application/json"},
                          params={"range": rng, "interval": "1d", "events": "div,splits",
                                  "includeAdjustedClose": "true"})
             res = r.json()["chart"]["result"][0]
@@ -73,37 +74,10 @@ def _yahoo(sym: str, rng: str = "5y") -> list[dict]:
     raise RuntimeError(f"Yahoo indisponible pour {sym}: {last_exc}")
 
 
-def _nasdaq(sym: str) -> list[dict]:
-    """Nasdaq.com historical quotes (unadjusted closes; dividends ignored)."""
-    today = date.today()
-    r = http.get(NASDAQ_HIST.format(sym=sym), host_key="nasdaq", min_interval=0.8, retries=2,
-                 headers={"User-Agent": http.BROWSER_UA, "Accept": "application/json, text/plain, */*",
-                          "Origin": "https://www.nasdaq.com", "Referer": "https://www.nasdaq.com/"},
-                 params={"assetclass": "etf" if sym in ETFS else "stocks",
-                         "fromdate": (today - timedelta(days=5 * 365 + 5)).isoformat(),
-                         "todate": today.isoformat(), "limit": 9999})
-    rows = (((r.json() or {}).get("data") or {}).get("tradesTable") or {}).get("rows") or []
-    num = lambda x: float(str(x).replace("$", "").replace(",", "")) if x not in (None, "", "N/A") else None  # noqa
-    out = []
-    for row in rows:
-        try:
-            d = datetime.strptime(row["date"], "%m/%d/%Y").date().isoformat()
-            c = num(row["close"])
-        except (KeyError, ValueError):
-            continue
-        if c is None:
-            continue
-        out.append({"t": d, "o": _r(num(row.get("open"))), "h": _r(num(row.get("high"))),
-                    "l": _r(num(row.get("low"))), "c": _r(c), "ac": _r(c), "v": int(num(row.get("volume")) or 0)})
-    if not out:
-        raise RuntimeError(f"Nasdaq vide pour {sym}: {r.text[:120]!r}")
-    return _dedupe(out)
-
-
 def _stooq(sym: str) -> list[dict]:
     s = sym.lower().replace("^", "")
     r = http.get(STOOQ_CSV, host_key="stooq", min_interval=0.6, retries=1, params={"s": f"{s}.us", "i": "d"},
-                 headers={"User-Agent": http.BROWSER_UA})
+                 headers={"User-Agent": http.PROJECT_UA})
     rows = list(csv.DictReader(io.StringIO(r.text)))
     out = []
     for row in rows:
@@ -119,7 +93,7 @@ def _stooq(sym: str) -> list[dict]:
     return [p for p in out if p["t"] >= cutoff]
 
 
-SOURCES = (("yfinance", _yfinance), ("yahoo", _yahoo), ("nasdaq", _nasdaq), ("stooq", _stooq))
+SOURCES = (("yfinance", _yfinance), ("yahoo", _yahoo), ("stooq", _stooq))
 
 
 def daily_prices(sym: str, cached: list[dict] | None = None) -> tuple[list[dict], str]:
@@ -140,7 +114,7 @@ def daily_prices(sym: str, cached: list[dict] | None = None) -> tuple[list[dict]
 def _treasury_10y() -> tuple[float, str]:
     for year in (date.today().year, date.today().year - 1):
         r = http.get(TREASURY_CSV.format(year=year), host_key="treasury", retries=2, timeout=40,
-                     headers={"User-Agent": http.BROWSER_UA},
+                     headers={"User-Agent": http.PROJECT_UA},
                      params={"type": "daily_treasury_yield_curve", "field_tdr_date_value": year, "_format": "csv"})
         rows = list(csv.DictReader(io.StringIO(r.text)))
         rows = [x for x in rows if (x.get("10 Yr") or "").strip()]
@@ -155,7 +129,7 @@ def risk_free_10y(fallback: float) -> tuple[float, str, str | None]:
     """US 10Y Treasury constant-maturity yield, in decimal. Returns (rate, source, as_of)."""
     try:
         r = http.get(FRED_CSV, host_key="fred", params={"id": "DGS10"}, retries=2, timeout=40,
-                     headers={"User-Agent": http.BROWSER_UA})
+                     headers={"User-Agent": http.PROJECT_UA})
         rows = [row for row in csv.reader(io.StringIO(r.text))][1:]
         for d, v in reversed(rows):
             if v not in (".", ""):
