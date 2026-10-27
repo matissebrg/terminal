@@ -34,7 +34,7 @@ def sec_user_agent() -> str:
 
 
 def get(url: str, *, host_key: str, min_interval: float = 0.15, headers: dict | None = None,
-        params: dict | None = None, retries: int = 3, timeout: float = 30.0) -> requests.Response:
+        params: dict | None = None, retries: int = 3, timeout: float = 20.0) -> requests.Response:
     """GET with per-host throttling and exponential backoff on 429/5xx."""
     last_exc: Exception | None = None
     for attempt in range(retries):
@@ -42,12 +42,15 @@ def get(url: str, *, host_key: str, min_interval: float = 0.15, headers: dict | 
         if wait > 0:
             time.sleep(wait)
         _last_call[host_key] = time.monotonic()
+        t0 = time.monotonic()
         try:
             r = session().get(url, headers=headers or {}, params=params, timeout=timeout)
         except requests.RequestException as exc:  # network error -> retry
+            print(f"    [http] {host_key} {url} -> {type(exc).__name__} ({time.monotonic() - t0:.1f}s)")
             last_exc = exc
             time.sleep(1.5 * (attempt + 1))
             continue
+        print(f"    [http] {host_key} {r.status_code} {url.split('?')[0][-70:]} ({time.monotonic() - t0:.1f}s)")
         if r.status_code in (429, 500, 502, 503, 504):
             last_exc = requests.HTTPError(f"{r.status_code} for {url}")
             time.sleep(2.0 * (attempt + 1))

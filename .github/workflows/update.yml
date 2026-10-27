@@ -49,9 +49,18 @@ jobs:
       - name: Pipeline (SEC + marché → valorisation → feed)
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-        run: python -m pipeline.build
+        run: |
+          set -o pipefail
+          python -u -m pipeline.build 2>&1 | tee pipeline.log
+
+      - name: Publier le journal du pipeline (diagnostic)
+        if: always()
+        run: |
+          mkdir -p docs/data
+          cp pipeline.log docs/data/_last_run.log 2>/dev/null || echo "pas de journal" > docs/data/_last_run.log
 
       - name: Enregistrer l'historique dans le repo
+        if: always()
         run: |
           git config user.name "terminal-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
