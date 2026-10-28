@@ -82,9 +82,14 @@ CONCEPTS: dict[str, tuple] = {
     "short_term_investments": (INSTANT, "USD", [("us-gaap", "MarketableSecuritiesCurrent"),
                                                 ("us-gaap", "AvailableForSaleSecuritiesDebtSecuritiesCurrent"),
                                                 ("us-gaap", "ShortTermInvestments"),
-                                                ("us-gaap", "AvailableForSaleSecuritiesCurrent")],
+                                                ("us-gaap", "AvailableForSaleSecuritiesCurrent"),
+                                                ("us-gaap", "DebtSecuritiesCurrent")],  # NVIDIA since FY2026 Q4
                                "Placements court terme", "balance"),
-    "receivables": (INSTANT, "USD", [("us-gaap", "AccountsReceivableNetCurrent")], "Créances clients", "balance"),
+    # Filled by COMPOSITES below (non-operating stakes, added to the EV -> equity bridge)
+    "equity_investments": (INSTANT, "USD", [], "Participations en actions (hors exploitation)", "balance"),
+    "receivables": (INSTANT, "USD", [("us-gaap", "AccountsReceivableNetCurrent"),
+                                     ("us-gaap", "AccountsAndOtherReceivablesNetCurrent")],  # Qualcomm since FY2026
+                    "Créances clients", "balance"),
     "inventory": (INSTANT, "USD", [("us-gaap", "InventoryNet")], "Stocks", "balance"),
     "current_assets": (INSTANT, "USD", [("us-gaap", "AssetsCurrent")], "Actif courant", "balance"),
     "total_assets": (INSTANT, "USD", [("us-gaap", "Assets")], "Total actif", "balance"),
@@ -103,6 +108,22 @@ CONCEPTS: dict[str, tuple] = {
                                 ("us-gaap", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest")],
                "Capitaux propres", "balance"),
 }
+
+# Lines rebuilt as a SUM of components when no single tag exists for a period.
+# groups: each group is an ordered list of candidate tags; the value is the sum over groups of the
+# first tag found. require_first: the first group must be present (e.g. depreciation for D&A).
+COMPOSITES = {
+    # AMD, Marvell: cash-flow statement splits depreciation and acquisition-intangible amortization
+    "d_and_a": {"groups": [[("us-gaap", "OtherDepreciationAndAmortization"), ("us-gaap", "Depreciation"),
+                            ("us-gaap", "DepreciationNonproduction")],
+                           [("us-gaap", "AmortizationOfIntangibleAssets")]], "require_first": True},
+    # Listed stakes (fair value through net income) + non-marketable stakes (measurement alternative)
+    "equity_investments": {"groups": [[("us-gaap", "EquitySecuritiesFvNi"), ("us-gaap", "EquitySecuritiesFVNINoncurrent")],
+                                      [("us-gaap", "EquitySecuritiesWithoutReadilyDeterminableFairValueAmount")]],
+                           "require_first": False},
+}
+# Flows whose absence usually means "zero this period", not a tag switch (quality check ignores them)
+OPTIONAL_FLOWS = {"acquisitions", "dividends_paid", "buybacks", "interest_expense"}
 
 # Lines computed from others (never read from XBRL). label FR, statement
 DERIVED = {
@@ -137,6 +158,10 @@ def _d(s: str | None) -> date | None:
 
 def collect(facts_json: dict, concept: str) -> list[Fact]:
     kind, unit, tags, *_ = CONCEPTS[concept]
+    return collect_tags(facts_json, unit, tags)
+
+
+def collect_tags(facts_json: dict, unit: str, tags: list[tuple[str, str]]) -> list[Fact]:
     out: list[Fact] = []
     facts = facts_json.get("facts", {})
     for rank, (tax, tag) in enumerate(tags):
@@ -287,8 +312,10 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> 
                     if fy.fy in a and all((fy.fy, k) in q for k in (1, 2, 3)) and (fy.fy, 4) not in q:
                         v = a[fy.fy][0] - sum(q[(fy.fy, k)][0] for k in (1, 2, 3))
                         q[(fy.fy, 4)] = (round(v, 4), fy.end, a[fy.fy][1])
-        flows_a[name], flows_q[name] = a, q
         used = sorted({f.tag for f in facts}, key=lambda t: [x[1] for x in CONCEPTS[name][2]].index(t))
+        if name in COMPOSITES:
+            used += _fill_flow_composite(facts_json, name, years, a, q)
+        flows_a[name], flows_q[name] = a, q
         coverage[name] = {"tags": used, "annual": len(a), "quarterly": len(q)}
 
     # Period skeleton: union of quarter keys seen on revenue / net income
@@ -312,8 +339,11 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> 
         facts = collect(facts_json, name)
         inst_a[name] = build_instant(facts, a_end)
         inst_q[name] = build_instant(facts, q_end)
-        coverage[name] = {"tags": sorted({f.tag for f in facts}), "annual": len(inst_a[name]),
-                          "quarterly": len(inst_q[name])}
+        used = sorted({f.tag for f in facts})
+        if name in COMPOSITES:
+            used += _fill_instant_composite(facts_json, name, a_end, inst_a[name])
+            _fill_instant_composite(facts_json, name, q_end, inst_q[name])
+        coverage[name] = {"tags": used, "annual": len(inst_a[name]), "quarterly": len(inst_q[name])}
 
     def qlabel(k):
         return f"Q{k[1]} FY{k[0]}"
@@ -365,6 +395,51 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> 
         "kinds": {**{k: v[0] for k, v in CONCEPTS.items()}, "ebitda": FLOW, "fcf": FLOW,
                   "total_debt": INSTANT, "net_cash": INSTANT},
     }
+
+
+def _group_sum(per_group: list[dict], require_first: bool) -> dict:
+    """per_group: [{key: value_tuple}] -> {key: (sum, *rest of the first available tuple)}"""
+    keys = set().union(*per_group) if per_group else set()
+    out = {}
+    for k in keys:
+        present = [g[k] for g in per_group if k in g]
+        if not present or (require_first and k not in per_group[0]):
+            continue
+        out[k] = (sum(v[0] for v in present), *present[0][1:])
+    return out
+
+
+def _fill_flow_composite(facts_json, name, years, a, q) -> list[str]:
+    spec, unit = COMPOSITES[name], CONCEPTS[name][1]
+    ga, gq, used = [], [], []
+    for group in spec["groups"]:
+        facts = collect_tags(facts_json, unit, group)
+        ya, yq = build_flow(facts, years)
+        ga.append(ya)
+        gq.append(yq)
+        used += sorted({f.tag for f in facts})
+    added = 0
+    for target, comp in ((a, _group_sum(ga, spec["require_first"])), (q, _group_sum(gq, spec["require_first"]))):
+        for k, v in comp.items():
+            if k not in target:
+                target[k] = v
+                added += 1
+    return [f"somme : {' + '.join(used)}"] if added else []
+
+
+def _fill_instant_composite(facts_json, name, ends, target) -> list[str]:
+    spec, unit = COMPOSITES[name], CONCEPTS[name][1]
+    groups, used = [], []
+    for group in spec["groups"]:
+        facts = collect_tags(facts_json, unit, group)
+        groups.append(build_instant(facts, ends))
+        used += sorted({f.tag for f in facts})
+    added = 0
+    for k, v in _group_sum(groups, spec["require_first"]).items():
+        if k not in target:
+            target[k] = v
+            added += 1
+    return [f"somme : {' + '.join(used)}"] if added else []
 
 
 def _derive(lines: dict, periods: dict) -> None:
@@ -465,6 +540,8 @@ def quality(fin: dict) -> list[str]:
         return []
     issues = []
     for name, (kind, *_rest) in CONCEPTS.items():
+        if name in OPTIONAL_FLOWS:
+            continue
         series = fin["lines"].get(name, {}).get("quarterly", {})
         if series and q[-1] not in series and any(l in series for l in q[-6:-1]):
             last = max((l for l in q if l in series), key=q.index)

@@ -186,7 +186,7 @@
       ["operating_expenses", "sub"], ["operating_income", "total"], ["interest_expense", "sub"], ["pretax_income", ""],
       ["income_tax", "sub"], ["net_income", "total"], ["ebitda", "hl"], ["eps_diluted", "ps"], ["diluted_shares", "sh"]] },
     balance: { label: "Bilan", rows: [
-      ["cash", ""], ["short_term_investments", ""], ["receivables", ""], ["inventory", ""], ["current_assets", "total"],
+      ["cash", ""], ["short_term_investments", ""], ["equity_investments", ""], ["receivables", ""], ["inventory", ""], ["current_assets", "total"],
       ["total_assets", "total"], ["current_liabilities", ""], ["debt_current", "sub"], ["debt_noncurrent", "sub"],
       ["total_debt", "hl"], ["total_liabilities", "total"], ["equity", "total"], ["net_cash", "hl"]] },
     cashflow: { label: "Flux de trésorerie", rows: [
@@ -428,7 +428,7 @@
         ${[["CA", "revenue", 1e9], ["Croissance", "growth", "pct"], ["Marge EBIT", "ebit_margin", "pct"], ["EBIT", "ebit", 1e9], ["NOPAT", "nopat", 1e9],
            ["+ D&A", "d_and_a", 1e9], ["− Capex", "capex", 1e9], ["− ΔBFR", "delta_nwc", 1e9], ["FCFF", "fcff", 1e9], ["Facteur d'actualisation", "discount_factor", "f"], ["Valeur actuelle", "pv", 1e9]]
           .map(([l, k, d]) => `<tr class="${k === "fcff" ? "total" : ""}"><td class="lbl">${l}</td>${res.rows.map((r) => `<td class="n">${d === "pct" ? F.pct(r[k], 1) : d === "f" ? F.n(r[k], 3) : F.n(r[k] / d, 1)}</td>`).join("")}</tr>`).join("")}
-        </tbody></table><p class="note">Valeur terminale ${F.usd(res.terminal_value)} → actualisée ${F.usd(res.pv_terminal_value)}. VE ${F.usd(res.enterprise_value)} + trésorerie ${F.usd(res.cash)} − dette ${F.usd(res.debt)} = ${F.usd(res.equity_value)} / ${F.n(res.shares / 1e9, 2)} Md actions.</p>`;
+        </tbody></table><p class="note">Valeur terminale ${F.usd(res.terminal_value)} → actualisée ${F.usd(res.pv_terminal_value)}. VE ${F.usd(res.enterprise_value)} + trésorerie et placements ${F.usd(res.cash)} + participations ${F.usd(res.investments)} − dette ${F.usd(res.debt)} = ${F.usd(res.equity_value)} / ${F.n(res.shares / 1e9, 2)} Md actions.</p>`;
     }
     // For the "changed" marker, WACC inputs are compared with the original (pipeline) values
     ctlDefs.forEach((d) => { const g = d[6]; d[6] = (s, isBase) => (isBase && ["rf", "bt", "erp"].includes(d[0]) ? I.wacc_detail[{ rf: "risk_free", bt: "beta", erp: "equity_risk_premium" }[d[0]]] : g(s)); });
@@ -436,7 +436,8 @@
     T.$("#reset").addEventListener("click", () => { sim = JSON.parse(JSON.stringify(I)); Object.assign(W, I.wacc_detail); buildCtl(); run(); });
     T.$("#yaml").addEventListener("click", async () => {
       const r3 = (x) => +(+x).toFixed(4);
-      const y = `dcf:\n  years: ${sim.years}\n  base_revenue: ttm\n  revenue_growth: [${sim.revenue_growth.map(r3).join(", ")}]\n  ebit_margin_start: auto\n  ebit_margin_target: ${r3(sim.ebit_margin_target)}\n  margin_years_to_target: ${sim.margin_years_to_target}\n  tax_rate: ${r3(sim.tax_rate)}\n  d_and_a_pct_revenue: ${r3(sim.d_and_a_pct_revenue)}\n  capex_pct_revenue: ${r3(sim.capex_pct_revenue)}\n  nwc_pct_incremental_revenue: ${r3(sim.nwc_pct_incremental_revenue)}\n  terminal_growth: ${r3(sim.terminal_growth)}\n  terminal_roic: ${sim.terminal_roic || "null"}\n  mid_year: ${sim.mid_year}\n\nwacc:\n  method: capm\n  risk_free: ${r3(W.risk_free)}\n  beta: ${r3(W.beta)}\n  equity_risk_premium: ${r3(W.equity_risk_premium)}\n  pre_tax_cost_of_debt: ${r3(W.pre_tax_cost_of_debt)}\n  debt_weight: auto\n`;
+      const same = (a, b) => Math.abs(a - b) < 1e-9;  // untouched slider -> keep "auto" (recomputed each run)
+      const y = `dcf:\n  years: ${sim.years}\n  base_revenue: ttm\n  revenue_growth: [${sim.revenue_growth.map(r3).join(", ")}]\n  ebit_margin_start: auto\n  ebit_margin_target: ${r3(sim.ebit_margin_target)}\n  margin_years_to_target: ${sim.margin_years_to_target}\n  tax_rate: ${r3(sim.tax_rate)}\n  d_and_a_pct_revenue: ${same(sim.d_and_a_pct_revenue, I.d_and_a_pct_revenue) ? "auto" : r3(sim.d_and_a_pct_revenue)}\n  capex_pct_revenue: ${same(sim.capex_pct_revenue, I.capex_pct_revenue) ? "auto" : r3(sim.capex_pct_revenue)}\n  nwc_pct_incremental_revenue: ${r3(sim.nwc_pct_incremental_revenue)}\n  terminal_growth: ${r3(sim.terminal_growth)}\n  terminal_roic: ${sim.terminal_roic || "null"}\n  mid_year: ${sim.mid_year}\n  include_equity_investments: ${(I.investments || 0) > 0}\n\nwacc:\n  method: capm\n  risk_free: ${same(W.risk_free, I.wacc_detail.risk_free) ? "auto" : r3(W.risk_free)}\n  beta: ${same(W.beta, I.wacc_detail.beta) ? "auto" : r3(W.beta)}\n  equity_risk_premium: ${r3(W.equity_risk_premium)}\n  pre_tax_cost_of_debt: ${r3(W.pre_tax_cost_of_debt)}\n  debt_weight: auto\n`;
       try { await navigator.clipboard.writeText(y); T.$("#yaml").textContent = "Copié ✓"; }
       catch (e) { window.prompt("Copie ce YAML :", y); }
       setTimeout(() => { T.$("#yaml").textContent = "Copier en YAML"; }, 1800);
@@ -493,6 +494,7 @@
       ["Taux sans risque", F.pct(I.wacc_detail.risk_free, 2), S.risk_free], ["Bêta", F.n(I.wacc_detail.beta, 2), S.beta],
       ["Prime de risque actions", F.pct(I.wacc_detail.equity_risk_premium, 2), "hypothèse"],
       ["Poids de la dette", F.pct(I.wacc_detail.debt_weight, 2), S.debt_weight], ["Trésorerie + placements", F.usd(I.cash), "données (dernier bilan)"],
+      ["Participations en actions", F.usd(I.investments), S.investments],
       ["Dette financière", F.usd(I.debt), "données (dernier bilan)"], ["Nombre d'actions", F.n(I.shares / 1e9, 3) + " Md", "SEC (page de garde du dernier dépôt)"],
     ];
     T.$("#srcs").innerHTML = `<table class="t"><thead><tr><th>Paramètre</th><th class="n">Valeur</th><th>Source</th></tr></thead><tbody>

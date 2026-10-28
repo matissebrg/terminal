@@ -106,3 +106,77 @@ def test_53_week_year_labels():
     fy2021 = next(y for y in years if y.fy == 2021)
     assert (fy2021.end - fy2021.start).days + 1 == 371  # 53 weeks
     assert years[-1].reported is False                  # current fiscal year still open
+
+
+# --------------------------------------------------------------------------- tag switches & composites
+def _fact(start, end, val, form="10-Q", filed=None, accn="a"):
+    f = {"end": end, "val": val, "form": form, "filed": filed or end, "accn": accn, "fy": 2026, "fp": "Q"}
+    if start:
+        f["start"] = start
+    return f
+
+
+def _mini_facts(extra: dict) -> dict:
+    """Two full fiscal years of revenue so the calendar can be inferred, plus extra tags."""
+    rev = []
+    for y in (2024, 2025):
+        rev.append(_fact(f"{y}-01-01", f"{y}-12-31", 100.0, form="10-K", filed=f"{y + 1}-02-15", accn=f"k{y}"))
+    for q, (s_, e_) in enumerate([("2025-01-01", "2025-03-31"), ("2025-04-01", "2025-06-30"),
+                                  ("2025-07-01", "2025-09-30")], 1):
+        rev.append(_fact(s_, e_, 25.0, filed="2025-11-01", accn=f"q{q}"))
+    rev.append(_fact("2026-01-01", "2026-03-31", 30.0, filed="2026-05-01", accn="q26"))
+    facts = {"us-gaap": {"Revenues": {"units": {"USD": rev}}}}
+    for tag, arr in extra.items():
+        facts["us-gaap"][tag] = {"units": {"USD": arr}}
+    return {"facts": facts}
+
+
+def test_short_term_investments_tag_switch():
+    fj = _mini_facts({
+        "MarketableSecuritiesCurrent": [_fact(None, "2025-09-30", 40.0)],
+        "DebtSecuritiesCurrent": [_fact(None, "2026-03-31", 55.0, filed="2026-05-01")],
+    })
+    n = normalize.normalize(fj)
+    q = n["lines"]["short_term_investments"]["quarterly"]
+    assert q["Q3 FY2025"] == 40.0 and q["Q1 FY2026"] == 55.0
+    assert normalize.quality(n) == [] or not any("short_term" in x for x in normalize.quality(n))
+
+
+def test_d_and_a_composite_when_no_single_tag():
+    fj = _mini_facts({
+        "OtherDepreciationAndAmortization": [_fact("2026-01-01", "2026-03-31", 3.0, filed="2026-05-01")],
+        "AmortizationOfIntangibleAssets": [_fact("2026-01-01", "2026-03-31", 2.0, filed="2026-05-01")],
+    })
+    n = normalize.normalize(fj)
+    assert n["lines"]["d_and_a"]["quarterly"]["Q1 FY2026"] == 5.0
+    assert any("somme" in t for t in n["coverage"]["d_and_a"]["tags"])
+
+
+def test_d_and_a_composite_requires_depreciation():
+    fj = _mini_facts({"AmortizationOfIntangibleAssets": [_fact("2026-01-01", "2026-03-31", 2.0, filed="2026-05-01")]})
+    n = normalize.normalize(fj)
+    assert "Q1 FY2026" not in n["lines"]["d_and_a"]["quarterly"]
+
+
+def test_direct_tag_wins_over_composite():
+    fj = _mini_facts({
+        "DepreciationDepletionAndAmortization": [_fact("2026-01-01", "2026-03-31", 9.0, filed="2026-05-01")],
+        "OtherDepreciationAndAmortization": [_fact("2026-01-01", "2026-03-31", 3.0, filed="2026-05-01")],
+        "AmortizationOfIntangibleAssets": [_fact("2026-01-01", "2026-03-31", 2.0, filed="2026-05-01")],
+    })
+    assert normalize.normalize(fj)["lines"]["d_and_a"]["quarterly"]["Q1 FY2026"] == 9.0
+
+
+def test_equity_investments_sum():
+    fj = _mini_facts({
+        "EquitySecuritiesFvNi": [_fact(None, "2026-03-31", 40.0, filed="2026-05-01")],
+        "EquitySecuritiesWithoutReadilyDeterminableFairValueAmount": [_fact(None, "2026-03-31", 45.0, filed="2026-05-01")],
+    })
+    n = normalize.normalize(fj)
+    assert n["lines"]["equity_investments"]["quarterly"]["Q1 FY2026"] == 85.0
+    assert n["ttm"]["equity_investments"] == 85.0
+
+
+def test_optional_flows_not_flagged():
+    fj = _mini_facts({"PaymentsOfDividends": [_fact("2025-01-01", "2025-09-30", 1.0, filed="2025-11-01")]})
+    assert not any("dividends" in x for x in normalize.quality(normalize.normalize(fj)))

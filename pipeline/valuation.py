@@ -12,7 +12,9 @@ Conventions (documented because they move the result):
   * Mid-year convention (optional): cash flows arrive in the middle of each year,
     so year t is discounted by (1+WACC)^(t−0.5). With the Gordon-growth terminal
     value the same half-year shift applies to the terminal value.
-  * Equity value = EV + cash + short-term investments − financial debt.
+  * Equity value = EV + cash + short-term investments + equity stakes (non-operating, optional)
+    − financial debt. Equity stakes are added because the DCF is built on EBIT, which excludes
+    the gains they produce: leaving them out would value them at zero.
 """
 from __future__ import annotations
 
@@ -121,6 +123,11 @@ def resolve(assump: dict, fin: dict, market: dict) -> dict:
     # ---- bridge EV -> equity
     r["cash"] = (T.get("cash") or 0.0) + (T.get("short_term_investments") or 0.0)
     r["debt"] = debt
+    if d.get("include_equity_investments", True):
+        r["investments"] = T.get("equity_investments") or 0.0
+        src["investments"] = "données (dernier bilan)" if T.get("equity_investments") else "aucune trouvée"
+    else:
+        r["investments"], src["investments"] = 0.0, "exclues (hypothèse)"
     r["shares"] = market["shares"]
     r["price"] = market.get("price")
     r["_sources"] = src
@@ -179,7 +186,8 @@ def dcf(r: dict) -> dict:
     tv_expo = n - 0.5 if r["mid_year"] else n
     pv_tv = tv / (1 + w) ** tv_expo
     ev = pv_sum + pv_tv
-    equity = ev + r["cash"] - r["debt"]
+    investments = r.get("investments") or 0.0
+    equity = ev + r["cash"] + investments - r["debt"]
     per_share = equity / r["shares"] if r["shares"] else None
     ebitda_n = last["ebit"] + last["d_and_a"]
     return {
@@ -192,6 +200,7 @@ def dcf(r: dict) -> dict:
         "implied_exit_ev_ebitda": tv / ebitda_n if ebitda_n > 0 else None,
         "enterprise_value": ev,
         "cash": r["cash"],
+        "investments": investments,
         "debt": r["debt"],
         "equity_value": equity,
         "shares": r["shares"],

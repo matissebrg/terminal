@@ -142,3 +142,10 @@ def test_comps_excludes_negative_multiples():
     assert c["implied"]["ev_sales"] == pytest.approx((6.0 * 100 + 20) / 10)
     assert c["implied"]["pe"] == pytest.approx(22.5 * 30 / 10)
     assert c["growth_regression"]["slope"] == pytest.approx(20.0)
+
+
+def test_equity_investments_added_to_bridge():
+    a = V.dcf(base_r())
+    b = V.dcf(base_r(investments=20.0))
+    assert b["enterprise_value"] == pytest.approx(a["enterprise_value"])
+    assert b["value_per_share"] - a["value_per_share"] == pytest.approx(2.0)  # 20 / 10 shares

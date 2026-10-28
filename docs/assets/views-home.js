@@ -149,7 +149,7 @@
           <div>Actualisation</div><div>convention mi-année (option)</div>
           <div>WACC</div><div>CAPM : rf + β × prime de risque</div>
           <div>Bêta</div><div>2 ans hebdo vs SPY, ajusté Blume</div>
-          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements − dette</div>
+          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations − dette</div>
         </div>
         <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le DCF reverse cherche la croissance constante qui justifie le cours, toutes autres hypothèses égales.</p></div>
       <div class="panel"><h3>Comparables & limites</h3>

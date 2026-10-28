@@ -40,6 +40,7 @@ dcf:
   terminal_growth: 0.03
   terminal_roic: null             # ex. 0.30 -> réinvestissement terminal = g / ROIC (plus rigoureux)
   mid_year: true                  # convention mi-année
+  include_equity_investments: true   # ajoute les participations (titres cotés + non cotés) au pont VE -> fonds propres
 
 wacc:
   method: capm                    # capm | fixed
