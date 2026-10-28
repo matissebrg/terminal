@@ -157,6 +157,8 @@ def run(src, only: list[str] | None = None) -> int:
             subs = src.submissions(t)
             fin = normalize.normalize(facts)
             status["coverage"][t] = fin["coverage"]
+            status.setdefault("quality", {})[t] = normalize.quality(fin)
+            write(OUT / "_diag" / f"{t}_tags.json", normalize.tag_inventory(facts))
             rat = ratios.compute(fin)
             bars = get_prices(src, t, status)
             perf = market.perf_stats(bars)
@@ -177,7 +179,10 @@ def run(src, only: list[str] | None = None) -> int:
             peers_out = []
             for p in (assump.get("comps", {}).get("peers") or cfg.get("peers") or []):
                 try:
-                    pfin = normalize.normalize(src.facts(p))
+                    pfacts = src.facts(p)
+                    pfin = normalize.normalize(pfacts)
+                    status.setdefault("quality", {})[p] = normalize.quality(pfin)
+                    write(OUT / "_diag" / f"{p}_tags.json", normalize.tag_inventory(pfacts))
                     pbars = get_prices(src, p, status)
                     pprice = pbars[-1]["c"] if pbars else None
                     snap = valuation.company_snapshot(p, universe.get("peer_names", {}).get(p, p), pfin,

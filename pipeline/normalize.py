@@ -432,3 +432,41 @@ def _consecutive(qs: list[dict]) -> bool:
         if (b["fy"], b["q"]) != ((a["fy"], a["q"] + 1) if a["q"] < 4 else (a["fy"] + 1, 1)):
             return False
     return True
+
+
+# --------------------------------------------------------------------------- diagnostics
+DIAG_KEYWORDS = ("Securities", "Investments", "Depreciation", "Amortization", "Debt", "Cash", "Borrowings",
+                 "Notes", "Revenue", "Receivable", "Inventory", "Repurchase", "Dividend", "Compensation")
+
+
+def tag_inventory(facts_json: dict) -> dict:
+    """Compact list of XBRL tags actually reported by a filer (last end date, last value, count).
+
+    Used to fix the concept mapping when a company switches tags (written to docs/data/_diag)."""
+    out = {}
+    for tax in ("us-gaap", "ifrs-full"):
+        for tag, node in facts_json.get("facts", {}).get(tax, {}).items():
+            if not any(k in tag for k in DIAG_KEYWORDS):
+                continue
+            for unit, arr in node.get("units", {}).items():
+                arr = [f for f in arr if str(f.get("form", "")).startswith(ALLOWED_FORMS)]
+                if not arr:
+                    continue
+                last = max(arr, key=lambda f: (f["end"], f["filed"]))
+                out[f"{tax}:{tag}"] = {"unit": unit, "last_end": last["end"], "last_val": last["val"],
+                                       "duration": "start" in last, "n": len(arr)}
+    return dict(sorted(out.items(), key=lambda kv: kv[1]["last_end"], reverse=True))
+
+
+def quality(fin: dict) -> list[str]:
+    """Lines present in the past but missing in the latest quarter (likely an XBRL tag switch)."""
+    q = [p["label"] for p in fin["periods"]["quarterly"]]
+    if len(q) < 3:
+        return []
+    issues = []
+    for name, (kind, *_rest) in CONCEPTS.items():
+        series = fin["lines"].get(name, {}).get("quarterly", {})
+        if series and q[-1] not in series and any(l in series for l in q[-6:-1]):
+            last = max((l for l in q if l in series), key=q.index)
+            issues.append(f"{name} : absent au {q[-1]} (dernier point {last}) — changement d'étiquette XBRL probable")
+    return issues
