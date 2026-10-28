@@ -177,7 +177,7 @@ table.t tr.sel td { background: var(--accent-soft); }
 table.t tr.sub td:first-child { padding-left: 22px; color: var(--text-2); }
 table.t tr.total td { font-weight: 600; border-top: 1px solid var(--border-2); }
 table.t tr.hl td { background: rgba(41,98,255,.07); }
-table.t td.lbl { position: sticky; left: 0; background: var(--panel); z-index: 1; min-width: 220px; }
+table.t td.lbl { position: sticky; left: 0; background: var(--panel); z-index: 1; min-width: 180px; white-space: normal; }
 table.t th.lbl { position: sticky; left: 0; z-index: 2; }
 th.sortable { cursor: pointer; } th.sortable:hover { color: var(--text); }
 table.t td .yoy { display: block; font-size: 10.5px; }

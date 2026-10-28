@@ -156,9 +156,32 @@ def _d(s: str | None) -> date | None:
     return date.fromisoformat(s) if s else None
 
 
-def collect(facts_json: dict, concept: str) -> list[Fact]:
+def collect(facts_json: dict, concept: str, splits: list[dict] | None = None) -> list[Fact]:
     kind, unit, tags, *_ = CONCEPTS[concept]
-    return collect_tags(facts_json, unit, tags)
+    facts = collect_tags(facts_json, unit, tags)
+    if splits and kind in (PER_SHARE, SHARES_AVG):
+        facts = [_split_adjust(f, splits, per_share=(kind == PER_SHARE)) for f in facts]
+    return facts
+
+
+def split_factor(end: date, filed: date, splits: list[dict]) -> float:
+    """Cumulative split ratio to apply to a share-based value.
+
+    A value is restated by the company in every filing made after a split (comparatives),
+    so only values both *about* a pre-split period AND *filed* before the split are adjusted."""
+    k = 1.0
+    for sp in splits:
+        sd = date.fromisoformat(sp["date"])
+        if end < sd and filed < sd:
+            k *= float(sp["ratio"])
+    return k
+
+
+def _split_adjust(f: "Fact", splits: list[dict], per_share: bool) -> "Fact":
+    k = split_factor(f.end, f.filed, splits)
+    if k == 1.0:
+        return f
+    return Fact(f.start, f.end, f.val / k if per_share else f.val * k, f.filed, f.form, f.accn, f.rank, f.tag)
 
 
 def collect_tags(facts_json: dict, unit: str, tags: list[tuple[str, str]]) -> list[Fact]:
@@ -276,14 +299,15 @@ def build_instant(facts: list[Fact], ends: dict) -> dict:
     return out
 
 
-def shares_outstanding(facts_json: dict) -> list[dict]:
-    """Cover-page share count (dei), one point per filing date."""
+def shares_outstanding(facts_json: dict, splits: list[dict] | None = None) -> list[dict]:
+    """Cover-page share count (dei), one point per filing date, split-adjusted."""
     node = facts_json.get("facts", {}).get("dei", {}).get("EntityCommonStockSharesOutstanding", {})
     pts = {}
     for f in node.get("units", {}).get("shares", []):
         try:
-            pts[f["end"]] = float(f["val"])
-        except (KeyError, ValueError):
+            k = split_factor(date.fromisoformat(f["end"]), date.fromisoformat(f["filed"]), splits or [])
+            pts[f["end"]] = float(f["val"]) * k
+        except (KeyError, ValueError, TypeError):
             continue
     # One value per cover date. Multi-class issuers (e.g. Alphabet) would need the classes
     # summed; NVIDIA and the US semis peers have a single class, so this is left for later.
@@ -291,7 +315,9 @@ def shares_outstanding(facts_json: dict) -> list[dict]:
 
 
 # --------------------------------------------------------------------------- main entry
-def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> dict:
+def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
+              splits: list[dict] | None = None) -> dict:
+    """splits: [{"date": "YYYY-MM-DD", "ratio": 10.0}] — stock splits, used to restate EPS and share counts."""
     years = fiscal_years(facts_json)
     if not years:
         raise ValueError("Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)")
@@ -302,7 +328,7 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> 
     for name, (kind, *_rest) in CONCEPTS.items():
         if kind == INSTANT:
             continue
-        facts = collect(facts_json, name)
+        facts = collect(facts_json, name, splits)
         a, q = build_flow(facts, years, additive=(kind == FLOW))
         if kind in (PER_SHARE, SHARES_AVG):
             # Q4 is not reported on its own. EPS: FY - (Q1+Q2+Q3) is a close approximation.
@@ -387,7 +413,8 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16) -> 
         "periods": periods,
         "lines": lines,
         "ttm": ttm,
-        "shares_outstanding": shares_outstanding(facts_json),
+        "shares_outstanding": shares_outstanding(facts_json, splits),
+        "splits": splits or [],
         "sources": sources,
         "coverage": coverage,
         "labels": {**{k: v[3] for k, v in CONCEPTS.items()}, **{k: v[0] for k, v in DERIVED.items()}},
@@ -540,7 +567,7 @@ def quality(fin: dict) -> list[str]:
         return []
     issues = []
     for name, (kind, *_rest) in CONCEPTS.items():
-        if name in OPTIONAL_FLOWS:
+        if name in OPTIONAL_FLOWS or name == "equity_investments":  # stakes are often disclosed in 10-K notes only
             continue
         series = fin["lines"].get(name, {}).get("quarterly", {})
         if series and q[-1] not in series and any(l in series for l in q[-6:-1]):

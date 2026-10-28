@@ -52,6 +52,9 @@ class LiveSource:
     def prices(self, sym, cached):
         return market.daily_prices(sym, cached)
 
+    def splits(self, sym):
+        return market.splits(sym)
+
     def risk_free(self, fallback):
         return market.risk_free_10y(fallback)
 
@@ -74,6 +77,9 @@ class FixtureSource:
 
     def prices(self, sym, cached):
         return self._j(f"prices_{sym}.json"), "fixture"
+
+    def splits(self, sym):
+        return []
 
     def risk_free(self, fallback):
         return 0.0425, "fixture", "2026-10-26"
@@ -112,6 +118,23 @@ def get_prices(src, sym: str, status: dict) -> list[dict]:
     if bars and source != "cache":
         write(OUT / "_prices" / f"{sym}.json", {"symbol": sym, "source": source, "bars": bars})
     return bars
+
+
+def get_splits(src, sym: str, status: dict) -> list[dict]:
+    """Stock splits, cached so that a failing source never silently un-adjusts the history."""
+    cache = OUT / "_prices" / f"{sym}_splits.json"
+    try:
+        sp = src.splits(sym)
+        if src.mode == "live":
+            write(cache, sp)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [splits] {sym}: {exc} -> cache")
+        sp = feed.load_json(cache, None)
+        if sp is None:
+            status["errors"].append(f"{sym}: divisions d'actions introuvables (BPA historique non ajusté)")
+            sp = []
+    status.setdefault("splits", {})[sym] = sp
+    return sp
 
 
 def peer_quarterly(fin: dict, n: int = 12) -> list[dict]:
@@ -155,7 +178,7 @@ def run(src, only: list[str] | None = None) -> int:
 
             facts = src.facts(t)
             subs = src.submissions(t)
-            fin = normalize.normalize(facts)
+            fin = normalize.normalize(facts, splits=get_splits(src, t, status))
             status["coverage"][t] = fin["coverage"]
             status.setdefault("quality", {})[t] = normalize.quality(fin)
             write(OUT / "_diag" / f"{t}_tags.json", normalize.tag_inventory(facts))
@@ -180,7 +203,7 @@ def run(src, only: list[str] | None = None) -> int:
             for p in (assump.get("comps", {}).get("peers") or cfg.get("peers") or []):
                 try:
                     pfacts = src.facts(p)
-                    pfin = normalize.normalize(pfacts)
+                    pfin = normalize.normalize(pfacts, splits=get_splits(src, p, status))
                     status.setdefault("quality", {})[p] = normalize.quality(pfin)
                     write(OUT / "_diag" / f"{p}_tags.json", normalize.tag_inventory(pfacts))
                     pbars = get_prices(src, p, status)

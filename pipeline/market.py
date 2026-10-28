@@ -150,6 +150,23 @@ def risk_free_10y(fallback: float) -> tuple[float, str, str | None]:
     return fallback, "hypothèse (fallback)", None
 
 
+def splits(sym: str) -> list[dict]:
+    """Stock splits [{date, ratio}] (yfinance, then the Yahoo chart endpoint)."""
+    try:
+        import yfinance as yf
+        ser = yf.Ticker(sym).splits
+        out = [{"date": idx.date().isoformat(), "ratio": float(v)} for idx, v in ser.items() if v and float(v) != 1.0]
+        return sorted(out, key=lambda x: x["date"])
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [splits] {sym}: yfinance a échoué ({exc})")
+    r = http.get(YAHOO_CHART.format(n=1, sym=sym), host_key="yahoo", retries=1,
+                 headers={"User-Agent": http.PROJECT_UA}, params={"range": "max", "interval": "1mo", "events": "splits"})
+    ev = (r.json()["chart"]["result"][0].get("events") or {}).get("splits") or {}
+    out = [{"date": datetime.fromtimestamp(int(t), tz=timezone.utc).date().isoformat(),
+            "ratio": float(x["numerator"]) / float(x["denominator"])} for t, x in ev.items()]
+    return sorted([x for x in out if x["ratio"] != 1.0], key=lambda x: x["date"])
+
+
 def beta(stock: list[dict], bench: list[dict], weeks: int = 104) -> dict | None:
     """OLS beta of weekly (Friday-to-Friday) log returns over `weeks` weeks, plus Blume adjustment."""
     def weekly(bars):

@@ -180,3 +180,29 @@ def test_equity_investments_sum():
 def test_optional_flows_not_flagged():
     fj = _mini_facts({"PaymentsOfDividends": [_fact("2025-01-01", "2025-09-30", 1.0, filed="2025-11-01")]})
     assert not any("dividends" in x for x in normalize.quality(normalize.normalize(fj)))
+
+
+def test_split_adjustment_only_for_values_filed_before_split():
+    splits = [{"date": "2025-06-10", "ratio": 10.0}]
+    fj = _mini_facts({})
+    fj["facts"]["us-gaap"]["EarningsPerShareDiluted"] = {"units": {"USD/shares": [
+        # Q1 2025 as first reported (filed before the split) -> must be divided by 10
+        _fact("2025-01-01", "2025-03-31", 5.0, filed="2025-05-01", accn="old"),
+        # Q1 2026 (after the split) -> untouched
+        _fact("2026-01-01", "2026-03-31", 0.7, filed="2026-05-01", accn="new"),
+    ]}}
+    fj["facts"]["us-gaap"]["WeightedAverageNumberOfDilutedSharesOutstanding"] = {"units": {"shares": [
+        _fact("2025-01-01", "2025-03-31", 100.0, filed="2025-05-01", accn="old"),
+    ]}}
+    n = normalize.normalize(fj, splits=splits)
+    assert n["lines"]["eps_diluted"]["quarterly"]["Q1 FY2025"] == pytest.approx(0.5)
+    assert n["lines"]["eps_diluted"]["quarterly"]["Q1 FY2026"] == pytest.approx(0.7)
+    assert n["lines"]["diluted_shares"]["quarterly"]["Q1 FY2025"] == pytest.approx(1000.0)
+
+
+def test_split_restated_comparative_not_adjusted_twice():
+    from datetime import date as D
+    sp = [{"date": "2024-06-10", "ratio": 10.0}, {"date": "2021-07-20", "ratio": 4.0}]
+    assert normalize.split_factor(D(2020, 1, 26), D(2020, 2, 20), sp) == 40.0   # before both splits
+    assert normalize.split_factor(D(2020, 1, 26), D(2022, 3, 18), sp) == 10.0   # restated for the 2021 split only
+    assert normalize.split_factor(D(2023, 1, 29), D(2024, 8, 28), sp) == 1.0    # restated for both
