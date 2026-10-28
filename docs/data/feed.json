@@ -1,4 +1,18 @@
 {
- "events": [],
- "updated": "2026-10-27"
+ "events": [
+  {
+   "id": "25fe6125c2c2",
+   "date": "2026-10-28",
+   "ticker": "NVDA",
+   "type": "coverage",
+   "title": "NVDA : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 217.94,
+    "value_base": 135.3877777899159,
+    "value_weighted": 133.3623259745731
+   }
+  }
+ ],
+ "updated": "2026-10-28"
 }
