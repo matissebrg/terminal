@@ -13,6 +13,7 @@
 benchmarks:
   SPY: S&P 500 (ETF SPY)
   SOXX: Semi-conducteurs (ETF iShares SOXX)
+  XLP: Consommation de base (ETF XLP)
 
 beta_benchmark: SPY
 
@@ -23,6 +24,12 @@ tickers:
     industry: GPU, accélérateurs IA, réseau data center
     peers: [AMD, AVGO, QCOM, INTC, MRVL]
     benchmarks: [SPY, SOXX]
+  WMT:
+    name: Walmart Inc.
+    sector: Distribution
+    industry: Hypermarchés, clubs-entrepôts (Sam's Club), e-commerce, publicité
+    peers: [COST, TGT, KR, BJ, DG, AMZN]
+    benchmarks: [SPY, XLP]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -31,6 +38,12 @@ peer_names:
   QCOM: Qualcomm
   INTC: Intel
   MRVL: Marvell Technology
+  COST: Costco Wholesale Corp /new
+  TGT: Target Corp
+  KR: Kroger Co
+  BJ: BJ's Wholesale Club Holdings, Inc.
+  DG: Dollar General Corp
+  AMZN: Amazon Com Inc
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -40,3 +53,10 @@ ciks:
   QCOM: 804328
   INTC: 50863
   MRVL: 1835632
+  WMT: 104169
+  COST: 909832
+  TGT: 27419
+  KR: 56873
+  BJ: 1531152
+  DG: 29534
+  AMZN: 1018724
