@@ -149,7 +149,7 @@
           <div>Actualisation</div><div>convention mi-année (option)</div>
           <div>WACC</div><div>CAPM : rf + β × prime de risque</div>
           <div>Bêta</div><div>2 ans hebdo vs SPY, ajusté Blume</div>
-          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations - dette</div>
+          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations - dette (y c. location-financement) - intérêts minoritaires</div>
         </div>
         <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le DCF reverse cherche la croissance constante qui justifie le cours, toutes autres hypothèses égales.</p></div>
       <div class="panel"><h3>Comparables & limites</h3>
@@ -163,7 +163,7 @@
           <div>Date limite</div><div>00:00 heure de New York, jour de publication</div>
           <div>Publication</div><div>premier 8-K 2.02 / 10-Q / 10-K après la fin de période</div>
           <div>Réel</div><div>chiffres XBRL de la SEC (GAAP)</div>
-          <div>Modèle naïf</div><div>dernier trimestre × dernière croissance séquentielle</div>
+          <div>Modèle naïf</div><div>séquentiel (dernier trimestre × dernière croissance) ou saisonnier (même trimestre de l'an dernier × croissance sur un an), au choix par valeur</div>
           <div>Consensus</div><div>Yahoo, relevé chaque jour, figé la veille</div>
         </div>
         <p class="note">Seule la dernière version commitée <b>avant</b> la date limite compte. Les modifications ultérieures restent visibles mais ne sont jamais notées.

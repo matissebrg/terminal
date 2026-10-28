@@ -461,7 +461,7 @@
         </tbody></table><div class="legend" style="margin-top:8px"><span><i style="background:rgba(57,135,229,.6)"></i>au-dessus du cours</span><span><i style="background:rgba(230,103,103,.6)"></i>en dessous du cours</span><span>case encadrée = scénario base</span></div>`;
     }
     heat("h1", val.sensitivity.wacc_x_g, (x) => F.pct(x, 1), (x) => F.pct(x, 1));
-    heat("h2", val.sensitivity.margin_x_growth, (x) => F.pct(x, 0), (x) => "×" + F.n(x, 1));
+    heat("h2", val.sensitivity.margin_x_growth, (x) => F.pct(x, Math.abs(x * 100 - Math.round(x * 100)) > 0.01 ? 1 : 0), (x) => "×" + F.n(x, 1));
 
     // ---------------- comps
     const cm = val.comps.multiples, imp = val.comps.implied;

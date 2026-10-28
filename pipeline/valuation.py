@@ -20,6 +20,7 @@ Conventions (documented because they move the result):
 from __future__ import annotations
 
 import copy
+import math
 import statistics
 
 # --------------------------------------------------------------------------- assumptions
@@ -228,7 +229,10 @@ def sensitivity(r: dict) -> dict:
     g_vals = [r["terminal_growth"] + x for x in g_off]
     grid1 = [[value_only({**r, "wacc": wv, "terminal_growth": gv}) for gv in g_vals] for wv in wacc_vals]
 
-    m_off = [-0.15, -0.10, -0.05, 0.0, 0.05]
+    # margin step scaled to the business: 5 pts for NVIDIA (55 %), 0.5 pt for Walmart (5 %)
+    tgt = abs(r["ebit_margin_target"]) or 0.1
+    step = min((0.0025, 0.005, 0.01, 0.02, 0.05), key=lambda s: abs(math.log(s / (tgt * 0.1))))
+    m_off = [-3 * step, -2 * step, -step, 0.0, step]
     k_vals = [0.6, 0.8, 1.0, 1.2, 1.4]
     m_vals = [r["ebit_margin_target"] + x for x in m_off]
     grid2 = [[value_only({**r, "ebit_margin_target": mv,

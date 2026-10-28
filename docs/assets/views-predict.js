@@ -93,16 +93,19 @@
     const MB = T.members;
     if (MB) await MB.ready;
     const db = !!(MB && MB.configured && T.member);
-    const nextTk = Object.keys(P.next || {})[0];
-    const nx = nextTk ? P.next[nextTk] : null;
-    const d = nx && daysTo(nx.deadline);
+    // every covered stock's next release, soonest first (open windows before closed ones)
+    const upcoming = Object.entries(P.next || {}).filter(([, n]) => n && n.date)
+      .map(([tk, n]) => ({ tk, ...n, days: daysTo(n.deadline) }))
+      .sort((a, b) => ((a.days > 0) === (b.days > 0) ? a.date.localeCompare(b.date) : a.days > 0 ? -1 : 1));
+    const nextTk = upcoming.length ? upcoming[0].tk : null;
+    const nx = nextTk ? upcoming[0] : null;
     view.innerHTML = `<div class="thead"><div class="id"><h1>Prédictions</h1>
         <div class="sub">Tes prévisions, horodatées avant la publication puis comparées aux chiffres réels</div></div>
         ${nextTk ? `<a class="btn primary" href="#/t/${nextTk}/predictions">Nouvelle prédiction ${T.esc(nextTk)} ${T.esc(nx.period || "")}</a>` : ""}</div>
       ${db ? "" : scoreboard(P.summary || {})}
-      ${nx ? `<div class="panel deadline-bar"><div><b>${T.esc(nextTk)} ${T.esc(nx.period)}</b> · publication ${nx.estimated ? "estimée" : "prévue"} le <b>${F.date(nx.date)}</b>
-        <span class="muted">(${T.esc(nx.source || "")})</span></div>
-        <div>${d != null && d > 0 ? `Clôture des prédictions dans <b class="num">${d} j</b> · ${fmtDeadline(nx.deadline)}` : "Fenêtre fermée, en attente des chiffres"}</div></div>` : ""}
+      ${upcoming.map((u) => `<div class="panel deadline-bar"><div><a href="#/t/${u.tk}/predictions"><b>${T.esc(u.tk)} ${T.esc(u.period || "")}</b></a> · publication ${u.estimated ? "estimée" : "prévue"} le <b>${F.date(u.date)}</b>
+        <span class="muted">(${T.esc(u.source || "")})</span></div>
+        <div class="row">${u.days != null && u.days > 0 ? `<span>Clôture dans <b class="num">${u.days} j</b> · ${fmtDeadline(u.deadline)}</span> <a class="btn" href="#/t/${u.tk}/predictions">Prédire</a>` : "Fenêtre fermée, en attente des chiffres"}</div></div>`).join("")}
       ${db ? `<div class="group-title" style="margin-top:22px">Mes prédictions <span class="muted" style="text-transform:none;letter-spacing:0">espace membre</span></div><div id="pmine"></div>
         <div class="group-title" style="margin-top:22px">Registre public du fondateur <span class="muted" style="text-transform:none;letter-spacing:0">fichiers horodatés par Git</span></div>${scoreboard(P.summary || {})}` : ""}
       ${MB && MB.configured && !T.member ? `<div class="banner" style="margin-top:14px">◎ <div>Membre de la bêta ? <a href="#/compte">Connecte-toi</a> pour enregistrer tes prédictions dans ton espace et te comparer au groupe. Ci-dessous : le registre public du fondateur.</div></div>` : ""}

@@ -378,3 +378,4 @@ a.pf-card:hover { border-color: var(--border-2); text-decoration: none; }
   #accountBtn .btn.primary { padding: 5px 9px; }
 }
 @media (max-width: 380px) { .brand .brand-word { display: none; } }
+.deadline-bar + .deadline-bar { margin-top: -6px; }

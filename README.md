@@ -101,11 +101,23 @@ personnelles (RGPD) : e-mail et pseudo seulement, suppression du compte en un cl
 
 > ⚠ GitHub désactive les workflows planifiés d'un repo public après 60 jours sans activité. Les commits automatiques de données devraient suffire à le maintenir actif ; si jamais il s'arrête, un clic sur *Enable workflow* dans l'onglet Actions le relance.
 
-## Ajouter une valeur
+## Ajouter une valeur (sans passer par Claude)
 
-1. Dans `config/universe.yaml`, ajouter le ticker (US, déposant à la SEC) avec son nom, son secteur et ses pairs.
-2. Copier `config/assumptions/NVDA.yaml` en `config/assumptions/<TICKER>.yaml` et adapter les hypothèses.
-3. Commit → le workflow fait le reste.
+1. **Actions → « Ajouter une valeur » → Run workflow.** Renseigner le ticker (ex. `WMT`), les pairs
+   (`COST,TGT,KR`), et si besoin le secteur, l'activité et un ETF sectoriel de comparaison (`XLP`, `XLK`, `XLF`…).
+2. Le workflow trouve la société à la SEC, reconstruit son historique, écrit `config/assumptions/<TICKER>.yaml`
+   et complète `config/universe.yaml`, puis relance la mise à jour du site (~3 minutes au total).
+   Le résumé du run affiche le chiffre d'affaires, la valeur indicative et les éventuels problèmes de données.
+3. **Le fichier d'hypothèses généré est mécanique** (croissance passée qui converge vers 3 %, marge actuelle
+   maintenue, taux d'impôt effectif, BFR observé, bull / bear à ±3 points de croissance et ±15 % de marge, modèle
+   naïf le plus précis sur l'historique). Il décrit le passé : écrire la thèse, la vraie croissance, la marge
+   cible, les scénarios et la guidance, c'est le travail d'analyste. Modifier le fichier sur GitHub (crayon →
+   *Commit*) ou passer par le simulateur de l'onglet *Valorisation* (*Copier en YAML*).
+
+En local : `python -m pipeline.scaffold WMT --peers COST,TGT,KR --etf XLP --etf-name "Consommation de base (ETF XLP)"`.
+Limites : sociétés déposant à la SEC uniquement (US et quelques étrangères en 20-F) ; banques et assureurs ont
+des états financiers que le DCF « FCFF » ne modélise pas correctement. Retirer une valeur : supprimer son entrée
+dans `config/universe.yaml`.
 
 ## Méthode
 
@@ -128,6 +140,13 @@ versions lues dans l'historique Git (`git log --follow`). Le consensus BPA de Ya
 **Options** (`pipeline/options.py`) - IV recalculée par Black-Scholes sur le milieu bid/ask ; IV 30/90 j par interpolation de la
 variance totale ; choc de résultats implicite = √(T₂ (σ₂² - σ₁²)) entre l'échéance juste avant et juste après la publication.
 
+**Pont VE → fonds propres** - + trésorerie et placements + participations en actions - dette financière
+(dette long terme, part courante et emprunts court terme, dettes de location-financement) - intérêts minoritaires.
+Les loyers de location simple sont déjà déduits de l'EBIT en normes US : leur dette n'est donc pas ajoutée.
+
+**Modèle naïf** (prédictions) - séquentiel (dernier trimestre × dernière croissance) ou saisonnier (même trimestre
+de l'an dernier × croissance sur un an), au choix par valeur dans `predictions.naive` ; Walmart : saisonnier.
+
 **Comparables** - multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF), médiane des pairs, multiples négatifs ou > 500x exclus.
 Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent une entreprise en hypercroissance.
 
@@ -135,7 +154,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 111 tests (normalisation, DCF, feed, prédictions, options, parité Python/JS, base membres*)
+python -m pytest -q                                   # 125 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py
