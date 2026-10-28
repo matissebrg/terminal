@@ -185,7 +185,10 @@ def next_earnings(src, t: str, cfg: dict, fin: dict, filings: list[dict], status
         out.update({"date": str(ov["date"]), "estimated": not ov.get("confirmed", False), "source": "configuration"})
     elif cal and cal.get("earnings_dates"):
         future = [d for d in cal["earnings_dates"] if d >= today] or cal["earnings_dates"]
-        out.update({"date": future[0], "estimated": len(cal["earnings_dates"]) > 1, "source": "Yahoo Finance"})
+        # Yahoo mixes announced and projected dates: treat them as estimates until the company confirms
+        # (then set next_earnings: {date: ..., confirmed: true} in config/universe.yaml).
+        out.update({"date": future[0], "estimated": True,
+                    "source": "Yahoo Finance, non confirmée par la société"})
     elif nq:
         lag = predictions.typical_lag_days(fin, filings) or 30
         out.update({"date": (date.fromisoformat(nq["end_estimate"]) + timedelta(days=lag)).isoformat(),

@@ -121,6 +121,8 @@ def analyze(raw: dict, spot: float, rf: float, now: datetime | None = None,
     tot = {"call_oi": 0.0, "put_oi": 0.0, "call_vol": 0.0, "put_vol": 0.0}
     for exp in sorted(raw["chains"]):
         T = _year_frac(exp, now)
+        if T < 1.5 / 365:  # expiring today / tomorrow: IV meaningless, would distort the term structure
+            continue
         ch = raw["chains"][exp]
         by_k: dict[float, dict] = {}
         for side, call in (("calls", True), ("puts", False)):

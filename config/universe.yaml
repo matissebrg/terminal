@@ -15,6 +15,8 @@ tickers:
     sector: Semi-conducteurs
     industry: GPU, accélérateurs IA, réseau data center
     peers: [AMD, AVGO, QCOM, INTC, MRVL]
+    # Date de publication des prochains résultats. Laisser commenté : Yahoo fournit une estimation.
+    # Quand la société l'annonce, renseigner :  next_earnings: {date: 2026-11-18, confirmed: true}
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
