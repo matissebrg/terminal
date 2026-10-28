@@ -1,10 +1,10 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.1s)
-  valeur DCF 135.39 $ | pondérée 133.36 $ | cours 217.94
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
+  valeur DCF 140.57 $ | pondérée 138.54 $ | cours 217.94
