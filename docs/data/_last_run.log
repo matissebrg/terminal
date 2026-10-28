@@ -1,22 +1,11 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.3s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.4s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.3s)
   valeur DCF 140.93 $ | pondérée 138.90 $ | cours 215.38
-Traceback (most recent call last):
-  File "/home/runner/work/terminal/terminal/pipeline/build.py", line 429, in run
-    status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/terminal/terminal/pipeline/community.py", line 177, in sync
-    client.upsert("periods", period_rows, "ticker,period")
-  File "/home/runner/work/terminal/terminal/pipeline/community.py", line 109, in upsert
-    raise RuntimeError(f"upsert {table}: {r.status_code} {r.text[:300]}")
-RuntimeError: upsert periods: 404 {"code":"PGRST205","details":null,"hint":null,"message":"Could not find the table 'public.periods' in the schema cache"}
-Erreurs :
-  espace membres : upsert periods: 404 {"code":"PGRST205","details":null,"hint":null,"message":"Could not find the table 'public.periods' in the schema cache"}
-::warning title=Pipeline::espace membres : upsert periods: 404 {"code":"PGRST205","details":null,"hint":null,"message":"Could not find the table 'public.periods' in the schema cache"}
+  [membres] {'periods': 7, 'prices': 8, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0}, 'predictions': {'total': 0, 'scored': 0, 'crowd_metrics': 0}, 'portfolios': 0}

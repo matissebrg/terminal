@@ -1,6 +1,7 @@
-SUPABASE_DB_URL      : schéma postgresql, hôte db.mllsjapbscljfcopgdor.supabase.co:5432, utilisateur postgres, ce n'est pas l'adresse du Session pooler (GitHub n'a pas d'IPv6)
+SUPABASE_DB_URL      : schéma postgresql, hôte aws-0-eu-west-1.pooler.supabase.com:5432, utilisateur postgres.mllsjapbscljfcopgdor, adresse de connexion directe convertie automatiquement en Session pooler
 SUPABASE_SERVICE_KEY : sb_secret_, 41 caractères (espaces / retours à la ligne internes retirés)
 ARCHER_ADMIN_EMAIL   : présent
-::error::connexion à la base impossible : connection is bad: connection to server at "2a05:d018:837:ae00:cc34:577:b58d:703e", port 5432 failed: Network is unreachable
-	Is the server running on that host and accepting TCP/IP connections?
-SUPABASE_DB_URL : schéma postgresql, hôte db.mllsjapbscljfcopgdor.supabase.co:5432, utilisateur postgres, ce n'est pas l'adresse du Session pooler (GitHub n'a pas d'IPv6)
+connexion OK : postgres · PostgreSQL 17.11 on aarch64-unknown-linux-gnu
+application de 0001_community.sql
+1 migration(s) appliquée(s), 0 déjà en place.
+E-mail du fondateur enregistré.
