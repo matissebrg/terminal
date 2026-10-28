@@ -31,3 +31,12 @@ def test_describe_url_and_safe(monkeypatch):
     monkeypatch.setenv("SUPABASE_DB_URL", URL.replace("S3cretPass99", "a@b#c"))
     d = dbadmin.describe_url()
     assert "a@b#c" not in d and ("plusieurs @" in d or "illisible" in d)
+
+
+def test_direct_url_switched_to_session_pooler(monkeypatch):
+    monkeypatch.setenv("SUPABASE_DB_URL", "postgresql://postgres:S3cretPass99@db.abcdefghij.supabase.co:5432/postgres")
+    assert dbadmin._url() == "postgresql://postgres.abcdefghij:S3cretPass99@aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+    d = dbadmin.describe_url()
+    assert "convertie" in d and "S3cretPass99" not in d and "Session pooler (GitHub" not in d
+    monkeypatch.setenv("SUPABASE_DB_URL", URL)                       # pooler URL left untouched
+    assert dbadmin._url() == URL

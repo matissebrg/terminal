@@ -21,10 +21,22 @@ ROOT = Path(__file__).resolve().parent.parent
 MIGRATIONS = ROOT / "supabase" / "migrations"
 
 
+# Session pooler of the project (eu-west-1). GitHub runners have no IPv6, so a *direct* connection string
+# (db.<ref>.supabase.co, IPv6 only) is rewritten to the pooler: same password, user "postgres.<ref>".
+POOLER_HOST = os.environ.get("SUPABASE_POOLER_HOST", "aws-0-eu-west-1.pooler.supabase.com")
+_DIRECT = re.compile(r"^(postgres(?:ql)?://)postgres(:[^@]*)?@db\.([a-z0-9]+)\.supabase\.co(?::\d+)?(/.*)?$")
+
+
 def _url() -> str:
-    """SUPABASE_DB_URL without stray whitespace, quotes or backticks from copy-paste."""
+    """SUPABASE_DB_URL without stray whitespace, quotes or backticks from copy-paste; a direct
+    connection string is switched to the Session pooler."""
     raw = os.environ.get("SUPABASE_DB_URL", "")
-    return "".join(raw.split()).strip("\"'`")
+    url = "".join(raw.split()).strip("\"'`")
+    m = _DIRECT.match(url)
+    if m:
+        scheme, pw, ref, path = m.groups()
+        url = f"{scheme}postgres.{ref}{pw or ''}@{POOLER_HOST}:5432{path or '/postgres'}"
+    return url
 
 
 def _secrets() -> list[str]:
@@ -72,7 +84,9 @@ def describe_url() -> str:
             notes.append(f"mot de passe avec {len(special)} caractère(s) spécial(aux) non encodé(s)")
     if url.count("@") > 1:
         notes.append("plusieurs @ (un @ dans le mot de passe doit s'écrire %40)")
-    if raw != url:
+    if _DIRECT.match("".join(raw.split()).strip("\"'`")):
+        notes.append("adresse de connexion directe convertie automatiquement en Session pooler")
+    elif raw != url:
         notes.append("espaces / guillemets parasites retirés")
     if "pooler.supabase.com" not in url:
         notes.append("ce n'est pas l'adresse du Session pooler (GitHub n'a pas d'IPv6)")
