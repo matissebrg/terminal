@@ -36,6 +36,32 @@ MARKET_CLOSE_NY = time(16, 0)
 
 
 # --------------------------------------------------------------------------- REST client
+def clean_key(raw: str) -> str:
+    """API keys never contain whitespace: drop stray spaces / line breaks from a pasted secret, and keep
+    only the key itself if a label was copied with it (e.g. "backend_api sb_secret_...")."""
+    joined = "".join((raw or "").split()).strip("\"'`")
+    m = re.search(r"(sb_secret_[A-Za-z0-9_\-]+|eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+)", joined)
+    return m.group(1) if m else joined
+
+
+def describe_key(raw: str) -> str:
+    """Shape of the secret, safe to print in public logs (never the value)."""
+    raw = raw or ""
+    k = clean_key(raw)
+    kind = "sb_secret_" if k.startswith("sb_secret_") else "JWT (ancienne clé)" if k.startswith("eyJ") else \
+        "sb_publishable_ (clé PUBLIQUE, pas la secrète !)" if k.startswith("sb_publishable_") else "préfixe inconnu"
+    notes = []
+    if any(c.isspace() for c in raw.strip()):
+        notes.append("espaces / retours à la ligne internes retirés")
+    if raw != raw.strip():
+        notes.append("espaces en début / fin retirés")
+    if "•" in raw or "*" in raw:
+        notes.append("contient des caractères masqués (•) : la clé a été recopiée depuis l'affichage masqué")
+    if not k.isascii():
+        notes.append("caractères non ASCII")
+    return f"{kind}, {len(k)} caractères" + (f" ({'; '.join(notes)})" if notes else "")
+
+
 def public_url(path: Path | None = None) -> str:
     """supabaseUrl from docs/assets/config.js (public by design)."""
     path = path or Path(__file__).resolve().parent.parent / "docs" / "assets" / "config.js"
@@ -57,7 +83,7 @@ class Supa:
     def from_env(cls):
         """Service client from SUPABASE_SERVICE_KEY (GitHub secret) and the project URL, taken from
         SUPABASE_URL or, failing that, from the public site config (docs/assets/config.js)."""
-        key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+        key = clean_key(os.environ.get("SUPABASE_SERVICE_KEY", ""))
         url = os.environ.get("SUPABASE_URL", "").strip() or public_url()
         return cls(url, key) if url and key else None
 
