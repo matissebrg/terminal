@@ -1,76 +1,102 @@
 # ============================================================================
 # Hypothèses de valorisation - Walmart Inc. (WMT)
 # ----------------------------------------------------------------------------
-# Fichier créé automatiquement le 2026-10-28 par `python -m pipeline.scaffold` à partir
-# de l'HISTORIQUE seul (SEC) : il décrit le passé, ce n'est pas une prévision.
-# À toi d'écrire la vue : thèse, croissance, marges, scénarios, guidance.
-#   - croissance annuelle moyenne du CA FY2023 → FY2026 : 5,3 %
-#   - marge opérationnelle TTM Q2 FY2027 : 4,4 %
-#   - taux effectif TTM Q2 FY2027 : 23,3 %
-#   - BFR d'exploitation FY2026 : -3,3 % du CA
+# Créé le 2026-10-28 par le workflow « Ajouter une valeur » (historique SEC), puis
+# complété le 2026-10-29 avec la guidance publiée. POINT DE DÉPART, PAS UNE PRÉVISION :
+# c'est à toi de construire ta vue, le modèle est fait pour être modifié.
 #
-# Modifier depuis GitHub : ouvre ce fichier sur github.com, clique sur le crayon,
-# commit -> le site se met à jour tout seul en ~2 minutes. Le simulateur de l'onglet
-# Valorisation permet d'essayer des chiffres puis de copier le YAML correspondant.
+# Faits au moment de l'écriture (communiqué du T2 FY2027, 20/08/2026) :
+#   - T2 FY2027 (clos le 31/07/2026) : CA total 187,9 Md$ (+5,9 %), résultat opérationnel 9,4 Md$
+#   - Guidance FY2027 (relevée) : ventes nettes +4 % à +5 % et résultat opérationnel ajusté
+#     +7 % à +8,5 % à changes constants, taux d'impôt 23,5 % à 24,5 %, capex ~4 % des ventes
+#   - Guidance T3 FY2027 : ventes nettes +3 % à +3,75 % (base 177,8 Md$), résultat op. +2 % à +4 %
+# Historique (SEC) : CA +5,3 %/an FY2023 → FY2026, marge opérationnelle TTM 4,4 %,
+# BFR d'exploitation négatif (-3,3 % du CA : les clients paient avant que Walmart paie ses fournisseurs).
+#
+# Lecture du cours : à ~119 $ (≈ 42 fois le résultat), le marché paie bien plus que le
+# prolongement de l'historique. La question centrale du modèle est la MARGE : publicité
+# (Walmart Connect), abonnements (Walmart+, Sam's Club), marketplace et automatisation
+# peuvent-ils faire monter durablement la marge opérationnelle, et jusqu'où ?
+#
+# Modifier depuis GitHub : crayon sur ce fichier, puis « Commit changes » (~2 min).
 # "auto" = valeur calculée à partir des données (TTM) ou du marché.
 # ============================================================================
 
 ticker: WMT
-updated: 2026-10-28
+updated: 2026-10-29
 thesis: >
-  À écrire : pourquoi cette valeur, ce que le marché price, ce qui ferait changer d'avis.
+  Premier distributeur mondial, gagnant de parts de marché sur tous les revenus. La croissance
+  du CA est lente et prévisible (~4-5 %) ; la valorisation dépend presque entièrement de
+  l'expansion de marge permise par les activités à forte marge (publicité, abonnements,
+  marketplace) et l'automatisation. Risques : guerre des prix, tarifs douaniers, multiple déjà élevé.
 
 dcf:
   years: 10
   base_revenue: ttm
-  # Années 1 à 5 (point de départ mécanique : croissance passée qui converge vers 3,0 %).
-  revenue_growth: [0.053, 0.048, 0.044, 0.039, 0.035]
-  ebit_margin_start: auto
-  ebit_margin_target: 0.044          # marge actuelle maintenue (aucune amélioration supposée)
-  margin_years_to_target: 5
-  tax_rate: 0.233
+  # Années 1 à 5. Année 1 ≈ guidance FY2027 (+4 à 5 % à changes constants), puis ralentissement.
+  revenue_growth: [0.045, 0.045, 0.042, 0.040, 0.037]
+  ebit_margin_start: auto           # ~4,4 % TTM
+  # Guidance FY2027 : résultat op. +7 à 8,5 % pour des ventes +4 à 5 % -> ~+0,15 pt de marge par an.
+  ebit_margin_target: 0.052
+  margin_years_to_target: 7
+  tax_rate: 0.24                    # guidance 23,5 % à 24,5 %
   d_and_a_pct_revenue: auto
-  capex_pct_revenue: auto
-  nwc_pct_incremental_revenue: -0.033
+  capex_pct_revenue: auto           # ~4 % TTM, cohérent avec la guidance
+  nwc_pct_incremental_revenue: -0.03   # BFR négatif : la croissance libère un peu de trésorerie
   terminal_growth: 0.03
-  terminal_roic: null
+  # Sans ce paramètre, le capex (~4 % du CA) resterait 2 fois supérieur aux amortissements (~2 %) pour
+  # toujours, alors que la croissance n'est plus que de 3 %. Avec un ROIC terminal, le réinvestissement
+  # terminal = g / ROIC (3 % / 16 % ≈ 19 % du NOPAT). ROIC TTM ≈ 16 % (NOPAT 24,5 Md$ / capitaux
+  # investis ~150 Md$).
+  terminal_roic: 0.16
   mid_year: true
   include_equity_investments: true
 
 wacc:
   method: capm
-  fixed: 0.09
+  fixed: 0.08
   risk_free: auto
   risk_free_fallback: 0.044
-  beta: auto
-  beta_fallback: 1.0
+  beta: auto                        # ~0,66 ajusté (R² faible : valeur défensive, peu corrélée au marché)
+  beta_fallback: 0.7
   equity_risk_premium: 0.045
-  pre_tax_cost_of_debt: 0.05
+  pre_tax_cost_of_debt: 0.048
   debt_weight: auto
 
 scenarios:
   base:
     probability: 0.50
-    narrative: Prolongement mécanique de l'historique (à remplacer par ta vue).
+    narrative: Croissance du CA de 4 à 4,5 %, marge opérationnelle qui monte à 5,2 % en 7 ans au rythme de la guidance actuelle.
   bull:
     probability: 0.25
-    narrative: Croissance supérieure de 3 points et marge cible +15 % (à préciser).
+    narrative: Publicité, abonnements et marketplace changent le mix ; marge vers 6,5 % et croissance un peu plus forte.
     overrides:
       dcf:
-        revenue_growth: [0.083, 0.078, 0.074, 0.069, 0.065]
-        ebit_margin_target: 0.051
+        revenue_growth: [0.055, 0.055, 0.050, 0.048, 0.045]
+        ebit_margin_target: 0.065
   bear:
     probability: 0.25
-    narrative: Croissance inférieure de 3 points et marge cible -15 % (à préciser).
+    narrative: Les gains de marge sont réinvestis dans les prix face à Amazon et Costco ; la marge stagne à 4,3 %.
     overrides:
       dcf:
-        revenue_growth: [0.023, 0.018, 0.014, 0.009, 0.005]
-        ebit_margin_target: 0.037
+        revenue_growth: [0.035, 0.030, 0.030, 0.030, 0.030]
+        ebit_margin_target: 0.043
 
 comps:
+  # Distribution US. Amazon est surtout un comparable de commerce en ligne (AWS fausse ses multiples).
   peers: [COST, TGT, KR, BJ, DG, AMZN]
 
-# Guidance publiée par la société, par période (Md$, %), pour comparer tes prédictions.
-# Exemple :
-#   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
-guidance: {}
+predictions:
+  # Activité saisonnière (T4 = fêtes de fin d'année) : le modèle naïf saisonnier est le bon point de
+  # comparaison (même trimestre de l'an dernier × croissance sur un an).
+  naive: seasonal
+
+# Guidance publiée par la société, par période (Md$, %). Walmart guide les VENTES NETTES en
+# croissance à changes constants ; le terminal suit le CA TOTAL (ventes nettes + abonnements
+# et autres revenus, ~1,9 Md$ par trimestre). Conversion ci-dessous, à refaire à chaque publication.
+guidance:
+  Q3 FY2027:
+    revenue: 185.7          # ventes nettes 177,8 Md$ × (1,03 à 1,0375) + ~1,9 Md$ d'abonnements, milieu
+    revenue_low: 185.0
+    revenue_high: 186.4
+    source: "communiqué du T2 FY2027 (20/08/2026) : ventes nettes +3 % à +3,75 % à changes constants, converties en CA total (estimation)"

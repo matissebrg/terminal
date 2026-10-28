@@ -112,8 +112,20 @@ def actual(fin: dict, label: str, metric: str) -> float | None:
     return g(metric)
 
 
-def naive(fin: dict, label: str, metric: str) -> float | None:
-    """Last value × last sequential growth (margins: last value), using only earlier periods."""
+NAIVE_METHODS = {
+    "sequential": "dernier trimestre × dernière croissance séquentielle (marges : dernière valeur)",
+    "seasonal": "même trimestre de l'an dernier × dernière croissance sur un an (marges : même trimestre "
+                "de l'an dernier + dernière variation sur un an)",
+}
+
+
+def naive(fin: dict, label: str, metric: str, method: str | None = None) -> float | None:
+    """The benchmark any forecast must beat, using only earlier periods.
+
+    sequential (default): last value × last sequential growth. Right for steady growers (NVIDIA).
+    seasonal: same quarter last year × last year-on-year growth. Right for seasonal businesses
+    (retail: Walmart's Q4 holiday quarter), where a sequential rule extrapolates the season."""
+    method = method or fin.get("naive_method") or "sequential"
     freq, *_ = parse_period(label)
     idx = _period_index(fin, freq)
     if label in idx:
@@ -125,12 +137,34 @@ def naive(fin: dict, label: str, metric: str) -> float | None:
     v1 = actual(fin, idx[i - 1], metric)
     if v1 is None:
         return None
-    if METRICS[metric][3] == "margin" or i < 2:
+    margin = METRICS[metric][3] == "margin"
+    if method == "seasonal" and freq == "quarterly" and i >= 5:
+        v4, v5 = actual(fin, idx[i - 4], metric), actual(fin, idx[i - 5], metric)
+        if v4 is not None and v5 is not None:
+            if margin:
+                return v4 + (v1 - v5)
+            if v4 > 0 and v5 > 0 and v1 > 0:
+                return v4 * (v1 / v5)
+    if margin or i < 2:
         return v1
     v2 = actual(fin, idx[i - 2], metric)
     if v2 is None or v1 <= 0 or v2 <= 0:
         return v1
     return v1 * (v1 / v2)
+
+
+def naive_backtest(fin: dict, metric: str = "revenue", n: int = 8) -> dict:
+    """Mean absolute % error of each naive rule over the last n reported quarters."""
+    labels = [p["label"] for p in fin["periods"]["quarterly"]][-n:]
+    out = {}
+    for m in NAIVE_METHODS:
+        errs = []
+        for l in labels:
+            a, f = actual(fin, l, metric), naive(fin, l, metric, m)
+            if a and f is not None:
+                errs.append(abs(f / a - 1))
+        out[m] = sum(errs) / len(errs) if errs else None
+    return out
 
 
 def release_date(fin: dict, filings: list[dict], label: str) -> date | None:

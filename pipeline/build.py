@@ -231,7 +231,10 @@ def predict_context(t: str, fin: dict, ne: dict, guidance: dict, cons: list[dict
                       "naive": predictions.naive(fin, label, k) if label else None,
                       "guidance": predictions.to_raw(k, gd.get(k)) if gd.get(k) is not None else None,
                       "consensus": c}
+    method = fin.get("naive_method") or "sequential"
     return {"ticker": t, "next": {**(nq or {}), "release": ne}, "metrics": metrics,
+            "naive": {"method": method, "description": predictions.NAIVE_METHODS.get(method),
+                      "backtest_revenue_mape": predictions.naive_backtest(fin)},
             "guidance_note": {k: v for k, v in gd.items() if k not in predictions.METRICS}}
 
 
@@ -263,6 +266,7 @@ def run(src, only: list[str] | None = None) -> int:
             facts = src.facts(t)
             subs = src.submissions(t)
             fin = normalize.normalize(facts, splits=get_splits(src, t, status))
+            fin["naive_method"] = (assump.get("predictions") or {}).get("naive", "sequential")
             status["coverage"][t] = fin["coverage"]
             status.setdefault("quality", {})[t] = normalize.quality(fin)
             write(OUT / "_diag" / f"{t}_tags.json", normalize.tag_inventory(facts))

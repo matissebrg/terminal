@@ -212,7 +212,7 @@
                 <td class="n">${shown(m, m.naive)}</td><td class="n">${shown(m, m.guidance)}</td>
                 <td class="n">${c ? shown(m, c.avg) + `<span class="yoy muted">${shown(m, c.low)} à ${shown(m, c.high)}</span>` + (c.comparable ? "" : '<span class="yoy warn" title="Consensus Yahoo généralement non-GAAP">non-GAAP</span>') : "-"}</td></tr>`; }).join("")}
             </tbody></table></div>
-          <p class="note"><b>Naïf</b> = dernier trimestre × dernière croissance séquentielle (marges : dernière valeur). C'est le minimum à battre.
+          <p class="note"><b>Naïf</b> = ${T.esc((ctx.naive && ctx.naive.description) || "dernier trimestre × dernière croissance séquentielle (marges : dernière valeur)")}. C'est le minimum à battre${ctx.naive && ctx.naive.backtest_revenue_mape && T.isNum(ctx.naive.backtest_revenue_mape[ctx.naive.method]) ? ` (erreur moyenne sur le CA des 8 derniers trimestres : ${F.pct(ctx.naive.backtest_revenue_mape[ctx.naive.method], 1)})` : ""}.
             ${ctx.guidance_note && ctx.guidance_note.source ? `<b>Guidance</b> : ${T.esc(ctx.guidance_note.source)}.` : "Guidance : à renseigner dans config/assumptions."}
             <b>Consensus</b> : moyenne des analystes (Yahoo), figée automatiquement la veille de la publication.</p></div>
 

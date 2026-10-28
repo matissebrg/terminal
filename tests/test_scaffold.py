@@ -88,3 +88,8 @@ def test_history_defaults_growth_fades_to_terminal():
 def test_pretty_names():
     assert scaffold._pretty("WALMART INC.") == "Walmart Inc."
     assert scaffold._pretty("Costco Wholesale Corp") == "Costco Wholesale Corp"
+
+
+def test_pretty_drops_state_suffix():
+    assert scaffold._pretty("Costco Wholesale Corp /new") == "Costco Wholesale Corp"
+    assert scaffold._pretty("QUALCOMM INC/DE") == "Qualcomm Inc"

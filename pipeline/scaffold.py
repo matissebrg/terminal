@@ -118,7 +118,14 @@ def history_defaults(fin: dict) -> dict:
             op_nwc = (ca - (cash or 0) - (g_("short_term_investments") or 0)) - (cl - (g_("debt_current") or 0))
             nwc = round(_clip(op_nwc / rev_a[-1], -0.15, 0.30), 3)
             notes["nwc"] = f"BFR d'exploitation {y} : {_pct(op_nwc / rev_a[-1])} du CA"
-    return {"growth": growth, "margin": margin, "tax": t, "nwc": nwc, "notes": notes}
+    from .predictions import naive_backtest
+    bt = naive_backtest(fin)
+    naive = "seasonal" if (bt.get("seasonal") is not None and bt.get("sequential") is not None
+                           and bt["seasonal"] < bt["sequential"]) else "sequential"
+    notes["naive"] = (f"erreur moyenne du modèle naïf sur 8 trimestres : séquentiel "
+                      f"{_pct(bt['sequential']) if bt.get('sequential') is not None else '-'}, saisonnier "
+                      f"{_pct(bt['seasonal']) if bt.get('seasonal') is not None else '-'}")
+    return {"growth": growth, "margin": margin, "tax": t, "nwc": nwc, "naive": naive, "notes": notes}
 
 
 def _fmt_list(xs):
@@ -203,6 +210,12 @@ scenarios:
 comps:
   peers: [{", ".join(peers)}]
 
+predictions:
+  # Modèle naïf à battre : sequential (dernier trimestre × dernière croissance séquentielle) ou
+  # seasonal (même trimestre de l'an dernier × croissance sur un an, pour les activités saisonnières).
+  # Choisi automatiquement : le plus précis sur l'historique ({n['naive']}).
+  naive: {d['naive']}
+
 # Guidance publiée par la société, par période (Md$, %), pour comparer tes prédictions.
 # Exemple :
 #   Q3 FY2027: {{revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}}
@@ -271,7 +284,10 @@ def update_universe(path: Path, ticker: str, entry: dict, peers: dict[str, tuple
 
 
 def _pretty(title: str) -> str:
-    """SEC titles are often upper case ("WALMART INC.") -> "Walmart Inc."."""
+    """SEC titles are often upper case ("WALMART INC.") -> "Walmart Inc."; state suffixes
+    ("Costco Wholesale Corp /new", "QUALCOMM INC/DE") are dropped."""
+    import re
+    title = re.sub(r"\s*/[A-Za-z]{2,3}/?\s*$", "", title.strip())
     if title.isupper():
         small = {"OF", "AND", "THE", "&"}
         return " ".join(w.capitalize() if w not in small else w.lower() for w in title.split())

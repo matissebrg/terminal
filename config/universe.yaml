@@ -38,12 +38,12 @@ peer_names:
   QCOM: Qualcomm
   INTC: Intel
   MRVL: Marvell Technology
-  COST: Costco Wholesale Corp /new
-  TGT: Target Corp
-  KR: Kroger Co
-  BJ: BJ's Wholesale Club Holdings, Inc.
-  DG: Dollar General Corp
-  AMZN: Amazon Com Inc
+  COST: Costco
+  TGT: Target
+  KR: Kroger
+  BJ: BJ's Wholesale Club
+  DG: Dollar General
+  AMZN: Amazon
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:

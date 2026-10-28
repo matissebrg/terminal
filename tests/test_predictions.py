@@ -153,3 +153,31 @@ def test_period_helpers(fin):
     assert P.next_quarter(fin)["label"] == "Q3 FY2027"
     with pytest.raises(ValueError):
         P.parse_period("T3 2027")
+
+
+def _seasonal_fin():
+    """Retail-like quarters: Q4 is the holiday peak, +5 % a year."""
+    base = {1: 100.0, 2: 105.0, 3: 102.0, 4: 120.0}
+    qs, rev, gm = [], {}, {}
+    for fy in (2024, 2025, 2026):
+        for q in (1, 2, 3, 4):
+            lab = f"Q{q} FY{fy}"
+            qs.append({"label": lab, "fy": fy, "q": q, "end": f"{fy}-0{q * 2}-28"})
+            rev[lab] = base[q] * 1.05 ** (fy - 2024)
+            gm[lab] = 0.25 * rev[lab] + (0.01 * rev[lab] if q == 4 else 0)
+    return {"periods": {"quarterly": qs, "annual": []},
+            "lines": {"revenue": {"quarterly": rev, "annual": {}}, "gross_profit": {"quarterly": gm, "annual": {}}}}
+
+
+def test_seasonal_naive_beats_sequential_on_seasonal_business():
+    from pipeline import predictions as P
+    fin = _seasonal_fin()
+    # Q4 FY2026 = Q4 FY2025 × (Q3 FY2026 / Q3 FY2025) = 126 × 1.05 exactly
+    assert P.naive(fin, "Q4 FY2026", "revenue", "seasonal") == pytest.approx(120 * 1.05 ** 2)
+    assert P.naive(fin, "Q4 FY2026", "revenue", "sequential") != pytest.approx(120 * 1.05 ** 2)
+    bt = P.naive_backtest(fin)
+    assert bt["seasonal"] < bt["sequential"] / 2      # early quarters lack a year of history: fallback
+    fin["naive_method"] = "seasonal"                     # read from the assumptions by the pipeline
+    assert P.naive(fin, "Q4 FY2026", "revenue") == pytest.approx(120 * 1.05 ** 2)
+    # margins: same quarter last year + last year-on-year change (here the Q4 bonus point repeats)
+    assert P.naive(fin, "Q4 FY2026", "gross_margin", "seasonal") == pytest.approx(0.26)

@@ -88,7 +88,9 @@ CONCEPTS: dict[str, tuple] = {
     # Filled by COMPOSITES below (non-operating stakes, added to the EV -> equity bridge)
     "equity_investments": (INSTANT, "USD", [], "Participations en actions (hors exploitation)", "balance"),
     "receivables": (INSTANT, "USD", [("us-gaap", "AccountsReceivableNetCurrent"),
-                                     ("us-gaap", "AccountsAndOtherReceivablesNetCurrent")],  # Qualcomm since FY2026
+                                     ("us-gaap", "AccountsAndOtherReceivablesNetCurrent"),  # Qualcomm since FY2026
+                                     ("us-gaap", "ReceivablesNetCurrent"),                  # Walmart
+                                     ("us-gaap", "AccountsNotesAndLoansReceivableNetCurrent")],
                     "Créances clients", "balance"),
     "inventory": (INSTANT, "USD", [("us-gaap", "InventoryNet")], "Stocks", "balance"),
     "current_assets": (INSTANT, "USD", [("us-gaap", "AssetsCurrent")], "Actif courant", "balance"),
