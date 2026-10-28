@@ -441,7 +441,7 @@
       yAxis: T.axis({ type: "value", axisLabel: { color: C().muted, formatter: (v) => v + " %" } }),
       series: [{ type: "bar", barMaxWidth: 20, data: hr.map((h) => ({ value: +(h.move * 100).toFixed(2), itemStyle: { color: h.move >= 0 ? C().up : C().down, borderRadius: h.move >= 0 ? [3, 3, 0, 0] : [0, 0, 3, 3] } })),
         markLine: er && T.isNum(er.shock_expected_abs) ? { symbol: "none", silent: true, lineStyle: { color: C().series[1], width: 1.5, type: "solid" },
-          label: { formatter: (p) => (p.value > 0 ? "implicite +" : "implicite ") + F.n(p.value, 1) + " %", color: C().text2, fontSize: 10.5 },
+          label: { position: "insideEndTop", formatter: (p) => (p.value > 0 ? "implicite +" : "implicite ") + F.n(p.value, 1) + " %", color: C().text2, fontSize: 10.5 },
           data: [{ yAxis: +(er.shock_expected_abs * 100).toFixed(2) }, { yAxis: -(er.shock_expected_abs * 100).toFixed(2) }] } : undefined }],
     });
 
@@ -464,7 +464,7 @@
       const near = rows.filter((r) => r.strike >= S * 0.75 && r.strike <= S * 1.25);
       co2 = T.ec(T.$("#ooi"), {
         legend: { data: ["Calls", "Puts"] }, tooltip: { trigger: "axis", valueFormatter: (v) => F.n(v, 0) },
-        xAxis: T.axis({ type: "category", data: near.map((r) => F.n(r.strike, 0)), splitLine: { show: false } }),
+        xAxis: T.axis({ type: "category", data: near.map((r) => F.n(r.strike, r.strike % 1 ? 1 : 0)), splitLine: { show: false } }),
         yAxis: T.axis({ type: "value", axisLabel: { color: C().muted, formatter: (v) => (v >= 1000 ? F.n(v / 1000, 0) + " k" : v) } }),
         series: [
           { name: "Calls", type: "bar", data: near.map((r) => r.c_oi || 0), itemStyle: { color: C().series[0] }, barGap: "8%" },
