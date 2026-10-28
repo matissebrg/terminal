@@ -1,13 +1,6 @@
-SUPABASE_DB_URL      : le texte [YOUR-PASSWORD] est encore là : remplace-le (crochets compris) par le mot de passe de la base
+SUPABASE_DB_URL      : schéma postgresql, hôte db.mllsjapbscljfcopgdor.supabase.co:5432, utilisateur postgres, ce n'est pas l'adresse du Session pooler (GitHub n'a pas d'IPv6)
 SUPABASE_SERVICE_KEY : sb_secret_, 41 caractères (espaces / retours à la ligne internes retirés)
 ARCHER_ADMIN_EMAIL   : présent
-::error::connexion à la base impossible : connection failed: connection to server at "52.209.89.87", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-connection to server at "52.209.89.87", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-Multiple connection attempts failed. All failures were:
-- host: 'aws-0-eu-west-1.pooler.supabase.com', port: '5432', hostaddr: '34.241.16.247': connection failed: connection to server at "34.241.16.247", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-connection to server at "34.241.16.247", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-- host: 'aws-0-eu-west-1.pooler.supabase.com', port: '5432', hostaddr: '108.128.216.176': connection failed: connection to server at "108.128.216.176", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-connection to server at "108.128.216.176", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-- host: 'aws-0-eu-west-1.pooler.supabase.com', port: '5432', hostaddr: '52.209.89.87': connection failed: connection to server at "52.209.89.87", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-connection to server at "52.209.89.87", port 5432 failed: FATAL:  password authentication failed for user "postgres"
-SUPABASE_DB_URL : le texte [YOUR-PASSWORD] est encore là : remplace-le (crochets compris) par le mot de passe de la base
+::error::connexion à la base impossible : connection is bad: connection to server at "2a05:d018:837:ae00:cc34:577:b58d:703e", port 5432 failed: Network is unreachable
+	Is the server running on that host and accepting TCP/IP connections?
+SUPABASE_DB_URL : schéma postgresql, hôte db.mllsjapbscljfcopgdor.supabase.co:5432, utilisateur postgres, ce n'est pas l'adresse du Session pooler (GitHub n'a pas d'IPv6)

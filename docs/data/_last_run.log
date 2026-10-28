@@ -1,11 +1,11 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.3s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
   valeur DCF 140.93 $ | pondérée 138.90 $ | cours 215.38
 Traceback (most recent call last):
