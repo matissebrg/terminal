@@ -44,6 +44,10 @@
       { label: "Feed événements actualités", kind: "page", href: "#/feed", icon: "◉" },
       { label: "Prédictions registre score entraînement forecasting", kind: "page", href: "#/predictions", icon: "◎" },
       { label: "Méthodologie sources documentation", kind: "page", href: "#/methodo", icon: "?" },
+      ...(T.members && T.members.configured ? [
+        { label: "Communauté classement membres", kind: "page", href: "#/communaute", icon: "◎" },
+        { label: "Portefeuilles fictifs ordres", kind: "page", href: "#/portefeuilles", icon: "▤" },
+        { label: "Mon compte connexion invitation", kind: "page", href: "#/compte", icon: "●" }] : []),
     ];
     window.addEventListener("hashchange", T.render);
     T.render();

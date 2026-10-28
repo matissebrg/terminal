@@ -1,0 +1,333 @@
+"""Members' space: sync the daily pipeline with the Supabase database.
+
+Runs only when SUPABASE_URL and SUPABASE_SERVICE_KEY are set (GitHub secrets). Uses the PostgREST
+API with the service key (bypasses row-level security; never exposed to the browser).
+
+Each run:
+  1. periods        next quarter (expected release, deadline) + recent reported quarters (actual release)
+  2. latest_prices  last close of every tracked symbol (the tradable universe of paper portfolios)
+  3. orders         pending orders filled at the first close AFTER the order (never a known price)
+  4. predictions    members' predictions resolved against SEC figures, from the version recorded
+                    before the FINAL deadline (prediction_history), with naive / guidance / analysts /
+                    community benchmarks and auto-resolved yes/no questions (Brier)
+  5. crowd          community consensus per metric once the deadline has passed
+  6. portfolios     daily value of every paper portfolio
+"""
+from __future__ import annotations
+
+import math
+import os
+import re
+import statistics
+from datetime import date, datetime, time, timedelta, timezone
+from pathlib import Path
+
+from . import http
+from . import predictions as P
+
+QUESTIONS = {
+    "rev_above_guidance_high": "CA au-dessus du haut de la fourchette de guidance",
+    "rev_above_analysts": "CA au-dessus du consensus des analystes",
+    "rev_above_crowd": "CA au-dessus du consensus de la communauté",
+    "gm_above_guidance": "Marge brute au-dessus de la guidance",
+    "price_up_after": "Cours en hausse après la publication (veille → lendemain)",
+}
+MARKET_CLOSE_NY = time(16, 0)
+
+
+# --------------------------------------------------------------------------- REST client
+def public_url(path: Path | None = None) -> str:
+    """supabaseUrl from docs/assets/config.js (public by design)."""
+    path = path or Path(__file__).resolve().parent.parent / "docs" / "assets" / "config.js"
+    try:
+        m = re.search(r'supabaseUrl\s*:\s*"([^"]*)"', path.read_text())
+    except OSError:
+        return ""
+    return m.group(1).strip() if m else ""
+
+
+class Supa:
+    def __init__(self, url: str, key: str):
+        self.base = url.rstrip("/") + "/rest/v1"
+        self.headers = {"apikey": key, "Content-Type": "application/json"}
+        if key.startswith("eyJ"):  # legacy JWT service_role key
+            self.headers["Authorization"] = f"Bearer {key}"
+
+    @classmethod
+    def from_env(cls):
+        """Service client from SUPABASE_SERVICE_KEY (GitHub secret) and the project URL, taken from
+        SUPABASE_URL or, failing that, from the public site config (docs/assets/config.js)."""
+        key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+        url = os.environ.get("SUPABASE_URL", "").strip() or public_url()
+        return cls(url, key) if url and key else None
+
+    def select(self, table: str, params: dict | None = None) -> list[dict]:
+        out, start, step = [], 0, 1000
+        while True:
+            r = http.session().get(f"{self.base}/{table}", params={"select": "*", **(params or {})},
+                                   headers={**self.headers, "Range-Unit": "items", "Range": f"{start}-{start + step - 1}"},
+                                   timeout=60)
+            r.raise_for_status()
+            rows = r.json()
+            out += rows
+            if len(rows) < step:
+                return out
+            start += step
+
+    def upsert(self, table: str, rows: list[dict], on_conflict: str) -> None:
+        for i in range(0, len(rows), 500):
+            r = http.session().post(f"{self.base}/{table}", params={"on_conflict": on_conflict},
+                                    json=rows[i:i + 500], timeout=60,
+                                    headers={**self.headers, "Prefer": "resolution=merge-duplicates,return=minimal"})
+            if r.status_code >= 400:
+                raise RuntimeError(f"upsert {table}: {r.status_code} {r.text[:300]}")
+
+    def rpc(self, fn: str, args: dict):
+        r = http.session().post(f"{self.base}/rpc/{fn}", json=args, headers=self.headers, timeout=60)
+        if r.status_code >= 400:
+            raise RuntimeError(f"rpc {fn}: {r.status_code} {r.text[:300]}")
+        return r.json() if r.content else None
+
+
+# --------------------------------------------------------------------------- helpers
+def _ts(s) -> datetime:
+    if isinstance(s, datetime):
+        return s if s.tzinfo else s.replace(tzinfo=timezone.utc)
+    return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+
+
+def fill_bar(bars: list[dict], created_at: datetime) -> dict | None:
+    """First daily bar whose close was unknown when the order was placed."""
+    ny = created_at.astimezone(P.NY)
+    d = ny.date().isoformat()
+    before_close = ny.time() < MARKET_CLOSE_NY
+    for b in bars:
+        if b["t"] > d or (b["t"] == d and before_close):
+            return b
+    return None
+
+
+def _quantiles(xs: list[float]) -> dict:
+    xs = sorted(xs)
+    n = len(xs)
+    if n == 0:
+        return {}
+    q = statistics.quantiles(xs, n=4, method="inclusive") if n >= 2 else [xs[0]] * 3
+    return {"n": n, "median": statistics.median(xs), "mean": sum(xs) / n, "p25": q[0], "p75": q[2]}
+
+
+def _price_reaction(bars: list[dict], release: date) -> float | None:
+    days = [b["t"] for b in bars]
+    d = release.isoformat()
+    i = next((k for k, t in enumerate(days) if t >= d), None)
+    if i is None or i < 1 or i + 1 >= len(days):
+        return None
+    return bars[i + 1]["c"] / bars[i - 1]["c"] - 1
+
+
+# --------------------------------------------------------------------------- main
+def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, consensus: dict,
+         next_earnings: dict, names: dict, now: datetime | None = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    summary = {}
+
+    # 1. periods ----------------------------------------------------------------------------
+    period_rows = []
+    for t, fin in fins.items():
+        for p in fin["periods"]["quarterly"][-6:]:
+            rel = P.release_date(fin, filings.get(t, []), p["label"])
+            period_rows.append({"ticker": t, "period": p["label"], "period_end": p["end"], "expected_release": None,
+                                "release_date": rel.isoformat() if rel else None,
+                                "deadline": P.deadline_for(rel).isoformat() if rel else None,
+                                "estimated": False, "status": "closed" if rel else "open",
+                                "updated_at": now.isoformat()})
+        ne, nq = next_earnings.get(t) or {}, P.next_quarter(fin)
+        if nq and ne.get("period") == nq["label"]:
+            period_rows.append({"ticker": t, "period": nq["label"], "period_end": nq["end_estimate"],
+                                "expected_release": ne.get("date"), "release_date": None,
+                                "deadline": ne.get("deadline"), "estimated": bool(ne.get("estimated", True)),
+                                "status": "open", "updated_at": now.isoformat()})
+    if period_rows:
+        client.upsert("periods", period_rows, "ticker,period")
+    summary["periods"] = len(period_rows)
+
+    # 2. latest prices ----------------------------------------------------------------------
+    price_rows = [{"ticker": s, "name": names.get(s, s), "close": b[-1]["c"], "price_date": b[-1]["t"],
+                   "updated_at": now.isoformat()} for s, b in bars.items() if b]
+    if price_rows:
+        client.upsert("latest_prices", price_rows, "ticker")
+    summary["prices"] = len(price_rows)
+
+    # 3. pending orders ---------------------------------------------------------------------
+    filled = rejected = waiting = 0
+    for o in client.select("orders", {"status": "eq.pending", "order": "id.asc"}):
+        b = fill_bar(bars.get(o["ticker"]) or [], _ts(o["created_at"]))
+        if b is None:
+            waiting += 1
+            continue
+        res = client.rpc("fill_order", {"p_order": o["id"], "p_price": b["c"], "p_date": b["t"]}) or {}
+        if res.get("status") == "filled":
+            filled += 1
+        else:
+            rejected += 1
+    summary["orders"] = {"filled": filled, "rejected": rejected, "waiting": waiting}
+
+    # 4-5. predictions & community consensus -------------------------------------------------
+    preds = client.select("predictions")
+    history = client.select("prediction_history", {"order": "recorded_at.asc"})
+    by_pred: dict[str, list] = {}
+    for h in history:
+        by_pred.setdefault(h["prediction_id"], []).append(h)
+    periods = {(r["ticker"], r["period"]): r for r in client.select("periods")}
+
+    groups: dict[tuple, list] = {}
+    for p in preds:
+        groups.setdefault((p["ticker"], p["period"]), []).append(p)
+
+    results, crowd_rows = [], []
+    for (t, label), plist in groups.items():
+        per = periods.get((t, label)) or {}
+        deadline = _ts(per["deadline"]) if per.get("deadline") else None
+        if deadline is None or now < deadline:
+            continue  # still open: nothing revealed, nothing scored
+        fin = fins.get(t)
+        valid = {}
+        for p in plist:
+            snaps = [h for h in by_pred.get(p["id"], []) if _ts(h["recorded_at"]) < deadline]
+            if snaps:
+                valid[p["id"]] = snaps[-1]["snapshot"]
+        # community consensus per metric (raw units), from versions recorded before the deadline
+        crowd = {}
+        for k in P.METRICS:
+            vals = [P.to_raw(k, (s.get("metrics") or {}).get(k, {}).get("value")) for s in valid.values()]
+            vals = [v for v in vals if v is not None]
+            if vals:
+                crowd[k] = _quantiles(vals)
+                crowd_rows.append({"ticker": t, "period": label, "metric": k, **crowd[k], "computed_at": now.isoformat()})
+        rel = date.fromisoformat(per["release_date"]) if per.get("release_date") else None
+        if not rel or fin is None or P.period_end(fin, label) is None:
+            continue  # deadline passed but figures not published yet
+        gd = (guidance.get(t) or {}).get(label, {})
+        analysts = P._frozen_consensus(consensus.get(t) or [], label, rel)
+        reaction = _price_reaction(bars.get(t) or [], rel)
+        for p in plist:
+            snap = valid.get(p["id"])
+            if snap is None:
+                results.append({"prediction_id": p["id"], "user_id": p["user_id"], "ticker": t, "period": label,
+                                "status": "late", "results": {}, "score": {}, "resolved_at": now.isoformat()})
+                continue
+            others = [s for pid, s in valid.items() if pid != p["id"]]
+            res, score = _score(snap, others, fin, label, gd, analysts, crowd, reaction, bars.get(t) or [])
+            used_at = max(_ts(h["recorded_at"]) for h in by_pred[p["id"]] if _ts(h["recorded_at"]) < deadline)
+            results.append({"prediction_id": p["id"], "user_id": p["user_id"], "ticker": t, "period": label,
+                            "status": res.pop("_status"), "scored_version_at": used_at.isoformat(),
+                            "results": res, "score": score, "resolved_at": now.isoformat()})
+    if crowd_rows:
+        client.upsert("crowd_consensus", crowd_rows, "ticker,period,metric")
+    if results:
+        client.upsert("prediction_results", results, "prediction_id")
+    summary["predictions"] = {"total": len(preds), "scored": len(results), "crowd_metrics": len(crowd_rows)}
+
+    # 6. portfolio values -------------------------------------------------------------------
+    pfs = client.select("portfolios")
+    trades = client.select("trades")
+    last = {s: b[-1]["c"] for s, b in bars.items() if b}
+    rows = []
+    for pf in pfs:
+        pos: dict[str, float] = {}
+        for tr in trades:
+            if tr["portfolio_id"] == pf["id"]:
+                q = float(tr["qty"])
+                pos[tr["ticker"]] = pos.get(tr["ticker"], 0.0) + (q if tr["side"] == "buy" else -q)
+        value = float(pf["cash"]) + sum(q * last.get(s, 0.0) for s, q in pos.items())
+        rows.append({"portfolio_id": pf["id"], "date": now.date().isoformat(), "value": round(value, 2),
+                     "cash": float(pf["cash"])})
+    if rows:
+        client.upsert("portfolio_values", rows, "portfolio_id,date")
+    summary["portfolios"] = len(rows)
+    return summary
+
+
+def _score(snap, others, fin, label, gd, analysts, crowd, reaction, bars):
+    """Resolve one member's prediction (snapshot recorded before the deadline)."""
+    res = {"metrics": [], "questions": [], "price_targets": []}
+    score = {"interval_n": 0, "interval_hit": 0, "brier_sum": 0.0, "brier_n": 0}
+    done = True
+    for k, spec in (snap.get("metrics") or {}).items():
+        if k not in P.METRICS:
+            continue
+        pred, lo, hi = (P.to_raw(k, spec.get(f)) for f in ("value", "low", "high"))
+        act = P.actual(fin, label, k)
+        m = {"key": k, "label": P.METRICS[k][0], "unit": P.METRICS[k][1], "kind": P.METRICS[k][3],
+             "value": pred, "low": lo, "high": hi, "actual": act}
+        if act is None or pred is None:
+            done = False
+            res["metrics"].append(m)
+            continue
+        e = P._err(k, pred, act)
+        m.update({x: v for x, v in e.items() if x != "value"})
+        if lo is not None and hi is not None:
+            m["in_interval"] = lo <= act <= hi
+            score["interval_n"] += 1
+            score["interval_hit"] += int(m["in_interval"])
+        loo = [P.to_raw(k, (o.get("metrics") or {}).get(k, {}).get("value")) for o in others]
+        loo = [v for v in loo if v is not None]
+        bench = {"naive": P.naive(fin, label, k),
+                 "guidance": P.to_raw(k, gd.get(k)) if gd.get(k) is not None else None,
+                 "analysts": analysts.get("revenue_avg") if (analysts and k == "revenue") else None,
+                 "crowd": statistics.median(loo) if len(loo) >= 2 else None}
+        m["benchmarks"] = {b: v for b, v in bench.items() if v is not None}
+        m["vs"] = {}
+        for b, bv in m["benchmarks"].items():
+            be = P._err(k, bv, act)
+            m["vs"][b] = {"error": be.get("error_pct", be.get("error_pts")), "abs": be["abs"],
+                          "you_win": e["abs"] < be["abs"]}
+        if k == "revenue":
+            score["rev_abs_err"] = e["abs"]
+            score["rev_err"] = e["error_pct"]
+            for b in ("crowd", "analysts", "naive"):
+                if b in m["vs"]:
+                    score[f"beat_{b}"] = m["vs"][b]["you_win"]
+        res["metrics"].append(m)
+
+    act_rev, act_gm = P.actual(fin, label, "revenue"), P.actual(fin, label, "gross_margin")
+    crowd_rev = (crowd.get("revenue") or {}).get("median")
+    for q in snap.get("questions") or []:
+        qid, p = q.get("id"), q.get("p")
+        outcome = None
+        if qid == "rev_above_guidance_high" and act_rev is not None and gd.get("revenue_high") is not None:
+            outcome = act_rev > float(gd["revenue_high"]) * 1e9
+        elif qid == "rev_above_analysts" and act_rev is not None and analysts and analysts.get("revenue_avg"):
+            outcome = act_rev > analysts["revenue_avg"]
+        elif qid == "rev_above_crowd" and act_rev is not None and crowd_rev is not None:
+            outcome = act_rev > crowd_rev
+        elif qid == "gm_above_guidance" and act_gm is not None and gd.get("gross_margin") is not None:
+            outcome = act_gm > float(gd["gross_margin"]) / 100
+        elif qid == "price_up_after" and reaction is not None:
+            outcome = reaction > 0
+        item = {"id": qid, "question": QUESTIONS.get(qid, qid), "p": p, "outcome": outcome}
+        if outcome is not None and isinstance(p, (int, float)):
+            item["brier"] = (p / 100 - (1.0 if outcome else 0.0)) ** 2
+            score["brier_sum"] += item["brier"]
+            score["brier_n"] += 1
+        else:
+            done = False
+        res["questions"].append(item)
+
+    for pt in snap.get("price_targets") or []:
+        d = str(pt.get("date"))
+        hit = next((b for b in bars if b["t"] >= d), None)
+        item = {**pt, "actual": None}
+        if hit and bars and d <= bars[-1]["t"]:
+            v = P._num(pt.get("value"))
+            item.update({"actual": hit["c"], "actual_date": hit["t"],
+                         "error_pct": (v - hit["c"]) / hit["c"] if v is not None else None})
+            lo, hi = P._num(pt.get("low")), P._num(pt.get("high"))
+            if lo is not None and hi is not None:
+                item["in_interval"] = lo <= hit["c"] <= hi
+        else:
+            done = False
+        res["price_targets"].append(item)
+    res["_status"] = "resolved" if done else "partial"
+    score = {k: (round(v, 6) if isinstance(v, float) and math.isfinite(v) else v) for k, v in score.items()}
+    return res, score

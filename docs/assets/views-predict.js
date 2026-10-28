@@ -90,17 +90,23 @@
   T.route(/^\/predictions$/, async (view) => {
     const P = await T.get("predictions.json");
     const preds = P.predictions || [];
+    const MB = T.members;
+    if (MB) await MB.ready;
+    const db = !!(MB && MB.configured && T.member);
     const nextTk = Object.keys(P.next || {})[0];
     const nx = nextTk ? P.next[nextTk] : null;
     const d = nx && daysTo(nx.deadline);
     view.innerHTML = `<div class="thead"><div class="id"><h1>Prédictions</h1>
         <div class="sub">Tes prévisions, horodatées avant la publication puis comparées aux chiffres réels</div></div>
         ${nextTk ? `<a class="btn primary" href="#/t/${nextTk}/predictions">Nouvelle prédiction ${T.esc(nextTk)} ${T.esc(nx.period || "")}</a>` : ""}</div>
-      ${scoreboard(P.summary || {})}
+      ${db ? "" : scoreboard(P.summary || {})}
       ${nx ? `<div class="panel deadline-bar"><div><b>${T.esc(nextTk)} ${T.esc(nx.period)}</b> · publication ${nx.estimated ? "estimée" : "prévue"} le <b>${F.date(nx.date)}</b>
         <span class="muted">(${T.esc(nx.source || "")})</span></div>
         <div>${d != null && d > 0 ? `Clôture des prédictions dans <b class="num">${d} j</b> · ${fmtDeadline(nx.deadline)}` : "Fenêtre fermée, en attente des chiffres"}</div></div>` : ""}
-      ${preds.length ? "" : `<div class="panel" style="margin-top:14px"><h3>Comment ça marche</h3>
+      ${db ? `<div class="group-title" style="margin-top:22px">Mes prédictions <span class="muted" style="text-transform:none;letter-spacing:0">espace membre</span></div><div id="pmine"></div>
+        <div class="group-title" style="margin-top:22px">Registre public du fondateur <span class="muted" style="text-transform:none;letter-spacing:0">fichiers horodatés par Git</span></div>${scoreboard(P.summary || {})}` : ""}
+      ${MB && MB.configured && !T.member ? `<div class="banner" style="margin-top:14px">◎ <div>Membre de la bêta ? <a href="#/compte">Connecte-toi</a> pour enregistrer tes prédictions dans ton espace et te comparer au groupe. Ci-dessous : le registre public du fondateur.</div></div>` : ""}
+      ${preds.length || db ? "" : `<div class="panel" style="margin-top:14px"><h3>Comment ça marche</h3>
         <div class="steps">
           <div><b>1. Prévois</b><p>Dans l'onglet Prédictions d'une valeur, saisis ton CA, tes marges, ton BPA, avec un intervalle de confiance à 80 %.</p></div>
           <div><b>2. Horodate</b><p>Le bouton « Enregistrer sur GitHub » ouvre un fichier pré-rempli : un commit, et ta prévision est datée de façon vérifiable.</p></div>
@@ -111,6 +117,7 @@
       ${(P.errors || []).length ? `<div class="banner">⚠ <div><b>Fichiers de prédiction invalides :</b> ${P.errors.map(T.esc).join(" · ")}</div></div>` : ""}
       <div class="stack" style="margin-top:14px">${preds.map((r) => card(r)).join("")}</div>`;
     charts(P);
+    if (db) MB.renderMine(T.$("#pmine"));
   });
 
   function charts(P) {
@@ -151,6 +158,9 @@
   // ------------------------------------------------------------------ ticker tab: Prédictions
   T.tabPredictions = async function (el, tk) {
     const [ctx, P] = await Promise.all([T.get(`${tk}/predict.json`), T.get("predictions.json")]);
+    const MB = T.members;
+    if (MB) await MB.ready;
+    const db = !!(MB && MB.configured && T.member);
     const nx = ctx.next || {}, rel = nx.release || {};
     const d = daysTo(rel.deadline);
     const mine = (P.predictions || []).filter((r) => r.ticker === tk);
@@ -159,14 +169,40 @@
     const hist = M.revenue.history;
     const lastQ = hist.slice(-4);
     const store = (() => { try { return JSON.parse(localStorage.getItem(`archer-draft-${tk}`) || "null"); } catch (e) { return null; } })();
-    const draft = Object.assign({ period: nx.label, metrics: {}, price: [], events: [], note: "" }, store || {});
+    const draft = Object.assign({ period: nx.label, metrics: {}, price: [], events: [], questions: {}, note: "", visibility: "group" }, store || {});
     if (draft.period !== nx.label && !(draft.period || "").startsWith("FY")) draft.period = nx.label;
-    const fyLabel = nx.label ? "FY" + nx.fy : null;
+    const fyLabel = nx.label && !db ? "FY" + nx.fy : null;
+
+    // members' space: the prediction lives in the database (rules enforced server side)
+    let dbs = null;
+    if (db) {
+      draft.period = nx.label;
+      try { dbs = await MB.loadPrediction(tk, nx.label); } catch (e) { dbs = { error: e.message }; }
+      const pr = dbs && dbs.pred;
+      if (pr) {
+        const str = (v) => (v == null ? "" : String(v).replace(".", ","));
+        draft.metrics = Object.fromEntries(Object.entries(pr.metrics || {}).map(([k, v]) => [k, { value: str(v.value), low: str(v.low), high: str(v.high) }]));
+        draft.questions = Object.fromEntries((pr.questions || []).map((q) => [q.id, str(q.p)]));
+        draft.price = (pr.price_targets || []).map((t) => ({ date: t.date, value: str(t.value), low: str(t.low), high: str(t.high) }));
+        draft.note = pr.note || "";
+        draft.visibility = pr.visibility;
+      }
+    }
+    const dbDeadline = db && dbs && dbs.period ? dbs.period.deadline : null;
+    const dbClosed = db && (!dbs || dbs.error || !dbs.period || (dbDeadline && new Date(dbDeadline) <= new Date()));
+    const dbMsg = !db ? "" : dbs && dbs.error ? `Base indisponible : ${dbs.error}`
+      : !dbs.period ? `La période ${nx.label} n'est pas encore ouverte dans la base : elle le sera à la prochaine mise à jour du site.`
+      : dbClosed ? "Date limite passée : la prédiction ne peut plus être créée ni modifiée." : "";
 
     el.innerHTML = `
       <div class="panel deadline-bar"><div><b>Prochaine publication : ${T.esc(nx.label || "-")}</b> · ${rel.date ? `${rel.estimated ? "estimée" : "prévue"} le <b>${F.date(rel.date)}</b> <span class="muted">(${T.esc(rel.source || "")})</span>` : "date inconnue"}</div>
         <div>${d != null && d > 0 ? `Enregistre ta prédiction avant le <b>${fmtDeadline(rel.deadline)}</b> · <b class="num">J-${d}</b>` : rel.deadline ? "Fenêtre fermée pour ce trimestre, en attente des chiffres" : ""}</div></div>
-      ${scoreboard(summaryFor(mine, P))}
+      ${db ? `<div class="kpis">
+          <div class="kpi hl"><div class="l">Ma prédiction ${T.esc(nx.label || "")}</div><div class="v">${dbs && dbs.pred ? "enregistrée" : "à faire"}</div><div class="s">${dbs && dbs.pred ? `${dbs.versions} version${dbs.versions > 1 ? "s" : ""} · dernière le ${F.dateTime(dbs.pred.updated_at)}` : "modifiable jusqu'à la date limite"}</div></div>
+          <div class="kpi"><div class="l">Membres ayant prédit</div><div class="v">${dbs && T.isNum(dbs.count) ? dbs.count : "-"}</div><div class="s">valeurs cachées jusqu'à la date limite</div></div>
+          <div class="kpi"><div class="l">Version notée</div><div class="v" style="font-size:15px">la dernière avant la limite</div><div class="s">historique archivé à chaque enregistrement</div></div></div>`
+        : scoreboard(summaryFor(mine, P))}
+      ${MB && MB.configured && !T.member ? `<div class="banner">◎ <div>Membre de la bêta ? <a href="#/compte">Connecte-toi</a> pour enregistrer ta prédiction dans ton espace (sans passer par GitHub) et te comparer au groupe.</div></div>` : ""}
       <div class="panel"><h3>Contexte pour ${T.esc(nx.label || "")} <span class="hint">ce que tu sais au moment de prévoir</span></h3>
           <div class="tbl-wrap"><table class="t"><thead><tr><th>Indicateur</th>${lastQ.map((h) => `<th class="n">${h.label}</th>`).join("")}
             <th class="n">Naïf</th><th class="n">Guidance</th><th class="n">Consensus</th></tr></thead><tbody>
@@ -191,14 +227,14 @@
             return `<div class="pf-row" data-k="${k}"><label>${T.esc(m.label)} <span class="muted">${unit}</span></label>
               <input inputmode="decimal" data-f="value" placeholder="${ph}" value="${T.esc(v.value ?? "")}">
               <input inputmode="decimal" data-f="low" value="${T.esc(v.low ?? "")}"><input inputmode="decimal" data-f="high" value="${T.esc(v.high ?? "")}"></div>`; }).join("")}
-          <div class="group-title">Questions oui / non <span class="muted" style="text-transform:none;letter-spacing:0">probabilité en %, notées au score de Brier</span></div>
-          <div id="pevents"></div>
+          <div class="group-title">Questions oui / non <span class="muted" style="text-transform:none;letter-spacing:0">probabilité en %, notées au score de Brier${db ? ", résolues automatiquement" : ""}</span></div>
+          ${db ? `<div id="pquestions">${MB.QUESTIONS.map(([id, label]) => `<div class="pf-q" data-q="${id}"><span>${T.esc(label)}</span><input inputmode="decimal" placeholder="%" value="${T.esc(draft.questions[id] ?? "")}"></div>`).join("")}</div>` : `<div id="pevents"></div>
           <div class="row" id="pev-presets">
             <button class="chip" data-q="CA au-dessus du haut de la fourchette de guidance ?">+ CA au-dessus du haut de la guidance</button>
             <button class="chip" data-q="CA au-dessus du consensus ?">+ CA au-dessus du consensus</button>
             <button class="chip" data-q="Guidance du trimestre suivant au-dessus du consensus ?">+ Guidance suivante au-dessus du consensus</button>
             <button class="chip" data-q="Le cours monte le lendemain de la publication ?">+ Cours en hausse le lendemain</button>
-            <button class="chip" data-q="">+ Question libre</button></div>
+            <button class="chip" data-q="">+ Question libre</button></div>`}
           <div class="group-title">Objectifs de cours <span class="muted" style="text-transform:none;letter-spacing:0">vérifiés sur la clôture du jour visé</span></div>
           <div id="pprices"></div>
           <div class="row"><button class="chip" id="paddprice">+ Ajouter un objectif de cours</button></div>
@@ -206,11 +242,16 @@
           <textarea id="pnote" rows="4" placeholder="Pourquoi ces chiffres ? Hypothèses clés, ce qui te ferait changer d'avis…">${T.esc(draft.note || "")}</textarea>
         </div>
         <div id="pvalid" class="note"></div>
-        <div class="row" style="margin-top:12px">
+        ${db ? `<div class="row" style="margin-top:12px">
+          <button class="btn primary" id="pdbsave" ${dbClosed ? "disabled" : ""}>${dbs && dbs.pred ? "Mettre à jour ma prédiction" : "Enregistrer ma prédiction"}</button>
+          <label class="check"><input type="checkbox" id="pvis" ${draft.visibility !== "private" ? "checked" : ""}> visible par le groupe après la date limite</label>
+          <span class="spacer"></span><span class="note" id="pdbmsg" style="margin:0">${T.esc(dbMsg)}</span></div>
+          <p class="note">Enregistrée dans ton espace membre, horodatée par la base. Tu peux la modifier autant que tu veux jusqu'à la date limite : chaque version est archivée et c'est la dernière avant la limite qui est notée.</p>`
+        : `<div class="row" style="margin-top:12px">
           <a class="btn primary" id="psave" target="_blank" rel="noopener">Enregistrer sur GitHub (horodatage) ↗</a>
           <button class="btn" id="pcopy">Copier le YAML</button><span class="spacer"></span>
           <span class="muted" style="font-size:12px">GitHub s'ouvre avec le fichier pré-rempli : clique « Commit changes ». Le site se met à jour en 1 à 2 min.</span></div>
-        <details style="margin-top:10px"><summary class="sec" style="cursor:pointer">Aperçu du fichier</summary><pre class="yaml" id="pyaml"></pre></details>
+        <details style="margin-top:10px"><summary class="sec" style="cursor:pointer">Aperçu du fichier</summary><pre class="yaml" id="pyaml"></pre></details>`}
       </div>
       <div class="panel sticky-panel"><h3>CA trimestriel et ta prévision <span class="hint">Md$</span></h3><div class="chart" id="pchart" style="height:260px"></div>
         <div class="group-title">Positionnement ${T.esc(nx.label || "")} <span class="muted" style="text-transform:none;letter-spacing:0">Md$, barres = fourchettes</span></div>
@@ -218,8 +259,9 @@
         <p class="note">Ta prévision et ton intervalle se mettent à jour pendant la saisie.</p></div>
       </div>
 
-      <div class="group-title" style="margin-top:22px">Mes prédictions ${T.esc(tk)}</div>
-      <div class="stack">${mine.length ? mine.map((r) => card(r)).join("") : '<div class="empty">Aucune prédiction pour l\'instant. La première compte : remplis le formulaire ci-dessus.</div>'}</div>`;
+      <div class="group-title" style="margin-top:22px">${db ? "Mes prédictions et celles du groupe" : "Mes prédictions"} ${T.esc(tk)}</div>
+      <div class="stack" id="plist">${db ? "" : mine.length ? mine.map((r) => card(r)).join("") : '<div class="empty">Aucune prédiction pour l\'instant. La première compte : remplis le formulaire ci-dessus.</div>'}</div>`;
+    if (db) MB.renderTickerPredictions(T.$("#plist"), tk, nx.label);
 
     // ---------------- dynamic rows
     const evBox = T.$("#pevents"), pxBox = T.$("#pprices");
@@ -229,9 +271,9 @@
     const pxRow = (p = {}) => { const d = document.createElement("div"); d.className = "pf-px";
       d.innerHTML = `<input data-f="date" type="date" value="${T.esc(p.date || "")}"><input data-f="value" inputmode="decimal" placeholder="Cours $" value="${T.esc(p.value ?? "")}"><input data-f="low" inputmode="decimal" placeholder="Bas" value="${T.esc(p.low ?? "")}"><input data-f="high" inputmode="decimal" placeholder="Haut" value="${T.esc(p.high ?? "")}"><button class="icon-btn" title="Retirer">✕</button>`;
       d.querySelector("button").onclick = () => { d.remove(); update(); }; pxBox.appendChild(d); };
-    (draft.events || []).forEach(evRow);
+    if (!db) (draft.events || []).forEach(evRow);
     (draft.price || []).forEach(pxRow);
-    T.$("#pev-presets").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (!b) return; evRow({ question: b.dataset.q }); update(); });
+    if (!db) T.$("#pev-presets").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (!b) return; evRow({ question: b.dataset.q }); update(); });
     T.$("#paddprice").onclick = () => { const dd = new Date(); dd.setMonth(dd.getMonth() + 3); pxRow({ date: dd.toISOString().slice(0, 10) }); update(); };
     T.$("#preset").onclick = () => { try { localStorage.removeItem(`archer-draft-${tk}`); } catch (e) { /* noop */ } T.render(); };
 
@@ -300,7 +342,9 @@
     const num = (s) => { if (s == null || String(s).trim() === "") return null; const v = parseFloat(String(s).replace(/\s/g, "").replace(",", ".")); return isFinite(v) ? v : NaN; };
     const q = (s) => '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
     function collect() {
-      const out = { period: T.$("#pperiod").value, metrics: {}, events: [], price: [], note: T.$("#pnote").value };
+      const out = { period: T.$("#pperiod").value, metrics: {}, events: [], questions: {}, price: [], note: T.$("#pnote").value,
+        visibility: T.$("#pvis") && !T.$("#pvis").checked ? "private" : "group" };
+      T.$$(".pf-q").forEach((r) => { const v = T.$("input", r).value.trim(); if (v) out.questions[r.dataset.q] = v; });
       T.$$(".pf-row").forEach((r) => { const o = {}; T.$$("input", r).forEach((i) => { o[i.dataset.f] = i.value.trim(); }); if (o.value || o.low || o.high) out.metrics[r.dataset.k] = o; });
       T.$$(".pf-ev").forEach((r) => { const [a, b] = T.$$("input", r); if (a.value.trim() || b.value.trim()) out.events.push({ question: a.value.trim(), probability: b.value.trim() }); });
       T.$$(".pf-px").forEach((r) => { const o = {}; T.$$("input", r).forEach((i) => { o[i.dataset.f] = i.value.trim(); }); if (o.value) out.price.push(o); });
@@ -319,7 +363,8 @@
       });
       d.events.forEach((e) => { const p = num(e.probability); if (!e.question) errs.push("Question oui / non sans texte"); if (p === null || Number.isNaN(p) || p < 0 || p > 100) errs.push(`« ${e.question || "?"} » : probabilité entre 0 et 100`); });
       d.price.forEach((p) => { if (!p.date) errs.push("Objectif de cours sans date"); if (Number.isNaN(num(p.value))) errs.push("Objectif de cours invalide"); });
-      if (!Object.keys(d.metrics).length && !d.events.length && !d.price.length) errs.push("Rien à enregistrer : remplis au moins une prévision");
+      Object.entries(d.questions).forEach(([id, v]) => { const p = num(v); if (p === null || Number.isNaN(p) || p < 0 || p > 100) errs.push(`Question « ${(MB && Object.fromEntries(MB.QUESTIONS)[id]) || id} » : probabilité entre 0 et 100`); });
+      if (!Object.keys(d.metrics).length && !d.events.length && !d.price.length && !Object.keys(d.questions).length) errs.push("Rien à enregistrer : remplis au moins une prévision");
       return errs;
     }
     function toYaml(d) {
@@ -350,19 +395,49 @@
       const d = collect();
       try { localStorage.setItem(`archer-draft-${tk}`, JSON.stringify(d)); } catch (e) { /* noop */ }
       const errs = validate(d);
-      const y = toYaml(d);
-      T.$("#pyaml").textContent = y;
       T.$("#pvalid").innerHTML = errs.length ? errs.map((e) => `<span class="warn">• ${T.esc(e)}</span>`).join("<br>") : '<span class="up">Prêt à être enregistré.</span>';
-      const stamp = new Date().toISOString().slice(0, 16).replace("T", "-").replace(":", "");
-      const fname = `config/predictions/${tk}/${stamp}-${d.period.toLowerCase().replace(/\s+/g, "-")}.yaml`;
-      const btn = T.$("#psave");
-      btn.href = T.repoUrl(`new/main?filename=${encodeURIComponent(fname)}&value=${encodeURIComponent(y)}`);
-      btn.classList.toggle("disabled", errs.length > 0);
+      if (db) {
+        T.$("#pdbsave").disabled = dbClosed || errs.length > 0;
+      } else {
+        const y = toYaml(d);
+        T.$("#pyaml").textContent = y;
+        const stamp = new Date().toISOString().slice(0, 16).replace("T", "-").replace(":", "");
+        const fname = `config/predictions/${tk}/${stamp}-${d.period.toLowerCase().replace(/\s+/g, "-")}.yaml`;
+        const btn = T.$("#psave");
+        btn.href = T.repoUrl(`new/main?filename=${encodeURIComponent(fname)}&value=${encodeURIComponent(y)}`);
+        btn.classList.toggle("disabled", errs.length > 0);
+      }
       const r = d.metrics.revenue;
       drawChart(r ? { value: num(r.value), low: num(r.low), high: num(r.high) } : null);
     }
+    function toRow(d) {
+      const metrics = {};
+      Object.entries(d.metrics).forEach(([k, o]) => { const v = { value: num(o.value) }; if (num(o.low) != null) v.low = num(o.low); if (num(o.high) != null) v.high = num(o.high); metrics[k] = v; });
+      return { ticker: tk, period: nx.label, metrics,
+        questions: Object.entries(d.questions).map(([id, p]) => ({ id, p: num(p) })),
+        price_targets: d.price.map((p) => { const t = { date: p.date, value: num(p.value) }; if (num(p.low) != null) t.low = num(p.low); if (num(p.high) != null) t.high = num(p.high); return t; }),
+        note: d.note.trim() || null, visibility: d.visibility };
+    }
+    if (db) {
+      T.$("#pdbsave").onclick = async () => {
+        const d = collect();
+        if (validate(d).length) return;
+        const btn = T.$("#pdbsave"), msg = T.$("#pdbmsg");
+        btn.disabled = true; msg.className = "note"; msg.textContent = "Enregistrement…";
+        try {
+          const row = await MB.savePrediction(dbs.pred, toRow(d));
+          dbs.pred = row; dbs.versions = (dbs.versions || 0) + 1;
+          try { localStorage.removeItem(`archer-draft-${tk}`); } catch (e) { /* noop */ }
+          msg.className = "note up"; msg.textContent = `Enregistrée le ${F.dateTime(row.updated_at)} ✓ (version ${dbs.versions})`;
+          btn.textContent = "Mettre à jour ma prédiction";
+          MB.renderTickerPredictions(T.$("#plist"), tk, nx.label);
+        } catch (e) { msg.className = "note warn"; msg.textContent = e.message; }
+        btn.disabled = false;
+      };
+    } else {
     T.$("#psave").addEventListener("click", (e) => { if (e.currentTarget.classList.contains("disabled")) e.preventDefault(); });
     T.$("#pcopy").onclick = async () => { const y = T.$("#pyaml").textContent; try { await navigator.clipboard.writeText(y); T.$("#pcopy").textContent = "Copié ✓"; } catch (e) { window.prompt("Copie ce YAML :", y); } setTimeout(() => { T.$("#pcopy").textContent = "Copier le YAML"; }, 1600); };
+    }
     el.addEventListener("input", update);
     el.addEventListener("change", update);
     update();

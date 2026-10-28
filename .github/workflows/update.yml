@@ -11,6 +11,7 @@ on:
     paths:
       - "config/**"
       - "pipeline/**"
+      - "supabase/**"
       - "docs/assets/**"
       - "docs/index.html"
       - ".github/workflows/**"
@@ -28,6 +29,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:   # base jetable pour tester les règles de l'espace membres (RLS, dates limites, ordres)
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -46,11 +55,23 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Tests
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: python -m pytest -q
+
+      - name: Base membres (migrations Supabase)
+        continue-on-error: true   # un souci de base ne doit pas bloquer la mise à jour des cours
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ARCHER_ADMIN_EMAIL: ${{ secrets.ARCHER_ADMIN_EMAIL }}
+        run: |
+          python -m pipeline.dbadmin migrate
+          python -m pipeline.dbadmin founder
 
       - name: Pipeline (SEC + marché → valorisation → feed)
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           set -o pipefail
           python -u -m pipeline.build 2>&1 | tee pipeline.log

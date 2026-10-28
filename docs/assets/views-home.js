@@ -180,6 +180,19 @@
         </div>
         <p class="note">Le choc implicite isole ce que le marché paie pour l'annonce elle-même : variance de l'échéance juste après la publication moins la variance « normale » de l'échéance juste avant.
           Sans dividende ni exercice anticipé : approximation standard pour des options liquides.</p></div>
+      <div class="panel span2"><h3>Espace membres (bêta fermée)</h3>
+        <div class="kv">
+          <div>Accès</div><div>sur invitation (code créé par un administrateur), comptes e-mail + mot de passe</div>
+          <div>Prédictions</div><div>modifiables jusqu'à 00:00 New York le jour de la publication ; chaque version est archivée, la dernière avant la limite est notée</div>
+          <div>Visibilité</div><div>les prévisions des autres membres restent cachées jusqu'à la date limite (seul leur nombre est affiché)</div>
+          <div>Communauté</div><div>médiane des membres, calculée sans ta propre prévision quand on te compare au groupe</div>
+          <div>Questions oui / non</div><div>résolues automatiquement (guidance, analystes, communauté, réaction du cours veille → lendemain)</div>
+          <div>Portefeuilles</div><div>fictifs, 100 000 $ chacun, ordres exécutés à la clôture de la séance suivante, pas de vente à découvert</div>
+        </div>
+        <p class="note">Toutes ces règles sont appliquées par la base de données elle-même (sécurité au niveau des lignes), pas seulement par l'interface.
+          Limites connues : les divisions d'actions ne sont pas encore répercutées sur les portefeuilles fictifs ; les cours viennent de sources gratuites
+          (Yahoo Finance) dont les conditions interdisent un usage commercial : l'espace membres reste une bêta privée et non commerciale.
+          Rien ici n'est un conseil en investissement.</p></div>
       <div class="panel span2"><h3>Couverture XBRL (diagnostic du dernier run)</h3>
         ${cov.length ? cov.map(([tk, c]) => `<div class="group-title">${tk}</div><div class="tbl-wrap"><table class="t"><thead><tr><th>Ligne</th><th>Étiquettes XBRL utilisées</th><th class="n">Exercices</th><th class="n">Trimestres</th></tr></thead><tbody>
           ${Object.entries(c).map(([k, x]) => `<tr><td>${k}</td><td class="muted">${T.esc((x.tags || []).join(", ") || "-")}</td><td class="n ${x.annual ? "" : "warn"}">${x.annual}</td><td class="n ${x.quarterly ? "" : "warn"}">${x.quarterly}</td></tr>`).join("")}

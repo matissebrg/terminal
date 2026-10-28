@@ -15,7 +15,7 @@ from pathlib import Path
 
 import yaml
 
-from . import feed, market, normalize, options, predictions, ratios, sec, valuation
+from . import community, feed, market, normalize, options, predictions, ratios, sec, valuation
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "data"
@@ -419,6 +419,20 @@ def run(src, only: list[str] | None = None) -> int:
     except Exception as exc:  # noqa: BLE001
         traceback.print_exc()
         status["errors"].append(f"registre de prédictions : {exc}")
+
+    # ---- members' space (Supabase), only when the secrets are configured
+    client = community.Supa.from_env() if src.mode == "live" else None
+    if client:
+        try:
+            names = {**universe.get("peer_names", {}), **universe.get("benchmarks", {}),
+                     **{t: c["name"] for t, c in universe["tickers"].items()}}
+            status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
+                                                 guidance=guid_all, consensus=cons_all, next_earnings=ne_all,
+                                                 names=names)
+            print("  [membres]", status["community"])
+        except Exception as exc:  # noqa: BLE001
+            traceback.print_exc()
+            status["errors"].append(f"espace membres : {str(exc)[:160]}")
 
     write(OUT / "universe.json", {"meta": meta, "tickers": index, "benchmarks": benches,
                                   "risk_free": status["risk_free"]})

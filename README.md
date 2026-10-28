@@ -59,6 +59,38 @@ pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.j
 Écriture à la main possible : voir `config/predictions/_modele.yaml`. La guidance de la société se renseigne dans
 `config/assumptions/<TICKER>.yaml` (section `guidance`). Le consensus est relevé chaque jour dans `docs/data/<T>/consensus.json`.
 
+## Espace membres (bêta fermée)
+
+Comptes, prédictions enregistrées en base, classement et portefeuilles fictifs, pour un petit groupe sur invitation.
+Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, offre gratuite), le site reste sur GitHub Pages.
+
+- **Toutes les règles sont dans la base** (`supabase/migrations/0001_community.sql`) : date limite, archivage des versions,
+  prévisions des autres invisibles avant la limite, argent fictif modifiable uniquement par les fonctions d'exécution.
+  Un membre qui appellerait l'API directement ne peut pas tricher. Testé sur un vrai PostgreSQL (`tests/test_db.py`).
+- **Le pipeline** (`pipeline/community.py`) ouvre les périodes, publie les derniers cours, exécute les ordres à la clôture
+  suivante, calcule le consensus de la communauté et note chaque prédiction (mêmes règles que le registre Git).
+- Sans compte, l'onglet Prédictions garde le mode « fichier GitHub » ci-dessous.
+
+**Activation (une fois) :**
+
+1. Créer un projet Supabase (région UE). *Authentication → Sign In / Providers → Email* : décocher **Confirm email**
+   (l'envoi d'e-mails par défaut de Supabase est limité à l'équipe du projet).
+2. Copier l'**URL du projet** et la **clé publishable** (`sb_publishable_…`) dans `docs/assets/config.js`. Elles sont publiques
+   par conception (la sécurité vient des règles de la base). **Jamais la clé secrète ici.**
+3. Secrets GitHub (*Settings → Secrets and variables → Actions*), qui ne quittent jamais GitHub :
+   - `SUPABASE_DB_URL` : *Connect → Session pooler* (URI avec le mot de passe de la base ; la connexion directe est IPv6
+     uniquement, inaccessible depuis GitHub Actions) ;
+   - `SUPABASE_SERVICE_KEY` : clé secrète (`sb_secret_…`) ;
+   - `ARCHER_ADMIN_EMAIL` : ton e-mail, pour rejoindre en fondateur sans code.
+4. Lancer le workflow : il applique les migrations (`python -m pipeline.dbadmin migrate`), puis synchronise.
+5. Sur le site : *Connexion → Créer un compte* avec cet e-mail, code vide → tu es administrateur et peux créer des codes
+   d'invitation depuis *Mon compte*.
+
+**Limites :** cours Yahoo Finance, dont les conditions interdisent la redistribution et l'usage commercial : acceptable pour
+une bêta privée non commerciale, à remplacer par un fournisseur sous licence avant toute ouverture publique (la source est
+isolée dans `pipeline/market.py`). Les divisions d'actions ne sont pas encore appliquées aux portefeuilles fictifs. Données
+personnelles (RGPD) : e-mail et pseudo seulement, suppression du compte en un clic dans *Mon compte*.
+
 ## Mise en route (une seule fois)
 
 1. **Settings → Pages → Build and deployment → Source : `GitHub Actions`.**
@@ -103,7 +135,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 95 tests (normalisation, DCF, feed, prédictions, options, parité Python/JS)
+python -m pytest -q                                   # 111 tests (normalisation, DCF, feed, prédictions, options, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py
@@ -113,6 +145,9 @@ cp -r docs/assets docs/index.html /tmp/site/ && python -m http.server -d /tmp/si
 # Données réelles (nécessite un accès réseau à sec.gov)
 SEC_USER_AGENT="Nom email@exemple.com" python -m pipeline.build
 ```
+
+\* Les tests de la base membres demandent un PostgreSQL jetable : `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres`
+(sinon ils sont ignorés). En CI, un conteneur Postgres 16 est fourni par le workflow.
 
 Les fixtures reproduisent volontairement les pièges du vrai XBRL (cumuls YTD, T4 absent, exercices de 53 semaines,
 retraitement, changement d'étiquette) et les tests vérifient chaque reconstruction contre la vérité connue.
