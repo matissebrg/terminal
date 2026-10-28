@@ -1,10 +1,39 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.8s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
-  valeur DCF 140.78 $ | pondérée 138.75 $ | cours 214.72
+  valeur DCF 140.93 $ | pondérée 138.90 $ | cours 215.38
+Traceback (most recent call last):
+  File "/home/runner/work/terminal/terminal/pipeline/build.py", line 429, in run
+    status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/terminal/terminal/pipeline/community.py", line 151, in sync
+    client.upsert("periods", period_rows, "ticker,period")
+  File "/home/runner/work/terminal/terminal/pipeline/community.py", line 79, in upsert
+    r = http.session().post(f"{self.base}/{table}", params={"on_conflict": on_conflict},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/sessions.py", line 712, in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/sessions.py", line 635, in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/sessions.py", line 541, in prepare_request
+    p.prepare(
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/models.py", line 440, in prepare
+    self.prepare_headers(headers)
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/models.py", line 570, in prepare_headers
+    check_header_validity(header)
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/utils.py", line 1095, in check_header_validity
+    _validate_header_part(header, value, 1)
+  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/requests/utils.py", line 1116, in _validate_header_part
+    raise InvalidHeader(
+requests.exceptions.InvalidHeader: Invalid leading whitespace, reserved character(s), or return character(s) in header value: 'sb_secret_zCQW6\n_plKZQUtl9X9NDvcw_lOtQmtri'
+Erreurs :
+  espace membres : Invalid leading whitespace, reserved character(s), or return character(s) in header value: 'sb_secret_zCQW6\n_plKZQUtl9X9NDvcw_lOtQmtri'
+::warning title=Pipeline::espace membres : Invalid leading whitespace, reserved character(s), or return character(s) in header value: 'sb_secret_zCQW6\n_plKZQUtl9X9NDvcw_lOtQmtri'
