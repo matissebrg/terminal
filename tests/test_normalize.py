@@ -206,3 +206,24 @@ def test_split_restated_comparative_not_adjusted_twice():
     assert normalize.split_factor(D(2020, 1, 26), D(2020, 2, 20), sp) == 40.0   # before both splits
     assert normalize.split_factor(D(2020, 1, 26), D(2022, 3, 18), sp) == 10.0   # restated for the 2021 split only
     assert normalize.split_factor(D(2023, 1, 29), D(2024, 8, 28), sp) == 1.0    # restated for both
+
+
+def test_debt_current_sums_current_ltd_and_short_term_borrowings():
+    """Walmart: current portion of long-term debt and short-term borrowings are two balance-sheet lines."""
+    fj = _mini_facts({
+        "LongTermDebtCurrent": [_fact(None, "2026-03-31", 4.0, filed="2026-05-01")],
+        "ShortTermBorrowings": [_fact(None, "2026-03-31", 3.0, filed="2026-05-01")],
+        "DebtCurrent": [_fact(None, "2025-09-30", 6.5)],          # single total only on an older date
+        "LongTermDebtNoncurrent": [_fact(None, "2026-03-31", 30.0, filed="2026-05-01")],
+        "FinanceLeaseLiabilityCurrent": [_fact(None, "2026-03-31", 1.0, filed="2026-05-01")],
+        "FinanceLeaseLiabilityNoncurrent": [_fact(None, "2026-03-31", 5.0, filed="2026-05-01")],
+        "MinorityInterest": [_fact(None, "2026-03-31", 2.5, filed="2026-05-01")],
+    })
+    n = normalize.normalize(fj)
+    L = n["lines"]
+    assert L["debt_current"]["quarterly"]["Q1 FY2026"] == 7.0       # sum preferred
+    assert L["debt_current"]["quarterly"]["Q3 FY2025"] == 6.5       # single total as fallback
+    assert L["finance_leases"]["quarterly"]["Q1 FY2026"] == 6.0
+    assert L["total_debt"]["quarterly"]["Q1 FY2026"] == 30.0 + 7.0 + 6.0
+    assert n["ttm"]["minority_interest"] == 2.5
+    assert not any(x.startswith(("finance_leases", "minority")) for x in normalize.quality(n))

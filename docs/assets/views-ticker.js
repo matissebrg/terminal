@@ -189,8 +189,8 @@
       ["income_tax", "sub"], ["net_income", "total"], ["ebitda", "hl"], ["eps_diluted", "ps"], ["diluted_shares", "sh"]] },
     balance: { label: "Bilan", rows: [
       ["cash", ""], ["short_term_investments", ""], ["equity_investments", ""], ["receivables", ""], ["inventory", ""], ["current_assets", "total"],
-      ["total_assets", "total"], ["current_liabilities", ""], ["debt_current", "sub"], ["debt_noncurrent", "sub"],
-      ["total_debt", "hl"], ["total_liabilities", "total"], ["equity", "total"], ["net_cash", "hl"]] },
+      ["total_assets", "total"], ["current_liabilities", ""], ["debt_current", "sub"], ["debt_noncurrent", "sub"], ["finance_leases", "sub"],
+      ["total_debt", "hl"], ["total_liabilities", "total"], ["equity", "total"], ["minority_interest", "sub"], ["net_cash", "hl"]] },
     cashflow: { label: "Flux de trésorerie", rows: [
       ["cfo", "total"], ["d_and_a", "sub"], ["sbc", "sub"], ["capex", "sub"], ["fcf", "hl"], ["acquisitions", ""],
       ["buybacks", ""], ["dividends_paid", ""]] },
@@ -430,7 +430,7 @@
         ${[["CA", "revenue", 1e9], ["Croissance", "growth", "pct"], ["Marge EBIT", "ebit_margin", "pct"], ["EBIT", "ebit", 1e9], ["NOPAT", "nopat", 1e9],
            ["+ D&A", "d_and_a", 1e9], ["- Capex", "capex", 1e9], ["- ΔBFR", "delta_nwc", 1e9], ["FCFF", "fcff", 1e9], ["Facteur d'actualisation", "discount_factor", "f"], ["Valeur actuelle", "pv", 1e9]]
           .map(([l, k, d]) => `<tr class="${k === "fcff" ? "total" : ""}"><td class="lbl">${l}</td>${res.rows.map((r) => `<td class="n">${d === "pct" ? F.pct(r[k], 1) : d === "f" ? F.n(r[k], 3) : F.n(r[k] / d, 1)}</td>`).join("")}</tr>`).join("")}
-        </tbody></table><p class="note">Valeur terminale ${F.usd(res.terminal_value)} → actualisée ${F.usd(res.pv_terminal_value)}. VE ${F.usd(res.enterprise_value)} + trésorerie et placements ${F.usd(res.cash)} + participations ${F.usd(res.investments)} - dette ${F.usd(res.debt)} = ${F.usd(res.equity_value)} / ${F.n(res.shares / 1e9, 2)} Md actions.</p>`;
+        </tbody></table><p class="note">Valeur terminale ${F.usd(res.terminal_value)} → actualisée ${F.usd(res.pv_terminal_value)}. VE ${F.usd(res.enterprise_value)} + trésorerie et placements ${F.usd(res.cash)} + participations ${F.usd(res.investments)} - dette ${F.usd(res.debt)}${res.minority ? ` - intérêts minoritaires ${F.usd(res.minority)}` : ""} = ${F.usd(res.equity_value)} / ${F.n(res.shares / 1e9, 2)} Md actions.</p>`;
     }
     // For the "changed" marker, WACC inputs are compared with the original (pipeline) values
     ctlDefs.forEach((d) => { const g = d[6]; d[6] = (s, isBase) => (isBase && ["rf", "bt", "erp"].includes(d[0]) ? I.wacc_detail[{ rf: "risk_free", bt: "beta", erp: "equity_risk_premium" }[d[0]]] : g(s)); });
@@ -497,7 +497,7 @@
       ["Prime de risque actions", F.pct(I.wacc_detail.equity_risk_premium, 2), "hypothèse"],
       ["Poids de la dette", F.pct(I.wacc_detail.debt_weight, 2), S.debt_weight], ["Trésorerie + placements", F.usd(I.cash), "données (dernier bilan)"],
       ["Participations en actions", F.usd(I.investments), S.investments],
-      ["Dette financière", F.usd(I.debt), "données (dernier bilan)"], ["Nombre d'actions", F.n(I.shares / 1e9, 3) + " Md", "SEC (page de garde du dernier dépôt)"],
+      ["Dette financière (y c. location-financement)", F.usd(I.debt), "données (dernier bilan)"], ["Intérêts minoritaires", F.usd(I.minority || 0), S.minority || "aucun"], ["Nombre d'actions", F.n(I.shares / 1e9, 3) + " Md", "SEC (page de garde du dernier dépôt)"],
     ];
     T.$("#srcs").innerHTML = `<table class="t"><thead><tr><th>Paramètre</th><th class="n">Valeur</th><th>Source</th></tr></thead><tbody>
       ${rowsSrc.map(([a, b, c]) => `<tr><td>${a}</td><td class="n">${b}</td><td><span class="src-tag ${/hypoth/.test(c || "") ? "" : "auto"}">${T.esc(c || "-")}</span></td></tr>`).join("")}</tbody></table>

@@ -149,3 +149,11 @@ def test_equity_investments_added_to_bridge():
     b = V.dcf(base_r(investments=20.0))
     assert b["enterprise_value"] == pytest.approx(a["enterprise_value"])
     assert b["value_per_share"] - a["value_per_share"] == pytest.approx(2.0)  # 20 / 10 shares
+
+
+def test_minority_interest_reduces_equity_value():
+    r = base_r(mid_year=True)
+    a = V.dcf(r)
+    b = V.dcf({**r, "minority": 1.0e9})
+    assert b["enterprise_value"] == pytest.approx(a["enterprise_value"])
+    assert a["equity_value"] - b["equity_value"] == pytest.approx(1.0e9)

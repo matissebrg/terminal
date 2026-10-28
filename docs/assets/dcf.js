@@ -47,14 +47,15 @@
     const pvTv = tv / Math.pow(1 + w, r.mid_year ? n - 0.5 : n);
     const ev = pvSum + pvTv;
     const investments = r.investments || 0;
-    const equity = ev + r.cash + investments - r.debt;
+    const minority = r.minority || 0;
+    const equity = ev + r.cash + investments - r.debt - minority;
     const perShare = r.shares ? equity / r.shares : null;
     const ebitdaN = last.ebit + last.d_and_a;
     return {
       rows, sum_pv_fcff: pvSum, terminal_value: tv, pv_terminal_value: pvTv,
       terminal_value_share_of_ev: ev ? pvTv / ev : null,
       implied_exit_ev_ebitda: ebitdaN > 0 ? tv / ebitdaN : null,
-      enterprise_value: ev, cash: r.cash, investments, debt: r.debt, equity_value: equity, shares: r.shares,
+      enterprise_value: ev, cash: r.cash, investments, debt: r.debt, minority, equity_value: equity, shares: r.shares,
       value_per_share: perShare,
       upside: perShare && r.price ? perShare / r.price - 1 : null,
     };

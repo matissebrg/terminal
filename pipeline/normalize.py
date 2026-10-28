@@ -100,10 +100,14 @@ CONCEPTS: dict[str, tuple] = {
     "debt_noncurrent": (INSTANT, "USD", [("us-gaap", "LongTermDebtNoncurrent"),
                                          ("us-gaap", "LongTermDebtAndCapitalLeaseObligations"),
                                          ("us-gaap", "LongTermDebt")], "Dette long terme", "balance"),
-    "debt_current": (INSTANT, "USD", [("us-gaap", "LongTermDebtCurrent"),
-                                      ("us-gaap", "DebtCurrent"),
-                                      ("us-gaap", "ShortTermBorrowings"),
-                                      ("us-gaap", "CommercialPaper")], "Dette court terme", "balance"),
+    # Single total only as a fallback: the COMPOSITE (current part of long-term debt + short-term
+    # borrowings) is preferred, because many companies (Walmart) report the two on separate lines.
+    "debt_current": (INSTANT, "USD", [("us-gaap", "DebtCurrent")], "Dette court terme", "balance"),
+    # Filled by COMPOSITES (current + non-current) unless a single total is tagged
+    "finance_leases": (INSTANT, "USD", [("us-gaap", "FinanceLeaseLiability")],
+                       "Dettes de location-financement", "balance"),
+    "minority_interest": (INSTANT, "USD", [("us-gaap", "MinorityInterest")],
+                          "Intérêts minoritaires", "balance"),
     "equity": (INSTANT, "USD", [("us-gaap", "StockholdersEquity"),
                                 ("us-gaap", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest")],
                "Capitaux propres", "balance"),
@@ -112,7 +116,14 @@ CONCEPTS: dict[str, tuple] = {
 # Lines rebuilt as a SUM of components when no single tag exists for a period.
 # groups: each group is an ordered list of candidate tags; the value is the sum over groups of the
 # first tag found. require_first: the first group must be present (e.g. depreciation for D&A).
+# prefer: the sum wins over the single tag when both exist (the single tag is then only a fallback).
 COMPOSITES = {
+    "debt_current": {"groups": [[("us-gaap", "LongTermDebtCurrent"),
+                                 ("us-gaap", "LongTermDebtAndCapitalLeaseObligationsCurrent")],
+                                [("us-gaap", "ShortTermBorrowings"), ("us-gaap", "CommercialPaper")]],
+                     "require_first": False, "prefer": True},
+    "finance_leases": {"groups": [[("us-gaap", "FinanceLeaseLiabilityCurrent")],
+                                  [("us-gaap", "FinanceLeaseLiabilityNoncurrent")]], "require_first": False},
     # AMD, Marvell: cash-flow statement splits depreciation and acquisition-intangible amortization
     "d_and_a": {"groups": [[("us-gaap", "OtherDepreciationAndAmortization"), ("us-gaap", "Depreciation"),
                             ("us-gaap", "DepreciationNonproduction")],
@@ -129,7 +140,7 @@ OPTIONAL_FLOWS = {"acquisitions", "dividends_paid", "buybacks", "interest_expens
 DERIVED = {
     "ebitda": ("EBITDA (EBIT + D&A)", "income"),
     "fcf": ("Free cash flow (CFO - capex)", "cashflow"),
-    "total_debt": ("Dette financière totale", "balance"),
+    "total_debt": ("Dette financière totale (y c. location-financement)", "balance"),
     "net_cash": ("Trésorerie nette (cash + placements - dette)", "balance"),
 }
 
@@ -463,7 +474,7 @@ def _fill_instant_composite(facts_json, name, ends, target) -> list[str]:
         used += sorted({f.tag for f in facts})
     added = 0
     for k, v in _group_sum(groups, spec["require_first"]).items():
-        if k not in target:
+        if k not in target or spec.get("prefer"):
             target[k] = v
             added += 1
     return [f"somme : {' + '.join(used)}"] if added else []
@@ -487,9 +498,11 @@ def _derive(lines: dict, periods: dict) -> None:
             cfo, capex = g("cfo", l), g("capex", l)
             if cfo is not None:
                 lines["fcf"][freq][l] = cfo - (capex or 0.0)
-            dn, dc = g("debt_noncurrent", l), g("debt_current", l)
+            dn, dc, fl = g("debt_noncurrent", l), g("debt_current", l), g("finance_leases", l)
             if dn is not None or dc is not None:
-                lines["total_debt"][freq][l] = (dn or 0.0) + (dc or 0.0)
+                # finance leases are debt (their cost sits below EBIT); operating leases are not added,
+                # since their rent is already deducted in EBIT under US GAAP
+                lines["total_debt"][freq][l] = (dn or 0.0) + (dc or 0.0) + (fl or 0.0)
             cash, sti = g("cash", l), g("short_term_investments", l)
             if cash is not None:
                 lines["net_cash"][freq][l] = cash + (sti or 0.0) - (lines["total_debt"][freq].get(l) or 0.0)
@@ -567,7 +580,8 @@ def quality(fin: dict) -> list[str]:
         return []
     issues = []
     for name, (kind, *_rest) in CONCEPTS.items():
-        if name in OPTIONAL_FLOWS or name == "equity_investments":  # stakes are often disclosed in 10-K notes only
+        # stakes / leases / minorities are often disclosed in 10-K notes only
+        if name in OPTIONAL_FLOWS or name in ("equity_investments", "finance_leases", "minority_interest"):
             continue
         series = fin["lines"].get(name, {}).get("quarterly", {})
         if series and q[-1] not in series and any(l in series for l in q[-6:-1]):

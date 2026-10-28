@@ -3,3 +3,4 @@ PyYAML>=6.0
 pytest>=8.0
 yfinance>=0.2.54
 psycopg[binary]>=3.2
+ruamel.yaml>=0.18

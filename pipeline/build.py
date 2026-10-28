@@ -370,7 +370,8 @@ def run(src, only: list[str] | None = None) -> int:
             write(OUT / t / "ratios.json", {"meta": meta, **rat})
             write(OUT / t / "prices.json", {"meta": meta, "symbol": t, "source": status["prices"][t]["source"],
                                             "bars": bars, "benchmarks": {
-                                                k: [[x["t"], x["ac"]] for x in v] for k, v in bench_bars.items()},
+                                                k: [[x["t"], x["ac"]] for x in v] for k, v in bench_bars.items()
+                                                if k in (cfg.get("benchmarks") or bench_bars)},
                                             "benchmark_names": universe.get("benchmarks", {})})
             write(OUT / t / "valuation.json", {
                 "meta": meta, "ticker": t, "price": price,

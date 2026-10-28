@@ -22,6 +22,12 @@ def ticker_map() -> dict[str, int]:
     return {row["ticker"].upper(): int(row["cik_str"]) for row in data.values()}
 
 
+def ticker_titles() -> dict[str, tuple[int, str]]:
+    """{TICKER: (cik, company name)} from the SEC's public ticker list."""
+    data = http.sec_get_json(TICKERS_URL)
+    return {row["ticker"].upper(): (int(row["cik_str"]), row.get("title", "")) for row in data.values()}
+
+
 def company_facts(cik: int) -> dict:
     return http.sec_get_json(FACTS_URL.format(cik=cik))
 

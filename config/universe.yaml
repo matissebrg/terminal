@@ -1,7 +1,14 @@
 # Univers suivi par le terminal.
-# Ajouter une valeur : une entrée ici + un fichier config/assumptions/<TICKER>.yaml
-# (copier NVDA.yaml comme modèle). Les pairs n'ont pas besoin de fichier d'hypothèses :
-# seuls leurs états financiers et leur cours sont récupérés, pour les comparables.
+#
+# Ajouter une valeur : GitHub > Actions > « Ajouter une valeur » > Run workflow (ticker + pairs).
+# Le workflow remplit ce fichier, crée config/assumptions/<TICKER>.yaml à partir de l'historique
+# SEC, puis relance la mise à jour du site. En local : python -m pipeline.scaffold WMT --peers COST,TGT
+#
+# Par valeur :
+#   peers       pairs pour les comparables (seuls leurs états financiers et leur cours sont récupérés)
+#   benchmarks  indices affichés dans l'onglet Performance (le bêta est toujours mesuré contre SPY)
+#   next_earnings  date des prochains résultats ; par défaut, estimation Yahoo. Quand la société
+#                  l'annonce :  next_earnings: {date: 2026-11-18, confirmed: true}
 
 benchmarks:
   SPY: S&P 500 (ETF SPY)
@@ -15,8 +22,7 @@ tickers:
     sector: Semi-conducteurs
     industry: GPU, accélérateurs IA, réseau data center
     peers: [AMD, AVGO, QCOM, INTC, MRVL]
-    # Date de publication des prochains résultats. Laisser commenté : Yahoo fournit une estimation.
-    # Quand la société l'annonce, renseigner :  next_earnings: {date: 2026-11-18, confirmed: true}
+    benchmarks: [SPY, SOXX]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -26,8 +32,7 @@ peer_names:
   INTC: Intel
   MRVL: Marvell Technology
 
-# CIK SEC (identifiant fixe). Évite de dépendre du fichier ticker -> CIK de la SEC ;
-# pour un nouveau ticker, laisser vide : le pipeline le cherche tout seul.
+# CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
   NVDA: 1045810
   AMD: 2488

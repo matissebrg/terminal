@@ -18,6 +18,7 @@ CASES = [
            wacc=0.105, base_revenue=3.0e11, cash=2.0e11, debt=8.5e9, shares=2.43e10, price=186.0),
     base_r(terminal_roic=0.25, nwc_pct_incremental_revenue=0.1, mid_year=True),
     base_r(investments=12.5, mid_year=True),
+    base_r(minority=7.5, mid_year=True),
 ]
 
 
@@ -32,7 +33,7 @@ console.log(JSON.stringify({{dcf: D.dcf(r), rev: D.reverseDcf(r)}}));
     out = json.loads(subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout)
     py = V.dcf(r)
     for k in ("enterprise_value", "equity_value", "value_per_share", "terminal_value", "pv_terminal_value",
-              "investments"):
+              "investments", "minority"):
         assert out["dcf"][k] == pytest.approx(py[k], rel=1e-12), k
     for a, b in zip(out["dcf"]["rows"], py["rows"]):
         assert a["fcff"] == pytest.approx(b["fcff"], rel=1e-12)

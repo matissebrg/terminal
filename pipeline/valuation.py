@@ -13,7 +13,8 @@ Conventions (documented because they move the result):
     so year t is discounted by (1+WACC)^(t-0.5). With the Gordon-growth terminal
     value the same half-year shift applies to the terminal value.
   * Equity value = EV + cash + short-term investments + equity stakes (non-operating, optional)
-    - financial debt. Equity stakes are added because the DCF is built on EBIT, which excludes
+    - financial debt (incl. finance leases) - minority interests (the DCF values 100 % of the
+    subsidiaries' cash flows, part of which belongs to outside shareholders, e.g. Flipkart for Walmart). Equity stakes are added because the DCF is built on EBIT, which excludes
     the gains they produce: leaving them out would value them at zero.
 """
 from __future__ import annotations
@@ -128,6 +129,8 @@ def resolve(assump: dict, fin: dict, market: dict) -> dict:
         src["investments"] = "données (dernier bilan)" if T.get("equity_investments") else "aucune trouvée"
     else:
         r["investments"], src["investments"] = 0.0, "exclues (hypothèse)"
+    r["minority"] = T.get("minority_interest") or 0.0
+    src["minority"] = "données (dernier bilan)" if T.get("minority_interest") else "aucun"
     r["shares"] = market["shares"]
     r["price"] = market.get("price")
     r["_sources"] = src
@@ -187,7 +190,8 @@ def dcf(r: dict) -> dict:
     pv_tv = tv / (1 + w) ** tv_expo
     ev = pv_sum + pv_tv
     investments = r.get("investments") or 0.0
-    equity = ev + r["cash"] + investments - r["debt"]
+    minority = r.get("minority") or 0.0
+    equity = ev + r["cash"] + investments - r["debt"] - minority
     per_share = equity / r["shares"] if r["shares"] else None
     ebitda_n = last["ebit"] + last["d_and_a"]
     return {
@@ -202,6 +206,7 @@ def dcf(r: dict) -> dict:
         "cash": r["cash"],
         "investments": investments,
         "debt": r["debt"],
+        "minority": minority,
         "equity_value": equity,
         "shares": r["shares"],
         "value_per_share": per_share,
@@ -313,12 +318,13 @@ def company_snapshot(ticker: str, name: str, fin: dict, price: float | None, sha
     T = fin["ttm"]
     cash = (T.get("cash") or 0) + (T.get("short_term_investments") or 0)
     debt = T.get("total_debt") or 0
+    minority = T.get("minority_interest") or 0
     mcap = price * shares if price and shares else None
-    ev = mcap + debt - cash if mcap is not None else None
+    ev = mcap + debt + minority - cash if mcap is not None else None
     rev = T.get("revenue")
     snap = {
         "ticker": ticker, "name": name, "price": price, "shares": shares, "market_cap": mcap,
-        "cash_and_investments": cash, "debt": debt, "enterprise_value": ev,
+        "cash_and_investments": cash, "debt": debt, "minority": minority, "enterprise_value": ev,
         "revenue_ttm": rev, "ebitda_ttm": T.get("ebitda"), "net_income_ttm": T.get("net_income"),
         "fcf_ttm": T.get("fcf"), "operating_income_ttm": T.get("operating_income"),
         "revenue_growth_ttm": (rev / T["revenue_prev"] - 1) if rev and T.get("revenue_prev") else None,
@@ -350,7 +356,7 @@ def comps(target: dict, peers: list[dict]) -> dict:
         per_share = None
         if metric_val and metric_val > 0 and target.get("shares"):
             if base == "enterprise":
-                eq = med * metric_val + target["cash_and_investments"] - target["debt"]
+                eq = med * metric_val + target["cash_and_investments"] - target["debt"] - target.get("minority", 0)
             else:
                 eq = med * metric_val
             per_share = eq / target["shares"]

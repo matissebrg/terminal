@@ -1,0 +1,99 @@
+name: Ajouter une valeur
+
+# Onglet Actions > « Ajouter une valeur » > Run workflow.
+# Crée config/assumptions/<TICKER>.yaml à partir de l'historique SEC, ajoute la valeur et ses pairs
+# dans config/universe.yaml, puis relance la mise à jour du site (~3 minutes au total).
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Ticker US (ex. WMT). Classes avec un tiret : BRK-B"
+        required: true
+      peers:
+        description: "Pairs pour les comparables, séparés par des virgules (ex. COST,TGT,KR)"
+        required: false
+        default: ""
+      sector:
+        description: "Secteur affiché (facultatif, sinon code SIC de la SEC)"
+        required: false
+        default: ""
+      industry:
+        description: "Activité affichée (facultatif)"
+        required: false
+        default: ""
+      etf:
+        description: "ETF sectoriel de comparaison (facultatif, ex. XLP, XLK, XLF, XLV)"
+        required: false
+        default: ""
+      etf_name:
+        description: "Nom affiché de l'ETF (facultatif, ex. Consommation de base (ETF XLP))"
+        required: false
+        default: ""
+
+permissions:
+  contents: write   # commit des fichiers de configuration
+  actions: write    # relance du workflow update-data
+
+concurrency:
+  group: update-data   # jamais en même temps que la mise à jour du site
+  cancel-in-progress: false
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Créer la couverture
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+          IN_TICKER: ${{ inputs.ticker }}
+          IN_PEERS: ${{ inputs.peers }}
+          IN_SECTOR: ${{ inputs.sector }}
+          IN_INDUSTRY: ${{ inputs.industry }}
+          IN_ETF: ${{ inputs.etf }}
+          IN_ETF_NAME: ${{ inputs.etf_name }}
+        run: |
+          # entrées passées par variables d'environnement (jamais interpolées dans le script)
+          if ! [[ "$IN_TICKER" =~ ^[A-Za-z]{1,6}(-[A-Za-z])?$ ]]; then echo "::error::Ticker invalide : $IN_TICKER"; exit 1; fi
+          if [[ -n "$IN_ETF" ]] && ! [[ "$IN_ETF" =~ ^[A-Za-z]{1,6}$ ]]; then echo "::error::ETF invalide : $IN_ETF"; exit 1; fi
+          args=("$IN_TICKER" --peers "$IN_PEERS")
+          [[ -n "$IN_SECTOR" ]] && args+=(--sector "$IN_SECTOR")
+          [[ -n "$IN_INDUSTRY" ]] && args+=(--industry "$IN_INDUSTRY")
+          [[ -n "$IN_ETF" ]] && args+=(--etf "$IN_ETF")
+          [[ -n "$IN_ETF_NAME" ]] && args+=(--etf-name "$IN_ETF_NAME")
+          python -m pipeline.scaffold "${args[@]}" | tee scaffold.log
+          {
+            echo "### Valeur ajoutée"
+            echo '```'
+            cat scaffold.log
+            echo '```'
+            echo "Les hypothèses sont un point de départ tiré de l'historique : modifie config/assumptions/${IN_TICKER^^}.yaml."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enregistrer et relancer la mise à jour du site
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IN_TICKER: ${{ inputs.ticker }}
+        run: |
+          git config user.name "terminal-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config
+          if git diff --cached --quiet; then
+            echo "Rien de nouveau (valeur déjà suivie ?)."
+          else
+            git commit -m "couverture : ajout de ${IN_TICKER^^}"
+            git pull --rebase --autostash origin main
+            git push
+          fi
+          # un push fait avec ce jeton ne relance pas les workflows : relance explicite
+          gh workflow run update.yml --ref main
