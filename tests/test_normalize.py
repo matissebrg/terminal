@@ -1,7 +1,7 @@
 """Normalization tests on synthetic SEC-shaped fixtures (tests/fixtures/make_fixtures.py).
 
 The generator knows the true discrete quarterly values, so every reconstruction
-(Q4 = FY − 9M, cash-flow YTD differencing, tag switch, restatement) is checked
+(Q4 = FY - 9M, cash-flow YTD differencing, tag switch, restatement) is checked
 against ground truth.
 """
 import json
@@ -92,7 +92,7 @@ def test_tag_switch_is_merged():
 
 
 def test_restatement_keeps_latest_filed():
-    """The fixture contains one wrong, earlier-filed revenue value (−10 %); it must be ignored."""
+    """The fixture contains one wrong, earlier-filed revenue value (-10 %); it must be ignored."""
     facts = json.loads((FIX / "facts_NVDA.json").read_text())
     n = normalize.normalize(facts, max_years=20, max_quarters=100)
     _, _, _, quarters, _ = mf.build_company("NVDA")

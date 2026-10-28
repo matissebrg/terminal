@@ -1,5 +1,5 @@
 # ============================================================================
-# Hypothèses de valorisation — NVIDIA (NVDA)
+# Hypothèses de valorisation - NVIDIA (NVDA)
 # ----------------------------------------------------------------------------
 # Ce fichier EST ton modèle. Le pipeline relit ce fichier à chaque exécution,
 # recalcule la valorisation et publie un événement dans le feed si la valeur bouge
@@ -13,7 +13,7 @@
 # challenger : c'est précisément l'exercice. Contexte au moment de l'écriture :
 #   - CA T2 FY2027 (clos le 26/07/2026) : 96,2 Md$ (+106 % sur un an)
 #   - Guidance T3 FY2027 : 108 Md$ ± 2 %, marge brute ~74 %
-#   - Taux d'impôt guidé FY2027 : 16–18 %
+#   - Taux d'impôt guidé FY2027 : 16-18 %
 # "auto" = valeur calculée à partir des données (TTM) ou du marché.
 # ============================================================================
 
@@ -74,3 +74,13 @@ scenarios:
 
 comps:
   peers: [AMD, AVGO, QCOM, INTC, MRVL]
+
+# Guidance publiée par la société, par période (Md$, %). Sert de point de comparaison automatique
+# pour tes prédictions. À compléter à chaque publication.
+guidance:
+  Q3 FY2027:
+    revenue: 108.0          # milieu de fourchette
+    revenue_low: 105.84     # 108 ± 2 %
+    revenue_high: 110.16
+    gross_margin: 74.0      # GAAP, ± 0,5 pt
+    source: communiqué de résultats du T2 FY2027 (26/08/2026)

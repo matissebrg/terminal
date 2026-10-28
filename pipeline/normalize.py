@@ -128,9 +128,9 @@ OPTIONAL_FLOWS = {"acquisitions", "dividends_paid", "buybacks", "interest_expens
 # Lines computed from others (never read from XBRL). label FR, statement
 DERIVED = {
     "ebitda": ("EBITDA (EBIT + D&A)", "income"),
-    "fcf": ("Free cash flow (CFO − capex)", "cashflow"),
+    "fcf": ("Free cash flow (CFO - capex)", "cashflow"),
     "total_debt": ("Dette financière totale", "balance"),
-    "net_cash": ("Trésorerie nette (cash + placements − dette)", "balance"),
+    "net_cash": ("Trésorerie nette (cash + placements - dette)", "balance"),
 }
 
 ALLOWED_FORMS = ("10-K", "10-Q", "20-F", "40-F", "10-KT", "10-QT")
@@ -317,7 +317,7 @@ def shares_outstanding(facts_json: dict, splits: list[dict] | None = None) -> li
 # --------------------------------------------------------------------------- main entry
 def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
               splits: list[dict] | None = None) -> dict:
-    """splits: [{"date": "YYYY-MM-DD", "ratio": 10.0}] — stock splits, used to restate EPS and share counts."""
+    """splits: [{"date": "YYYY-MM-DD", "ratio": 10.0}] - stock splits, used to restate EPS and share counts."""
     years = fiscal_years(facts_json)
     if not years:
         raise ValueError("Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)")
@@ -572,5 +572,5 @@ def quality(fin: dict) -> list[str]:
         series = fin["lines"].get(name, {}).get("quarterly", {})
         if series and q[-1] not in series and any(l in series for l in q[-6:-1]):
             last = max((l for l in q if l in series), key=q.index)
-            issues.append(f"{name} : absent au {q[-1]} (dernier point {last}) — changement d'étiquette XBRL probable")
+            issues.append(f"{name} : absent au {q[-1]} (dernier point {last}) - changement d'étiquette XBRL probable")
     return issues

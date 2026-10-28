@@ -9,13 +9,13 @@
   const f = (v, d = 2) => (NF[d] || (NF[d] = nf(d))).format(v);
   T.isNum = (v) => typeof v === "number" && isFinite(v);
   T.fmt = {
-    n: (v, d = 2) => (T.isNum(v) ? f(v, d) : "—"),
-    px: (v, d = 2) => (T.isNum(v) ? f(v, d) + " $" : "—"),
-    pct: (v, d = 1, sign = false) => (T.isNum(v) ? (sign && v > 0 ? "+" : "") + f(v * 100, d) + " %" : "—"),
-    x: (v, d = 1) => (T.isNum(v) ? f(v, d) + "x" : "—"),
-    days: (v) => (T.isNum(v) ? f(v, 0) + " j" : "—"),
+    n: (v, d = 2) => (T.isNum(v) ? f(v, d) : "-"),
+    px: (v, d = 2) => (T.isNum(v) ? f(v, d) + " $" : "-"),
+    pct: (v, d = 1, sign = false) => (T.isNum(v) ? (sign && v > 0 ? "+" : "") + f(v * 100, d) + " %" : "-"),
+    x: (v, d = 1) => (T.isNum(v) ? f(v, d) + "x" : "-"),
+    days: (v) => (T.isNum(v) ? f(v, 0) + " j" : "-"),
     usd: (v, d) => {
-      if (!T.isNum(v)) return "—";
+      if (!T.isNum(v)) return "-";
       const a = Math.abs(v);
       if (a >= 1e12) return f(v / 1e12, d ?? 2) + " T$";
       if (a >= 1e9) return f(v / 1e9, d ?? (a >= 1e11 ? 0 : 1)) + " Md$";
@@ -24,15 +24,15 @@
       return f(v, d ?? 0) + " $";
     },
     big: (v) => {  // statements: always in $ millions or billions, decided by the caller
-      if (!T.isNum(v)) return "—";
+      if (!T.isNum(v)) return "-";
       return f(v, 0);
     },
     date: (s) => {
-      if (!s) return "—";
+      if (!s) return "-";
       const d = new Date(s + (s.length === 10 ? "T00:00:00" : ""));
       return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
     },
-    dateTime: (s) => (s ? new Date(s).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"),
+    dateTime: (s) => (s ? new Date(s).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "-"),
     by: (fmtKey, v) => ({ pct: T.fmt.pct, x: T.fmt.x, days: T.fmt.days, usd: T.fmt.usd }[fmtKey] || T.fmt.n)(v),
   };
   T.cls = (v) => (T.isNum(v) ? (v > 0 ? "up" : v < 0 ? "down" : "") : "");

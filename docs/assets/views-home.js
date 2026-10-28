@@ -3,8 +3,8 @@
   "use strict";
   const T = window.T, F = T.fmt;
 
-  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦" };
-  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture" };
+  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎" };
+  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction" };
 
   T.banner = (meta, status) => {
     let s = "";
@@ -51,7 +51,7 @@
   T.route(/^\/$/, async (view) => {
     const [u, feed, status] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null)]);
     const rf = u.risk_free;
-    const empty = !u.tickers.length ? `<tr><td colspan="9"><div class="empty">Aucune valeur calculée pour l'instant — voir le message ci-dessus.</div></td></tr>` : "";
+    const empty = !u.tickers.length ? `<tr><td colspan="9"><div class="empty">Aucune valeur calculée pour l'instant - voir le message ci-dessus.</div></td></tr>` : "";
     const rows = empty + u.tickers.map((t) => `<tr data-href="#/t/${t.ticker}" style="cursor:pointer">
         <td><b>${t.ticker}</b> <span class="muted">${T.esc(t.name)}</span></td>
         <td class="n">${F.px(t.price)}</td>
@@ -125,8 +125,8 @@
     <div class="grid g2">
       <div class="panel"><h3>Sources de données</h3>
         <div class="kv">
-          <div>États financiers (US)</div><div>SEC EDGAR — API XBRL companyfacts</div>
-          <div>Liste des publications</div><div>SEC EDGAR — submissions</div>
+          <div>États financiers (US)</div><div>SEC EDGAR - API XBRL companyfacts</div>
+          <div>Liste des publications</div><div>SEC EDGAR - submissions</div>
           <div>Cours journaliers</div><div>Yahoo Finance (non officiel) → Stooq → cache</div>
           <div>Taux sans risque</div><div>FRED DGS10 (Trésor US 10 ans)</div>
           <div>Fréquence</div><div>2 fois par jour ouvré (GitHub Actions)</div>
@@ -136,29 +136,53 @@
         <p class="sec" style="margin-top:0">Le XBRL de la SEC n'est pas directement exploitable trimestre par trimestre :</p>
         <ul class="sec" style="padding-left:18px;margin:0">
           <li>les flux de trésorerie des 10-Q sont publiés <b>en cumul depuis le début d'exercice</b> (3, 6, 9 mois) → trimestres reconstruits par différence ;</li>
-          <li>le T4 n'est jamais publié seul → <b>T4 = exercice − 9 mois</b> ;</li>
+          <li>le T4 n'est jamais publié seul → <b>T4 = exercice - 9 mois</b> ;</li>
           <li>une même période apparaît dans plusieurs dépôts → on garde la valeur <b>la plus récemment déposée</b> (retraitements) ;</li>
           <li>les entreprises changent d'étiquette XBRL au fil du temps → chaque ligne a une liste ordonnée d'étiquettes candidates.</li>
         </ul></div>
       <div class="panel"><h3>DCF (FCFF, deux phases)</h3>
         <div class="kv">
-          <div>Flux disponible</div><div>EBIT × (1 − t) + D&A − capex − ΔBFR</div>
+          <div>Flux disponible</div><div>EBIT × (1 - t) + D&A - capex - ΔBFR</div>
           <div>Croissance</div><div>années explicites puis fondu linéaire vers g</div>
           <div>Marge</div><div>convergence linéaire vers la marge cible</div>
-          <div>Valeur terminale</div><div>Gordon : FCFF(N+1) / (WACC − g)</div>
+          <div>Valeur terminale</div><div>Gordon : FCFF(N+1) / (WACC - g)</div>
           <div>Actualisation</div><div>convention mi-année (option)</div>
           <div>WACC</div><div>CAPM : rf + β × prime de risque</div>
           <div>Bêta</div><div>2 ans hebdo vs SPY, ajusté Blume</div>
-          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations − dette</div>
+          <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations - dette</div>
         </div>
         <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le DCF reverse cherche la croissance constante qui justifie le cours, toutes autres hypothèses égales.</p></div>
       <div class="panel"><h3>Comparables & limites</h3>
         <p class="sec" style="margin-top:0">Multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF) des pairs, médiane appliquée aux agrégats de la valeur suivie. Les multiples négatifs ou absurdes (&gt; 500x) sont exclus.</p>
         <p class="sec"><b>Limite majeure :</b> des multiples <i>passés</i> appliqués à une entreprise en très forte croissance sous-estiment sa valeur. Les comparables bruts ne sont pas ajustés de la croissance : c'est un point de repère, pas un objectif de cours.</p>
         <p class="sec"><b>Ce qui manque encore :</b> consensus des analystes (payant), multiples forward, données européennes (ESEF), registre de prévisions pré-enregistrées.</p></div>
+      <div class="panel"><h3>Prédictions</h3>
+        <div class="kv">
+          <div>Enregistrement</div><div>un fichier YAML par prédiction, commité sur GitHub</div>
+          <div>Preuve de date</div><div>heure du commit Git</div>
+          <div>Date limite</div><div>00:00 heure de New York, jour de publication</div>
+          <div>Publication</div><div>premier 8-K 2.02 / 10-Q / 10-K après la fin de période</div>
+          <div>Réel</div><div>chiffres XBRL de la SEC (GAAP)</div>
+          <div>Modèle naïf</div><div>dernier trimestre × dernière croissance séquentielle</div>
+          <div>Consensus</div><div>Yahoo, relevé chaque jour, figé la veille</div>
+        </div>
+        <p class="note">Seule la dernière version commitée <b>avant</b> la date limite compte. Les modifications ultérieures restent visibles mais ne sont jamais notées.
+          Le consensus BPA de Yahoo est généralement non-GAAP : il est affiché mais jamais comparé au BPA GAAP. Intervalles : vise 80 % de réussite ; au-dessus tu es trop prudent, en dessous trop sûr de toi.
+          Questions oui / non : score de Brier, 0 = parfait, 0,25 = répondre 50 % à tout.</p></div>
+      <div class="panel"><h3>Options</h3>
+        <div class="kv">
+          <div>Source</div><div>chaînes Yahoo Finance (différées)</div>
+          <div>Volatilité implicite</div><div>Black-Scholes sur le milieu bid / ask</div>
+          <div>IV 30 / 90 jours</div><div>interpolation de la variance totale</div>
+          <div>Straddle</div><div>(call + put ATM) / cours</div>
+          <div>Choc implicite</div><div>√(T₂ × (σ₂² - σ₁²)) × √(2/π)</div>
+          <div>Réaction passée</div><div>clôture veille → lendemain du 8-K 2.02</div>
+        </div>
+        <p class="note">Le choc implicite isole ce que le marché paie pour l'annonce elle-même : variance de l'échéance juste après la publication moins la variance « normale » de l'échéance juste avant.
+          Sans dividende ni exercice anticipé : approximation standard pour des options liquides.</p></div>
       <div class="panel span2"><h3>Couverture XBRL (diagnostic du dernier run)</h3>
         ${cov.length ? cov.map(([tk, c]) => `<div class="group-title">${tk}</div><div class="tbl-wrap"><table class="t"><thead><tr><th>Ligne</th><th>Étiquettes XBRL utilisées</th><th class="n">Exercices</th><th class="n">Trimestres</th></tr></thead><tbody>
-          ${Object.entries(c).map(([k, x]) => `<tr><td>${k}</td><td class="muted">${T.esc((x.tags || []).join(", ") || "—")}</td><td class="n ${x.annual ? "" : "warn"}">${x.annual}</td><td class="n ${x.quarterly ? "" : "warn"}">${x.quarterly}</td></tr>`).join("")}
+          ${Object.entries(c).map(([k, x]) => `<tr><td>${k}</td><td class="muted">${T.esc((x.tags || []).join(", ") || "-")}</td><td class="n ${x.annual ? "" : "warn"}">${x.annual}</td><td class="n ${x.quarterly ? "" : "warn"}">${x.quarterly}</td></tr>`).join("")}
           </tbody></table></div>`).join("") : '<div class="empty">Pas encore de diagnostic.</div>'}</div>
     </div>`;
   });

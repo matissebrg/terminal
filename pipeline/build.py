@@ -10,12 +10,12 @@ import argparse
 import json
 import sys
 import traceback
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
 
-from . import feed, market, normalize, ratios, sec, valuation
+from . import feed, market, normalize, options, predictions, ratios, sec, valuation
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "data"
@@ -58,6 +58,12 @@ class LiveSource:
     def risk_free(self, fallback):
         return market.risk_free_10y(fallback)
 
+    def calendar(self, sym, fin=None):
+        return market.calendar(sym)
+
+    def options_raw(self, sym, spot=None, rf=None, earnings_date=None):
+        return options.fetch_raw(sym)
+
 
 class FixtureSource:
     """Reads synthetic files written by tests/fixtures/make_fixtures.py (no network)."""
@@ -83,6 +89,17 @@ class FixtureSource:
 
     def risk_free(self, fallback):
         return 0.0425, "fixture", "2026-10-26"
+
+    def calendar(self, sym, fin=None):
+        nq = predictions.next_quarter(fin) if fin else None
+        last = fin["lines"]["revenue"]["quarterly"][fin["periods"]["quarterly"][-1]["label"]] if fin else None
+        d = (date.fromisoformat(nq["end_estimate"]) + timedelta(days=24)).isoformat() if nq else None
+        return {"earnings_dates": [d] if d else [], "revenue_avg": last * 1.12 if last else None,
+                "revenue_low": last * 1.08 if last else None, "revenue_high": last * 1.17 if last else None,
+                "eps_avg": 2.71, "eps_low": 2.55, "eps_high": 2.9}
+
+    def options_raw(self, sym, spot=None, rf=None, earnings_date=None):
+        return options.synthetic_raw(spot, rf, date.today(), earnings_date)
 
 
 # --------------------------------------------------------------------------- helpers
@@ -152,6 +169,69 @@ def peer_quarterly(fin: dict, n: int = 12) -> list[dict]:
     return out
 
 
+def next_earnings(src, t: str, cfg: dict, fin: dict, filings: list[dict], status: dict, today: str):
+    """Next results date for the next quarter: config override > Yahoo > estimate from past lags."""
+    nq = predictions.next_quarter(fin)
+    out = {"period": nq["label"] if nq else None, "date": None, "estimated": True, "source": None}
+    cal = None
+    try:
+        cal = src.calendar(t, fin)
+    except Exception as exc:  # noqa: BLE001
+        print(f"  [calendrier] {t}: {exc}")
+        status["errors"].append(f"{t}: calendrier/consensus indisponible ({str(exc)[:80]})")
+    ov = cfg.get("next_earnings")
+    if ov:
+        ov = ov if isinstance(ov, dict) else {"date": str(ov)}
+        out.update({"date": str(ov["date"]), "estimated": not ov.get("confirmed", False), "source": "configuration"})
+    elif cal and cal.get("earnings_dates"):
+        future = [d for d in cal["earnings_dates"] if d >= today] or cal["earnings_dates"]
+        out.update({"date": future[0], "estimated": len(cal["earnings_dates"]) > 1, "source": "Yahoo Finance"})
+    elif nq:
+        lag = predictions.typical_lag_days(fin, filings) or 30
+        out.update({"date": (date.fromisoformat(nq["end_estimate"]) + timedelta(days=lag)).isoformat(),
+                    "estimated": True, "source": f"estimation (fin de trimestre + {lag} j, médiane historique)"})
+    if out["date"]:
+        out["deadline"] = predictions.deadline_for(date.fromisoformat(out["date"])).isoformat(timespec="seconds")
+    return out, cal
+
+
+def update_consensus(t: str, today: str, period: str | None, cal: dict | None) -> list[dict]:
+    """Daily consensus snapshots (the database used to freeze the consensus before each release)."""
+    path = OUT / t / "consensus.json"
+    store = feed.load_json(path, {"snapshots": []})
+    snaps = [x for x in store["snapshots"] if x["date"] != today]
+    if cal and period and (cal.get("revenue_avg") or cal.get("eps_avg")):
+        snaps.append({"date": today, "period": period, **{k: cal.get(k) for k in (
+            "revenue_avg", "revenue_low", "revenue_high", "eps_avg", "eps_low", "eps_high")}})
+    snaps.sort(key=lambda x: x["date"])
+    write(path, {"snapshots": snaps[-1500:]})
+    return snaps
+
+
+def predict_context(t: str, fin: dict, ne: dict, guidance: dict, cons: list[dict]) -> dict:
+    nq = predictions.next_quarter(fin)
+    label = nq["label"] if nq else None
+    gd = (guidance or {}).get(label, {}) if label else {}
+    cur = predictions._frozen_consensus(cons, label, None) if label else None
+    qs = fin["periods"]["quarterly"][-8:]
+    metrics = {}
+    for k, (lab, unit, scale, kind) in predictions.METRICS.items():
+        hist = [{"label": p["label"], "value": predictions.actual(fin, p["label"], k)} for p in qs]
+        c = None
+        if cur and k == "revenue" and cur.get("revenue_avg"):
+            c = {"avg": cur["revenue_avg"], "low": cur.get("revenue_low"), "high": cur.get("revenue_high"),
+                 "source": f"Yahoo au {cur['date']}", "comparable": True}
+        elif cur and k == "eps_diluted" and cur.get("eps_avg"):
+            c = {"avg": cur["eps_avg"], "low": cur.get("eps_low"), "high": cur.get("eps_high"),
+                 "source": f"Yahoo au {cur['date']}", "comparable": False}
+        metrics[k] = {"label": lab, "unit": unit, "scale": scale, "kind": kind, "history": hist,
+                      "naive": predictions.naive(fin, label, k) if label else None,
+                      "guidance": predictions.to_raw(k, gd.get(k)) if gd.get(k) is not None else None,
+                      "consensus": c}
+    return {"ticker": t, "next": {**(nq or {}), "release": ne}, "metrics": metrics,
+            "guidance_note": {k: v for k, v in gd.items() if k not in predictions.METRICS}}
+
+
 # --------------------------------------------------------------------------- main
 def run(src, only: list[str] | None = None) -> int:
     universe = yaml.safe_load((ROOT / "config" / "universe.yaml").read_text())
@@ -166,6 +246,7 @@ def run(src, only: list[str] | None = None) -> int:
         bench_bars[b] = get_prices(src, b, status)
 
     all_events, index = [], []
+    fins_all, filings_all, bars_all, guid_all, cons_all, ne_all = {}, {}, {}, {}, {}, {}
     prev_index = {x["ticker"]: x for x in feed.load_json(OUT / "universe.json", {}).get("tickers", [])}
     tickers = [t for t in universe["tickers"] if not only or t in only]
     for t in tickers:
@@ -214,6 +295,7 @@ def run(src, only: list[str] | None = None) -> int:
                     snap["perf"] = {k: v for k, v in market.perf_stats(pbars).items()
                                     if k.startswith("r_") or k in ("last", "date", "chg_1d")}
                     snap["closes"] = [[x["t"], x["ac"]] for x in pbars[-1260:]]
+                    bars_all[p] = pbars
                     peers_out.append(snap)
                 except Exception as exc:  # noqa: BLE001 - a broken peer must not kill the run
                     status["errors"].append(f"pair {p}: {exc}")
@@ -223,6 +305,32 @@ def run(src, only: list[str] | None = None) -> int:
             # ---- filings & profile
             filings = sec.recent_filings(subs)
             prof = sec.profile(subs)
+
+            # ---- next results, consensus, predictions context
+            ne, cal = next_earnings(src, t, cfg, fin, filings, status, today)
+            cons = update_consensus(t, today, ne["period"], cal)
+            guid = assump.get("guidance") or {}
+            fins_all[t], filings_all[t], bars_all[t] = fin, filings, bars
+            guid_all[t], cons_all[t], ne_all[t] = guid, cons, ne
+            write(OUT / t / "predict.json", {"meta": meta, **predict_context(t, fin, ne, guid, cons)})
+
+            # ---- options (best effort: never blocks the run)
+            try:
+                raw = src.options_raw(t, spot=price, rf=rf[0], earnings_date=ne.get("date"))
+                opt = options.analyze(raw, price, rf[0], earnings_date=ne.get("date"))
+                opt["earnings_history"] = options.earnings_reactions(filings, bars)
+                opt["next_earnings"] = ne
+                ohp = OUT / t / "options_history.json"
+                oh = [x for x in feed.load_json(ohp, {"points": []})["points"] if x["date"] != today]
+                oh.append({"date": today, "iv30": opt["iv30"], "iv90": opt["iv90"], "pcr_oi": opt["put_call_oi"],
+                           "spot": price})
+                write(ohp, {"points": oh[-1500:]})
+                opt["iv_history"] = oh
+                write(OUT / t / "options.json", {"meta": meta, **opt})
+                status.setdefault("options", {})[t] = {"expiries": len(opt["expiries"]), "iv30": opt["iv30"]}
+            except Exception as exc:  # noqa: BLE001
+                print(f"  [options] {t}: {exc}")
+                status["errors"].append(f"{t}: options indisponibles ({str(exc)[:80]})")
 
             # ---- history, feed, bridge
             value_base = base["value_per_share"]
@@ -248,7 +356,7 @@ def run(src, only: list[str] | None = None) -> int:
 
             # ---- write site data
             write(OUT / t / "company.json", {
-                "meta": meta, "ticker": t, "name": cfg["name"], "sector": cfg.get("sector"),
+                "meta": meta, "ticker": t, "name": cfg["name"], "sector": cfg.get("sector"), "next_earnings": ne,
                 "industry": cfg.get("industry"), "profile": prof, "thesis": assump.get("thesis"),
                 "price": price, "shares": shares, "market_cap": mcap, "perf": perf, "beta": b,
                 "filings": filings[:30], "latest_period": snapshot["latest_period"],
@@ -296,6 +404,19 @@ def run(src, only: list[str] | None = None) -> int:
         p = market.perf_stats(bars)
         benches[b_sym] = {"name": universe["benchmarks"][b_sym], "last": p.get("last"), "chg_1d": p.get("chg_1d"),
                           "r_ytd": p.get("r_ytd"), "r_1y": p.get("r_1y"), "spark": [x["c"] for x in bars[-60:]]}
+    # ---- prediction registry (needs every ticker's data)
+    try:
+        bars_all.update(bench_bars)
+        preds, pevents = predictions.evaluate(root=ROOT, fins=fins_all, filings=filings_all, bars=bars_all,
+                                              guidance=guid_all, consensus=cons_all, next_earnings=ne_all)
+        preds["next"] = {t: ne_all[t] for t in ne_all}
+        write(OUT / "predictions.json", {"meta": meta, **preds})
+        all_events += pevents
+        status["errors"] += [f"prédiction {e}" for e in preds["errors"]]
+    except Exception as exc:  # noqa: BLE001
+        traceback.print_exc()
+        status["errors"].append(f"registre de prédictions : {exc}")
+
     write(OUT / "universe.json", {"meta": meta, "tickers": index, "benchmarks": benches,
                                   "risk_free": status["risk_free"]})
     feed.merge_feed(OUT / "feed.json", all_events)
@@ -316,19 +437,19 @@ def _football(base, scen, sens, comp, perf):
     cases = scen["cases"]
     vals = [v["value_per_share"] for v in cases.values() if v.get("value_per_share")]
     if vals:
-        rows.append({"label": "DCF — scénarios bear → bull", "low": min(vals), "high": max(vals),
+        rows.append({"label": "DCF - scénarios bear → bull", "low": min(vals), "high": max(vals),
                      "mid": scen["weighted_value_per_share"]})
     g = sens["wacc_x_g"]["values"]
     core = [v for row in g[1:6] for v in row[1:4] if v]
     if core:
-        rows.append({"label": "DCF base — WACC ±1 pt, g ±0,5 pt", "low": min(core), "high": max(core),
+        rows.append({"label": "DCF base - WACC ±1 pt, g ±0,5 pt", "low": min(core), "high": max(core),
                      "mid": base["value_per_share"]})
     s = comp.get("implied_summary")
     if s:
-        rows.append({"label": "Comparables — multiples médians des pairs", "low": s["low"], "high": s["high"],
+        rows.append({"label": "Comparables - multiples médians des pairs", "low": s["low"], "high": s["high"],
                      "mid": s["median"]})
     if perf.get("low_52w"):
-        rows.append({"label": "Cours — plus bas / plus haut 52 semaines", "low": perf["low_52w"],
+        rows.append({"label": "Cours - plus bas / plus haut 52 semaines", "low": perf["low_52w"],
                      "high": perf["high_52w"], "mid": None})
     return rows
 

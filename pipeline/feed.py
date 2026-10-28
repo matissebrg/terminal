@@ -3,14 +3,14 @@
 Every run appends a dated snapshot to docs/data/<T>/history.json. Comparing the
 new snapshot with the previous one produces feed events:
 
-  * filing     — a new 10-K / 10-Q / results 8-K appeared on EDGAR
-  * valuation  — the DCF value moved, with a bridge explaining *why*:
+  * filing     - a new 10-K / 10-Q / results 8-K appeared on EDGAR
+  * valuation  - the DCF value moved, with a bridge explaining *why*:
                    data effect        new financials, same assumptions, same market inputs
                    assumption effect  you edited config/assumptions/<T>.yaml
                    market effect      risk-free rate, beta, market-weighted cost of capital
-  * price      — a daily move of ±5 % or more
-  * cross      — the price crossed the DCF value (upside changed sign)
-  * coverage   — first run for a ticker
+  * price      - a daily move of ±5 % or more
+  * cross      - the price crossed the DCF value (upside changed sign)
+  * coverage   - first run for a ticker
 """
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
             events.append({
                 "id": _eid(ticker, f["accession"]), "date": f["filed"], "ticker": ticker, "type": "filing",
                 "title": f"{ticker} a publié son {kind}",
-                "detail": f"Période close le {f.get('report_date') or '—'}.",
+                "detail": f"Période close le {f.get('report_date') or '-'}.",
                 "url": f["url"], "values": {"form": f["form"], "accession": f["accession"]},
             })
     seen |= {f["accession"] for f in filings}
@@ -104,7 +104,7 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
                     {"label": "Hypothèses modifiées", "delta": v2 - v1},
                     {"label": "Paramètres de marché (taux sans risque, bêta, poids)", "delta": v3 - v2},
                 ]
-            main = max(bridge, key=lambda b: abs(b["delta"]))["label"] if bridge else "—"
+            main = max(bridge, key=lambda b: abs(b["delta"]))["label"] if bridge else "-"
             events.append({
                 "id": _eid(ticker, "valuation", today, round(v3, 2)), "date": today, "ticker": ticker,
                 "type": "valuation",

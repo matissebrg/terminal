@@ -1,6 +1,8 @@
-# Terminal — suivi & valorisation d'actions
+<p align="center"><img src="docs/assets/brand/archer-lockup.png" alt="Archer Terminal" width="360"></p>
 
-Terminal personnel d'analyse fondamentale, consultable partout (GitHub Pages) et mis à jour automatiquement (GitHub Actions).
+# Archer Terminal
+
+Terminal personnel d'analyse fondamentale et d'entraînement à la prévision, consultable partout (GitHub Pages) et mis à jour automatiquement (GitHub Actions).
 Première valeur couverte : **NVIDIA (NVDA)**, comparée à AMD, Broadcom, Qualcomm, Intel et Marvell.
 
 **Site :** `https://matissebrg.github.io/terminal/`
@@ -9,15 +11,17 @@ Première valeur couverte : **NVIDIA (NVDA)**, comparée à AMD, Broadcom, Qualc
 |---|---|
 | Tableau de bord | valeurs suivies, potentiel vs cours, indices, taux sans risque, feed |
 | Synthèse | cours, verdict du modèle (scénarios), football field, chiffres clés TTM, thèse |
-| États financiers | compte de résultat, bilan, flux — annuel / trimestriel, variations N−1, liens EDGAR, export CSV |
+| États financiers | compte de résultat, bilan, flux - annuel / trimestriel, variations N-1, liens EDGAR, export CSV |
 | Ratios | 25 ratios (rentabilité, rendement du capital, croissance, coûts, bilan, efficacité, allocation) |
 | Valorisation | DCF FCFF + simulateur interactif, scénarios bear/base/bull, sensibilités, DCF reverse, comparables, historique |
+| **Prédictions** | registre de prévisions horodatées par Git, vérifiées automatiquement contre le réel, le consensus, la guidance et un modèle naïf |
+| Options | volatilité implicite (30/90 j, structure par terme, smile), open interest, put/call, choc de résultats implicite vs réactions passées |
 | Secteur | table des pairs, VE/CA vs croissance, marges, CA indexé, performance relative |
 | Performance | chandeliers / aire / comparaison % vs SPY et SOXX, rendements, volatilité, drawdown, bêta |
 | Dépôts SEC | 10-K, 10-Q, 8-K de résultats |
-| Feed | publications, réévaluations (avec décomposition), mouvements ±5 %, franchissement de la valeur |
+| Feed | publications, réévaluations (avec décomposition), mouvements ±5 %, franchissement de la valeur, prédictions |
 
-Raccourcis : `Ctrl K` ou `/` pour la recherche, `1`…`7` pour changer d'onglet.
+Raccourcis : `Ctrl K` ou `/` pour la recherche, `1` à `9` pour changer d'onglet.
 
 ---
 
@@ -27,8 +31,8 @@ Raccourcis : `Ctrl K` ou `/` pour la recherche, `1`…`7` pour changer d'onglet.
 GitHub Actions (2×/jour ouvré, ou à chaque modification des hypothèses)
    │
    ├─ SEC EDGAR (XBRL companyfacts + submissions)      ── états financiers, dépôts
-   ├─ Yahoo Finance → Stooq → cache                     ── cours journaliers
-   └─ FRED DGS10                                        ── taux sans risque
+   ├─ Yahoo Finance (yfinance) → Stooq → cache          ── cours, divisions, options, consensus, date de résultats
+   └─ FRED DGS10 → Trésor US                            ── taux sans risque
    │
    ▼
 pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.json  ──►  GitHub Pages (docs/)
@@ -39,6 +43,21 @@ pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.j
 - **`config/assumptions/NVDA.yaml` est ton modèle.** Modifie-le sur GitHub (icône crayon → *Commit*) : le workflow se relance, recalcule, et publie un événement dans le feed si la valeur bouge.
 - Chaque événement de valorisation est **décomposé** : effet des nouvelles données financières, effet de tes hypothèses, effet des paramètres de marché (taux, bêta).
 - Le simulateur de la page *Valorisation* recalcule le DCF dans le navigateur. Bouton *Copier en YAML* → coller dans le fichier d'hypothèses pour le rendre officiel.
+
+## Prédictions : s'entraîner à prévoir
+
+1. Onglet **Prédictions** d'une valeur : le contexte (8 derniers trimestres, modèle naïf, guidance, consensus) est affiché.
+2. Saisis tes prévisions (CA, marges, résultat, BPA, FCF), un **intervalle à 80 %**, des questions oui / non avec une
+   probabilité, des objectifs de cours, et ton raisonnement.
+3. **Enregistrer sur GitHub** ouvre un nouveau fichier `config/predictions/<TICKER>/…yaml` pré-rempli : clique *Commit changes*.
+   **L'heure du commit fait foi** : seule la dernière version commitée avant 00:00 (New York) le jour de la publication compte.
+4. À la publication, le pipeline vérifie tout seul : erreur, intervalle, comparaison au consensus figé la veille, à la guidance
+   et au modèle naïf, « surprise bien anticipée » (ton chiffre et le réel du même côté du consensus), score de Brier.
+5. La page **Prédictions** cumule : erreur moyenne, **biais** (trop optimiste / pessimiste), taux de réussite des intervalles
+   (cible 80 %), victoires contre le consensus et le naïf, calibration des probabilités.
+
+Écriture à la main possible : voir `config/predictions/_modele.yaml`. La guidance de la société se renseigne dans
+`config/assumptions/<TICKER>.yaml` (section `guidance`). Le consensus est relevé chaque jour dans `docs/data/<T>/consensus.json`.
 
 ## Mise en route (une seule fois)
 
@@ -58,26 +77,33 @@ pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.j
 
 ## Méthode
 
-**Reconstruction des états financiers** (`pipeline/normalize.py`) — le XBRL de la SEC n'est pas utilisable tel quel :
-flux de trésorerie des 10-Q publiés en cumul (3/6/9 mois) → trimestres reconstruits par différence ; T4 = exercice − 9 mois ;
+**Reconstruction des états financiers** (`pipeline/normalize.py`) - le XBRL de la SEC n'est pas utilisable tel quel :
+flux de trésorerie des 10-Q publiés en cumul (3/6/9 mois) → trimestres reconstruits par différence ; T4 = exercice - 9 mois ;
 retraitements → valeur la plus récemment déposée ; changements d'étiquettes XBRL → liste ordonnée d'étiquettes par ligne ;
 exercices de 52/53 semaines → tolérance sur les dates. Toutes les lignes sont converties dans un **schéma canonique interne**
 (`revenue`, `operating_income`, `fcf`…) : c'est ce qui permettra d'ajouter plus tard des sources IFRS/ESEF (Europe).
 
-**DCF** (`pipeline/valuation.py`, jumeau JS `docs/assets/dcf.js`) — FCFF = EBIT × (1 − t) + D&A − capex − ΔBFR ;
+**DCF** (`pipeline/valuation.py`, jumeau JS `docs/assets/dcf.js`) - FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR ;
 croissance explicite puis fondu linéaire vers g ; marge qui converge vers une cible ; valeur terminale de Gordon (option :
 réinvestissement = g / ROIC terminal) ; convention mi-année ; WACC CAPM (rf FRED, bêta 2 ans hebdo vs SPY ajusté Blume,
 écarté si R² < 0,05). La rémunération en actions n'est pas réintégrée (c'est un coût réel). DCF reverse : croissance constante
 qui justifie le cours.
 
-**Comparables** — multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF), médiane des pairs, multiples négatifs ou > 500x exclus.
+**Prédictions** (`pipeline/predictions.py`) - date de publication = premier 8-K 2.02 / 10-Q / 10-K déposé après la fin de
+période ; date limite = 00:00 New York ce jour-là (prudent : impossible de compter une prévision faite après les chiffres) ;
+versions lues dans l'historique Git (`git log --follow`). Le consensus BPA de Yahoo est généralement non-GAAP : affiché, jamais noté.
+
+**Options** (`pipeline/options.py`) - IV recalculée par Black-Scholes sur le milieu bid/ask ; IV 30/90 j par interpolation de la
+variance totale ; choc de résultats implicite = √(T₂ (σ₂² - σ₁²)) entre l'échéance juste avant et juste après la publication.
+
+**Comparables** - multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF), médiane des pairs, multiples négatifs ou > 500x exclus.
 Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent une entreprise en hypercroissance.
 
 ## Développement local
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 66 tests (normalisation, DCF, feed, parité Python/JS)
+python -m pytest -q                                   # 95 tests (normalisation, DCF, feed, prédictions, options, parité Python/JS)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py
@@ -94,17 +120,18 @@ retraitement, changement d'étiquette) et les tests vérifient chaque reconstruc
 ## Limites (honnêtes)
 
 - Cours de **clôture**, pas de temps réel ; sources de cours gratuites non officielles (repli automatique, signalé dans l'interface).
-- Pas de **consensus** analystes (payant) : pas encore de mesure de « surprise » vs attentes.
+- **Consensus** : seulement le prochain trimestre (CA et BPA moyens, haut, bas) via Yahoo ; l'historique se construit jour après jour.
+- **Options** : données Yahoo différées ; la qualité dépend de la liquidité des strikes.
 - Couverture **US uniquement** (SEC). L'Europe (ESEF) demandera un mapping IFRS.
 - Les hypothèses de départ de NVDA sont un **point de départ** posé le 27/10/2026, pas une prévision.
 
 ## Pistes pour la suite
 
-Registre de prévisions pré-enregistrées (ta prévision vs consensus vs réalisé, score de Brier) · forecasting par segment
+Forecasting par segment
 (Data Center, Gaming…) à partir des tableaux XBRL dimensionnels · extraction des KPI des communiqués 8-K · rNPV pour les
 biotechs (AGIO) · couverture européenne via filings.xbrl.org / ESAP · alertes par e-mail · pondération de portefeuille.
 
 ---
 Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, Stooq. Graphiques :
 [TradingView Lightweight Charts™](https://www.tradingview.com/) (Apache 2.0) et Apache ECharts (Apache 2.0).
-Outil personnel d'étude — pas un conseil en investissement.
+Outil personnel d'étude - pas un conseil en investissement.

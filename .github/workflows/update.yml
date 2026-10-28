@@ -30,6 +30,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # historique Git complet : l'heure des commits horodate les prédictions
 
       - uses: actions/setup-python@v7
         with:

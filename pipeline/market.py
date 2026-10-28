@@ -167,6 +167,20 @@ def splits(sym: str) -> list[dict]:
     return sorted([x for x in out if x["ratio"] != 1.0], key=lambda x: x["date"])
 
 
+def calendar(sym: str) -> dict:
+    """Next earnings date(s) and analysts' consensus for the next quarter (Yahoo, via yfinance).
+
+    Revenue consensus is comparable to reported (GAAP) revenue. EPS consensus is usually the
+    non-GAAP "adjusted" EPS: never compare it blindly to GAAP EPS."""
+    import yfinance as yf
+    cal = yf.Ticker(sym).get_calendar() or {}
+    dates = [d.isoformat() for d in (cal.get("Earnings Date") or [])]
+    f = lambda k: float(cal[k]) if cal.get(k) is not None else None  # noqa: E731
+    return {"earnings_dates": dates, "revenue_avg": f("Revenue Average"), "revenue_low": f("Revenue Low"),
+            "revenue_high": f("Revenue High"), "eps_avg": f("Earnings Average"), "eps_low": f("Earnings Low"),
+            "eps_high": f("Earnings High")}
+
+
 def beta(stock: list[dict], bench: list[dict], weeks: int = 104) -> dict | None:
     """OLS beta of weekly (Friday-to-Friday) log returns over `weeks` weeks, plus Blume adjustment."""
     def weekly(bars):

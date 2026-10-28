@@ -1,0 +1,31 @@
+# ===========================================================================
+# Modèle de fichier de prédiction (ce fichier, préfixé par « _ », est ignoré).
+#
+# Le plus simple : onglet « Prédictions » d'une valeur sur le site, puis
+# « Enregistrer sur GitHub ». Pour écrire à la main : copie ce fichier dans
+# config/predictions/<TICKER>/<date>-<période>.yaml et commit.
+#
+# L'heure du COMMIT fait foi. Seule la dernière version commitée avant
+# 00:00 (heure de New York) le jour de la publication est notée.
+# ===========================================================================
+ticker: NVDA
+period: Q3 FY2027          # trimestre « Qn FYaaaa » ou exercice « FYaaaa »
+
+metrics:                   # Md$ pour les montants, % pour les marges, $ pour le BPA
+  revenue: {value: 110.0, low: 106.0, high: 114.0}   # low / high = intervalle à 80 % (facultatif)
+  gross_margin: {value: 73.8}
+  # operating_income, operating_margin, net_income, eps_diluted, fcf
+
+benchmarks:                # facultatif : ce que tu sais au moment de prévoir
+  consensus: {revenue: 109.0}    # sinon : consensus Yahoo figé automatiquement
+  guidance: {revenue: 108.0}     # sinon : section guidance de config/assumptions/<TICKER>.yaml
+
+events:                    # questions oui / non, probabilité en %
+  - {id: q1, question: "CA au-dessus du haut de la guidance ?", probability: 60, outcome: null}
+  # après la publication : remplace null par true ou false (seule l'issue peut changer)
+
+price:                     # objectifs de cours, vérifiés sur la clôture du jour visé
+  - {date: 2026-12-31, value: 240, low: 200, high: 280}
+
+note: |
+  Ton raisonnement : hypothèses clés, ce qui te ferait changer d'avis.

@@ -5,15 +5,15 @@ The same DCF is implemented in docs/assets/dcf.js for the interactive page;
 tests/test_dcf_parity.py checks that both give identical results.
 
 Conventions (documented because they move the result):
-  * FCFF = EBIT × (1 − t) + D&A − capex − ΔBFR. Stock-based compensation is
+  * FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR. Stock-based compensation is
     NOT added back: it is treated as a real cost (it is, it dilutes shareholders).
   * Revenue growth: explicit years from the assumption file, then a linear fade
     to the terminal growth rate in year N.
   * Mid-year convention (optional): cash flows arrive in the middle of each year,
-    so year t is discounted by (1+WACC)^(t−0.5). With the Gordon-growth terminal
+    so year t is discounted by (1+WACC)^(t-0.5). With the Gordon-growth terminal
     value the same half-year shift applies to the terminal value.
   * Equity value = EV + cash + short-term investments + equity stakes (non-operating, optional)
-    − financial debt. Equity stakes are added because the DCF is built on EBIT, which excludes
+    - financial debt. Equity stakes are added because the DCF is built on EBIT, which excludes
     the gains they produce: leaving them out would value them at zero.
 """
 from __future__ import annotations
@@ -252,7 +252,7 @@ def reverse_dcf(r: dict) -> dict | None:
     lo, hi = -0.5, 2.0
     flo, fhi = f(lo), f(hi)
     if flo is None or fhi is None or flo > 0 or fhi < 0:
-        return {"implied_growth": None, "years": e, "note": "hors de la plage [−50 %, +200 %]"}
+        return {"implied_growth": None, "years": e, "note": "hors de la plage [-50 %, +200 %]"}
     for _ in range(80):
         mid = (lo + hi) / 2
         fm = f(mid)

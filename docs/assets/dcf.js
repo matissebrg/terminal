@@ -1,4 +1,4 @@
-/* DCF engine — JavaScript twin of pipeline/valuation.py (dcf, growth_path, value_only,
+/* DCF engine - JavaScript twin of pipeline/valuation.py (dcf, growth_path, value_only,
  * reverse_dcf). Used by the interactive valuation page. tests/test_dcf_parity.py checks
  * that both implementations return the same numbers. Keep them in sync. */
 (function (root) {
