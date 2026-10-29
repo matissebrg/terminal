@@ -442,7 +442,7 @@
               <div class="note" id="oest"></div>
               <button class="btn primary" type="submit">Envoyer l'ordre</button><div class="note" id="omsg"></div></form>
             <p class="note">Ordre au marché, exécuté au <b>cours de clôture de la prochaine séance</b> (mise à jour du site à 21h37 UTC les jours ouvrés). Un ordre passé avant 16h00 à New York est exécuté à la clôture du jour même. Rejeté si les liquidités ou la position sont insuffisantes au moment de l'exécution.</p></div>
-          <div class="panel"><h3>Ordre sur options <a class="hint" href="#/t/NVDA/options">analyse et stratégies →</a></h3>
+          <div class="panel"><h3>Ordre sur options <a class="hint" href="#/options">espace Options →</a></h3>
             <form id="xform" class="aform">
               <div class="seg" id="xside"><button type="button" data-k="buy" class="on">Achat</button><button type="button" data-k="sell">Vente</button></div>
               <div class="row"><select name="tk" class="sel"></select><select name="exp" class="sel"></select><select name="type" class="sel"><option value="C">Call</option><option value="P">Put</option></select><select name="k" class="sel"></select></div>

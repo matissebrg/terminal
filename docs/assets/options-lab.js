@@ -55,17 +55,24 @@
     const sk = OL.skew(o);
     const wrap = document.createElement("div");
     wrap.innerHTML = `
-      <div class="grid g2" style="margin-top:14px">
+      <div class="grid g2" style="margin-top:14px" data-sec="greeks">
         <div class="panel"><h3>Skew par échéance <span class="hint">risk reversal et butterfly 25 delta</span></h3><div class="chart" id="oskew"></div>
           <p class="note"><b>Risk reversal</b> = IV call 25Δ - IV put 25Δ : négatif quand les puts (protection) sont plus chers, cas habituel des actions. <b>Butterfly</b> = prime payée pour les ailes (queues épaisses).</p></div>
         <div class="panel"><h3>Volatilité implicite 30 jours <span class="hint">historique relevé par le terminal</span></h3><div class="chart" id="oivh"></div>
           <p class="note">${(o.iv_history || []).length < 20 ? "L'historique se construit à chaque mise à jour : le rang et le percentile de l'IV deviendront significatifs après quelques semaines." : ivRank(o)}</p></div>
       </div>
-      <div class="panel" style="margin-top:14px"><h3>Grecques <span class="row"><select id="ogx" class="sel">${o.expiries.filter((e) => o.chains[e.date]).map((e) => `<option value="${e.date}">${F.date(e.date)} · ${F.n(e.dte, 0)} j</option>`).join("")}</select></span></h3>
+      <div class="panel" style="margin-top:14px" data-sec="greeks"><h3>Grecques <span class="row"><select id="ogx" class="sel">${o.expiries.filter((e) => o.chains[e.date]).map((e) => `<option value="${e.date}">${F.date(e.date)} · ${F.n(e.dte, 0)} j</option>`).join("")}</select></span></h3>
         <div class="tbl-wrap" id="ogreeks"></div>
         <p class="note">Par action. Thêta : perte de valeur par jour calendaire ; véga : variation pour +1 point de volatilité. Max pain : strike où les acheteurs d'options perdraient le plus à l'échéance (indicatif, calculé sur l'open interest${sk.some((s) => s.maxPain) ? "" : ", indisponible tant que Yahoo ne publie pas l'open interest de la séance"}).</p></div>
-      <div class="panel" style="margin-top:14px" id="olab"></div>`;
-    el.appendChild(wrap);
+      <div class="panel" style="margin-top:14px" id="olab" data-sec="strategies"></div>`;
+    if (location.hash.startsWith("#/t/")) {
+      const link = document.createElement("div");
+      link.className = "banner results-banner";
+      link.style.marginTop = "14px";
+      link.innerHTML = `⌁ <div>Toutes les options au même endroit : <a href="#/options/${tk}/strategies"><b>espace Options</b></a> (stratégies, grecques, paper trading, mes positions), aussi accessible depuis le menu de gauche.</div>`;
+      el.insertBefore(link, el.firstChild);
+    }
+    while (wrap.firstElementChild) el.appendChild(wrap.firstElementChild);   // sections stay direct children (the Options page shows them one at a time)
     // skew chart
     const ok = sk.filter((s) => T.isNum(s.rr));
     if (ok.length) T.ec(T.$("#oskew"), {
@@ -234,4 +241,84 @@
     }
     preset("Achat de call");
   };
+
+  // ------------------------------------------------------------------ dedicated page #/options[/<TICKER>[/<section>]]
+  const SECTIONS = [["market", "Marché"], ["greeks", "Grecques et skew"], ["strategies", "Stratégies"], ["positions", "Mes positions"]];
+  let optTickers = null;
+  async function tickersWithOptions() {
+    if (optTickers) return optTickers;
+    const u = await T.get("universe.json");
+    const out = [];
+    for (const t of u.tickers) { try { const o = await T.get(`${t.ticker}/options.json`); out.push({ ...t, iv30: o.iv30, earnings: o.earnings }); } catch (e) { /* none */ } }
+    optTickers = out;
+    return out;
+  }
+  T.route(/^\/options(?:\/([A-Za-z.\-]+))?(?:\/(\w+))?$/, async (view, tkArg, secArg) => {
+    const list = await tickersWithOptions();
+    if (!list.length) { view.innerHTML = '<div class="empty">Aucune chaîne d\'options disponible pour l\'instant.</div>'; return; }
+    const tk = (tkArg || list[0].ticker).toUpperCase();
+    let sec = SECTIONS.some(([k]) => k === secArg) ? secArg : "market";
+    view.innerHTML = `<div class="thead"><div class="id"><h1>Options</h1><div class="sub">Volatilité implicite, grecques, stratégies et paper trading d'options · données Yahoo différées</div></div></div>
+      <div class="opt-tickers">${list.map((t) => `<a class="opt-tk ${t.ticker === tk ? "on" : ""}" href="#/options/${t.ticker}/${sec}"><b>${t.ticker}</b><span class="num">${F.n(t.price, 2)}</span>
+        <span class="muted">IV 30 j ${F.pct(t.iv30, 1)}${t.earnings && t.earnings.date ? ` · résultats ${F.date(t.earnings.date)}` : ""}</span></a>`).join("")}</div>
+      <nav class="tabs" id="osecs">${SECTIONS.map(([k, l]) => `<a href="#/options/${tk}/${k}" data-k="${k}" class="${k === sec ? "active" : ""}">${l}</a>`).join("")}
+        <a href="#/t/${tk}" class="tabs-aside">Fiche ${tk} →</a></nav>
+      <div id="ocontent"><div class="loading">Chargement…</div></div>`;
+    const box = T.$("#ocontent");
+    box.innerHTML = "";
+    await T.tabOptions(box, tk);
+    [...box.children].forEach((c) => { if (!c.dataset.sec) c.dataset.sec = "market"; });
+    const pos = document.createElement("div");
+    pos.dataset.sec = "positions";
+    box.appendChild(pos);
+    renderPositions(pos, tk);
+    const show = (k) => {
+      sec = k;
+      [...box.children].forEach((c) => { c.style.display = c.dataset.sec === k ? "" : "none"; });
+      T.$$("#osecs a[data-k]").forEach((a) => a.classList.toggle("active", a.dataset.k === k));
+      T.$$(".opt-tk").forEach((a) => { a.href = `#/options/${a.querySelector("b").textContent}/${k}`; });
+      history.replaceState(null, "", `#/options/${tk}/${k}`);
+      window.dispatchEvent(new Event("resize"));            // charts drawn while hidden
+    };
+    T.$("#osecs").addEventListener("click", (e) => { const a = e.target.closest("a[data-k]"); if (!a) return; e.preventDefault(); show(a.dataset.k); });
+    show(sec);
+    T.markNav("/options");
+  });
+
+  // all my option positions and orders, every portfolio
+  async function renderPositions(box, tk) {
+    const M = T.members;
+    if (!M || !M.configured) { box.innerHTML = '<div class="panel"><p class="note" style="margin:0">L\'espace membres n\'est pas activé.</p></div>'; return; }
+    await M.ready;
+    if (!T.member) { box.innerHTML = '<div class="panel"><h3>Mes positions</h3><p class="sec">Connecte-toi pour acheter des options dans tes portefeuilles fictifs.</p><a class="btn primary" href="#/compte">Se connecter</a></div>'; return; }
+    const sb = M.sb;
+    const [pfs, trades, orders] = await Promise.all([
+      sb.from("portfolios").select("id, name, cash").eq("user_id", T.member.id),
+      sb.from("option_trades").select("*").eq("user_id", T.member.id).order("id"),
+      sb.from("option_orders").select("*").eq("user_id", T.member.id).order("id", { ascending: false }).limit(30)]);
+    const pfName = Object.fromEntries((pfs.data || []).map((p) => [p.id, p.name]));
+    const key = (t) => `${t.portfolio_id}|${t.ticker}|${t.expiry}|${+t.strike}|${t.type}`;
+    const pos = {};
+    (trades.data || []).forEach((t) => { const k = key(t), p = pos[k] || (pos[k] = { ...t, strike: +t.strike, qty: 0, cost: 0 });
+      if (t.side === "buy") { p.cost += t.qty * +t.price * 100; p.qty += t.qty; } else { const avg = p.qty ? p.cost / p.qty : 0; p.qty -= t.qty; p.cost -= avg * t.qty; } });
+    const open = Object.values(pos).filter((p) => p.qty > 0);
+    const chains = {};
+    for (const t of new Set(open.map((p) => p.ticker))) { try { chains[t] = await T.get(`${t}/options.json`); } catch (e) { /* none */ } }
+    const mark = (p) => { const r = ((chains[p.ticker] || {}).chains || {})[p.expiry]; const row = r && r.find((x) => x.strike === p.strike);
+      return row ? row[p.type === "C" ? "c_mid" : "p_mid"] : null; };
+    box.innerHTML = `<div class="panel"><h3>Mes positions d'options <span class="hint">tous portefeuilles · 1 contrat = 100 actions</span></h3>
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Portefeuille</th><th>Contrat</th><th class="n">Qté</th><th class="n">Prime moy.</th><th class="n">Dernier</th><th class="n">Valeur</th><th class="n">+/- value</th><th class="n">Échéance</th></tr></thead><tbody>
+      ${open.map((p) => { const m = mark(p), val = T.isNum(m) ? m * 100 * p.qty : null, pnl = val != null ? val - p.cost : null;
+        return `<tr style="cursor:pointer" data-href="#/portefeuilles/${p.portfolio_id}"><td>${T.esc(pfName[p.portfolio_id] || "?")}</td><td><b>${p.ticker}</b> ${F.n(p.strike, p.strike % 1 ? 1 : 0)} ${p.type === "C" ? "call" : "put"} <span class="muted">${F.date(p.expiry)}</span></td>
+          <td class="n">${p.qty}</td><td class="n">${F.n(p.cost / p.qty / 100, 2)}</td><td class="n">${F.n(m, 2)}</td><td class="n">${F.n(val, 0)} $</td>
+          <td class="n ${T.cls(pnl)}">${F.n(pnl, 0)} $</td><td class="n">J-${Math.max(0, Math.ceil((new Date(p.expiry + "T21:00:00Z") - Date.now()) / 864e5))}</td></tr>`; }).join("")
+        || '<tr><td colspan="8"><div class="empty">Aucune position. Construis une stratégie dans l\'onglet <b>Stratégies</b>, ou passe un ordre depuis un portefeuille.</div></td></tr>'}
+      </tbody></table></div></div>
+      <div class="panel" style="margin-top:14px"><h3>Ordres récents</h3>
+        ${(orders.data || []).map((o) => `<div class="order-row"><span class="${o.side === "buy" ? "up" : "down"}">${o.side === "buy" ? "Achat" : "Vente"}</span> <b>${o.qty} ${o.ticker} ${F.n(+o.strike, 0)} ${o.type}</b> <span class="muted">${F.date(o.expiry)} · ${T.esc(pfName[o.portfolio_id] || "")}</span>
+          <span class="badge ${o.status === "filled" ? "st-resolved" : o.status === "pending" ? "st-pending" : "st-late"}">${{ pending: "en attente", filled: "exécuté", rejected: "rejeté", cancelled: "annulé" }[o.status]}</span>
+          <span class="muted num">${o.status === "filled" ? `${F.n(+o.fill_price, 2)} le ${F.date(o.fill_date)}` : o.reason ? T.esc(o.reason) : F.dateTime(o.created_at)}</span></div>`).join("") || '<div class="muted">Aucun ordre.</div>'}
+        <p class="note">Ordres exécutés à la clôture de la prochaine séance : achat au prix demandé (ask), vente au prix offert (bid). Pour revendre ou annuler, ouvre le portefeuille concerné.</p></div>`;
+    T.$$("tr[data-href]", box).forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
+  }
 })();

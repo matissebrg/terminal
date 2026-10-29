@@ -166,7 +166,8 @@
     view.innerHTML = `<div class="empty">Page introuvable.</div>`;
   };
   T.markNav = (h) => {
-    T.$$(".nav a").forEach((a) => a.classList.toggle("active", "#" + h === a.getAttribute("href") || (a.dataset.nav === "home" && h === "/")));
+    T.$$(".nav a").forEach((a) => a.classList.toggle("active", "#" + h === a.getAttribute("href") || (a.dataset.nav === "home" && h === "/")
+      || (a.dataset.nav === "options" && h.startsWith("/options"))));
     T.$$(".wl-item").forEach((a) => a.classList.toggle("active", h.startsWith("/t/" + a.dataset.tk)));
   };
 
