@@ -14,6 +14,7 @@ benchmarks:
   SPY: S&P 500 (ETF SPY)
   SOXX: Semi-conducteurs (ETF iShares SOXX)
   XLP: Consommation de base (ETF XLP)
+  XLK: XLK
 
 beta_benchmark: SPY
 
@@ -30,6 +31,12 @@ tickers:
     industry: Hypermarchés, clubs-entrepôts (Sam's Club), e-commerce, publicité
     peers: [COST, TGT, KR, BJ, DG, AMZN]
     benchmarks: [SPY, XLP]
+  GOOG:
+    name: Alphabet Inc.
+    sector: Services-computer programming, data processing, etc.
+    industry: Services-computer programming, data processing, etc.
+    peers: [MSFT, META, PLTR, ORCL]
+    benchmarks: [SPY, XLK]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -44,6 +51,10 @@ peer_names:
   BJ: BJ's Wholesale Club
   DG: Dollar General
   AMZN: Amazon
+  MSFT: Microsoft Corp
+  META: Meta Platforms, Inc.
+  PLTR: Palantir Technologies Inc.
+  ORCL: Oracle Corp
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -60,3 +71,8 @@ ciks:
   BJ: 1531152
   DG: 29534
   AMZN: 1018724
+  GOOG: 1652044
+  MSFT: 789019
+  META: 1326801
+  PLTR: 1321655
+  ORCL: 1341439
