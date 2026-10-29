@@ -1,6 +1,19 @@
 {
  "events": [
   {
+   "id": "d6baee104533",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "coverage",
+   "title": "GOOG : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 321.89,
+    "value_base": 45.135008674039064,
+    "value_weighted": 47.68170212829551
+   }
+  },
+  {
    "id": "25fe6125c2c2",
    "date": "2026-10-28",
    "ticker": "NVDA",
