@@ -372,7 +372,9 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
         diag = _facts_diagnostic(facts, cik)
         print(diag)
         print("::warning title=Diagnostic XBRL::" + diag.replace("%", "%25").replace("\n", "%0A"))
-        raise
+        raise SystemExit(f"{ticker} : aucun exercice annuel (10-K) sous le CIK {cik}. Si la société vient de se "
+                         f"réorganiser sous une nouvelle holding, son historique est resté sous l'ancien CIK : "
+                         f"l'ajouter dans PREDECESSORS (pipeline/sec.py).")
     if not fin["periods"]["quarterly"] or fin["ttm"].get("revenue") is None:
         raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (pas de chiffre d'affaires trimestriel).")
 

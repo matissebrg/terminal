@@ -28,12 +28,64 @@ def ticker_titles() -> dict[str, tuple[int, str]]:
     return {row["ticker"].upper(): (int(row["cik_str"]), row.get("title", "")) for row in data.values()}
 
 
+# Successor issuers: when a company re-organises under a new holding company, the SEC gives the
+# holding a new CIK and the ticker moves to it, while the whole financial history stays under the
+# old CIK. {new CIK: (old CIK, ...)} - the old facts and filings are merged in.
+PREDECESSORS: dict[int, tuple[int, ...]] = {
+    2115436: (34088,),  # ExxonMobil Holdings Corp (Texas, 1 July 2026) <- Exxon Mobil Corp (XOM)
+}
+
+
+def merge_facts(primary: dict, *older: dict) -> dict:
+    """Union of companyfacts payloads; duplicates (same period, value and filing) are dropped."""
+    out = {k: v for k, v in primary.items() if k != "facts"}
+    facts: dict = {}
+    for payload in (primary, *older):
+        for tax, tags in (payload.get("facts") or {}).items():
+            for tag, node in tags.items():
+                dst = facts.setdefault(tax, {}).setdefault(tag, {k: v for k, v in node.items() if k != "units"})
+                units = dst.setdefault("units", {})
+                for unit, rows in (node.get("units") or {}).items():
+                    lst = units.setdefault(unit, [])
+                    seen = {(r.get("start"), r.get("end"), r.get("val"), r.get("accn")) for r in lst}
+                    for r in rows:
+                        key = (r.get("start"), r.get("end"), r.get("val"), r.get("accn"))
+                        if key not in seen:
+                            seen.add(key)
+                            lst.append(r)
+    out["facts"] = facts
+    return out
+
+
+def merge_submissions(primary: dict, *older: dict) -> dict:
+    """Successor's profile, with the predecessors' recent filings appended (newest first)."""
+    out = dict(primary)
+    rows = []
+    for payload in (primary, *older):
+        rec = (payload.get("filings") or {}).get("recent") or {}
+        n = len(rec.get("accessionNumber", []))
+        cik = int(payload.get("cik", 0) or 0)
+        for i in range(n):
+            row = {k: (v[i] if isinstance(v, list) and i < len(v) else None) for k, v in rec.items()}
+            row.setdefault("_cik", cik)
+            rows.append(row)
+    rows.sort(key=lambda r: r.get("filingDate") or "", reverse=True)
+    keys = sorted({k for r in rows for k in r})
+    out["filings"] = dict(primary.get("filings") or {})
+    out["filings"]["recent"] = {k: [r.get(k) for r in rows] for k in keys}
+    return out
+
+
 def company_facts(cik: int) -> dict:
-    return http.sec_get_json(FACTS_URL.format(cik=cik))
+    data = http.sec_get_json(FACTS_URL.format(cik=cik))
+    olds = [http.sec_get_json(FACTS_URL.format(cik=c)) for c in PREDECESSORS.get(int(cik), ())]
+    return merge_facts(data, *olds) if olds else data
 
 
 def submissions(cik: int) -> dict:
-    return http.sec_get_json(SUBMISSIONS_URL.format(cik=cik))
+    data = http.sec_get_json(SUBMISSIONS_URL.format(cik=cik))
+    olds = [http.sec_get_json(SUBMISSIONS_URL.format(cik=c)) for c in PREDECESSORS.get(int(cik), ())]
+    return merge_submissions(data, *olds) if olds else data
 
 
 def recent_filings(subs: dict, limit: int = 60) -> list[dict]:
@@ -52,6 +104,7 @@ def recent_filings(subs: dict, limit: int = 60) -> list[dict]:
             continue
         acc = rec["accessionNumber"][i]
         doc = rec["primaryDocument"][i]
+        fcik = int((rec.get("_cik") or [None] * n)[i] or cik)  # predecessor filings live under the old CIK
         out.append({
             "accession": acc,
             "form": form,
@@ -59,7 +112,7 @@ def recent_filings(subs: dict, limit: int = 60) -> list[dict]:
             "report_date": rec.get("reportDate", [""] * n)[i] or None,
             "items": items,
             "is_results": form in ("10-K", "10-Q", "20-F") or (form == "8-K" and "2.02" in items),
-            "url": ARCHIVE_URL.format(cik=cik, acc_nodash=acc.replace("-", ""), doc=doc),
+            "url": ARCHIVE_URL.format(cik=fcik, acc_nodash=acc.replace("-", ""), doc=doc),
         })
         if len(out) >= limit:
             break
