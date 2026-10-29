@@ -125,7 +125,18 @@ def history_defaults(fin: dict) -> dict:
     notes["naive"] = (f"erreur moyenne du modèle naïf sur 8 trimestres : séquentiel "
                       f"{_pct(bt['sequential']) if bt.get('sequential') is not None else '-'}, saisonnier "
                       f"{_pct(bt['seasonal']) if bt.get('seasonal') is not None else '-'}")
-    return {"growth": growth, "margin": margin, "tax": t, "nwc": nwc, "naive": naive, "notes": notes}
+    # ROIC TTM: NOPAT / operating invested capital. Used for the terminal reinvestment (g / ROIC), so that
+    # today's capex intensity (e.g. an AI build-out at 30 % of revenue) is not assumed to last forever.
+    roic = None
+    ic = sum(T.get(k) or 0 for k in ("equity", "total_debt", "minority_interest")) \
+        - sum(T.get(k) or 0 for k in ("cash", "short_term_investments", "equity_investments"))
+    if oi is not None and ic > 0:
+        r_ = oi * (1 - t) / ic
+        roic = round(_clip(r_, 0.06, 0.40), 3)
+        notes["roic"] = f"ROIC {T.get('_label', 'TTM')} : {_pct(r_)} (NOPAT / capitaux investis)"
+    else:
+        notes["roic"] = "ROIC non calculable : pas de réinvestissement terminal explicite"
+    return {"growth": growth, "margin": margin, "tax": t, "nwc": nwc, "naive": naive, "roic": roic, "notes": notes}
 
 
 def _fmt_list(xs):
@@ -148,6 +159,7 @@ def assumptions_yaml(ticker: str, name: str, fin: dict, peers: list[str], today:
 #   - {n['margin']}
 #   - {n['tax']}
 #   - {n['nwc']}
+#   - {n['roic']}
 #
 # Modifier depuis GitHub : ouvre ce fichier sur github.com, clique sur le crayon,
 # commit -> le site se met à jour tout seul en ~2 minutes. Le simulateur de l'onglet
@@ -173,7 +185,9 @@ dcf:
   capex_pct_revenue: auto
   nwc_pct_incremental_revenue: {d['nwc']}
   terminal_growth: {TERMINAL_G}
-  terminal_roic: null
+  # Réinvestissement terminal = croissance terminale / ROIC : le capex actuel n'est pas supposé durer
+  # indéfiniment. null = capex et amortissements des années explicites prolongés tels quels.
+  terminal_roic: {d['roic'] if d['roic'] is not None else 'null'}
   mid_year: true
   include_equity_investments: true
 

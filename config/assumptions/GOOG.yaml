@@ -33,7 +33,9 @@ dcf:
   capex_pct_revenue: auto
   nwc_pct_incremental_revenue: -0.054
   terminal_growth: 0.03
-  terminal_roic: null
+  # Ajouté le 29/10 : ROIC TTM ≈ 32 % (NOPAT / capitaux investis hors trésorerie et participations).
+  # Sans lui, le capex actuel (~30 % du CA, investissements IA) serait supposé durer pour toujours.
+  terminal_roic: 0.32
   mid_year: true
   include_equity_investments: true
 

@@ -63,7 +63,9 @@ jobs:
           IN_ETF: ${{ inputs.etf }}
           IN_ETF_NAME: ${{ inputs.etf_name }}
         run: |
-          # entrées passées par variables d'environnement (jamais interpolées dans le script)
+          # entrées passées par variables d'environnement (jamais interpolées dans le script) ; espaces retirés
+          trim() { local v="$1"; v="${v#"${v%%[![:space:]]*}"}"; printf '%s' "${v%"${v##*[![:space:]]}"}"; }
+          IN_TICKER="$(trim "$IN_TICKER")"; IN_ETF="$(trim "$IN_ETF")"; IN_PEERS="$(trim "$IN_PEERS")"
           if ! [[ "$IN_TICKER" =~ ^[A-Za-z]{1,6}(-[A-Za-z])?$ ]]; then echo "::error::Ticker invalide : $IN_TICKER"; exit 1; fi
           if [[ -n "$IN_ETF" ]] && ! [[ "$IN_ETF" =~ ^[A-Za-z]{1,6}$ ]]; then echo "::error::ETF invalide : $IN_ETF"; exit 1; fi
           args=("$IN_TICKER" --peers "$IN_PEERS")

@@ -93,3 +93,11 @@ def test_pretty_names():
 def test_pretty_drops_state_suffix():
     assert scaffold._pretty("Costco Wholesale Corp /new") == "Costco Wholesale Corp"
     assert scaffold._pretty("QUALCOMM INC/DE") == "Qualcomm Inc"
+
+
+def test_terminal_roic_from_history(repo):
+    scaffold.scaffold("AMD", ["INTC"], FakeSec(), root=repo, today="2026-10-29")
+    a = yaml.safe_load((repo / "config" / "assumptions" / "AMD.yaml").read_text())
+    r = a["dcf"]["terminal_roic"]
+    assert r is None or 0.06 <= r <= 0.40
+    assert "ROIC" in (repo / "config" / "assumptions" / "AMD.yaml").read_text()

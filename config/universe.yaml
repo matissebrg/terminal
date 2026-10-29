@@ -14,7 +14,7 @@ benchmarks:
   SPY: S&P 500 (ETF SPY)
   SOXX: Semi-conducteurs (ETF iShares SOXX)
   XLP: Consommation de base (ETF XLP)
-  XLK: XLK
+  XLK: Technologie (ETF XLK)
 
 beta_benchmark: SPY
 
@@ -33,8 +33,8 @@ tickers:
     benchmarks: [SPY, XLP]
   GOOG:
     name: Alphabet Inc.
-    sector: Services-computer programming, data processing, etc.
-    industry: Services-computer programming, data processing, etc.
+    sector: Internet et logiciels
+    industry: Recherche en ligne, publicité, cloud, YouTube
     peers: [MSFT, META, PLTR, ORCL]
     benchmarks: [SPY, XLK]
 
