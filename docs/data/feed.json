@@ -27,6 +27,19 @@
    }
   },
   {
+   "id": "4e7b8d8c4303",
+   "date": "2026-10-29",
+   "ticker": "XOM",
+   "type": "coverage",
+   "title": "XOM : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 182.02,
+    "value_base": 83.44387003575694,
+    "value_weighted": 85.21208203172162
+   }
+  },
+  {
    "id": "e6a5c996d85e",
    "date": "2026-10-29",
    "ticker": "GOOG",
