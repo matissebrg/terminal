@@ -189,13 +189,17 @@ def next_earnings(src, t: str, cfg: dict, fin: dict, filings: list[dict], status
     if ov:
         ov = ov if isinstance(ov, dict) else {"date": str(ov)}
         out.update({"date": str(ov["date"]), "estimated": not ov.get("confirmed", False), "source": "configuration"})
-    elif cal and cal.get("earnings_dates"):
-        future = [d for d in cal["earnings_dates"] if d >= today] or cal["earnings_dates"]
+    elif cal and nq and [d for d in (cal.get("earnings_dates") or []) if d > nq["end_estimate"]]:
         # Yahoo mixes announced and projected dates: treat them as estimates until the company confirms
-        # (then set next_earnings: {date: ..., confirmed: true} in config/universe.yaml).
+        # (then set next_earnings: {date: ..., confirmed: true} in config/universe.yaml). A date before the
+        # end of the next quarter is the release that just happened (Yahoo not updated yet): ignored.
+        future = [d for d in cal["earnings_dates"] if d > nq["end_estimate"]]
         out.update({"date": future[0], "estimated": True,
                     "source": "Yahoo Finance, non confirmée par la société"})
     elif nq:
+        if cal and cal.get("earnings_dates"):
+            cal = {**cal, **{k: None for k in ("revenue_avg", "revenue_low", "revenue_high", "eps_avg", "eps_low", "eps_high")}}
+            print(f"  [calendrier] {t}: date Yahoo périmée ({cal['earnings_dates'][0]}), consensus ignoré jusqu'à sa mise à jour")
         lag = predictions.typical_lag_days(fin, filings) or 30
         out.update({"date": (date.fromisoformat(nq["end_estimate"]) + timedelta(days=lag)).isoformat(),
                     "estimated": True, "source": f"estimation (fin de trimestre + {lag} j, médiane historique)"})

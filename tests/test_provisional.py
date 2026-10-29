@@ -50,3 +50,24 @@ def test_release_without_yahoo_figures_still_flagged():
     filings = [{"form": "8-K", "filed": (end + timedelta(days=25)).isoformat(), "is_results": True}]
     p = build.provisional_results(Src([]), "NVDA", fin, filings, [])
     assert p and p["values"] is None
+
+
+class Cal:
+    def __init__(self, dates):
+        self.dates = dates
+
+    def calendar(self, t, fin=None):
+        return {"earnings_dates": self.dates, "revenue_avg": 1e11, "eps_avg": 2.0}
+
+
+def test_stale_yahoo_date_is_ignored_with_its_consensus():
+    fin = _fin()
+    nq = predictions.next_quarter(fin)
+    stale = (date.fromisoformat(fin["periods"]["quarterly"][-1]["end"]) + timedelta(days=28)).isoformat()
+    status = {"errors": []}
+    ne, cal = build.next_earnings(Cal([stale]), "NVDA", {}, fin, [], status, stale)
+    assert ne["date"] > nq["end_estimate"] and "estimation" in ne["source"]
+    assert cal["revenue_avg"] is None                                   # not stored as next quarter's consensus
+    good = (date.fromisoformat(nq["end_estimate"]) + timedelta(days=30)).isoformat()
+    ne, cal = build.next_earnings(Cal([stale, good]), "NVDA", {}, fin, [], status, stale)
+    assert ne["date"] == good and cal["revenue_avg"] == 1e11
