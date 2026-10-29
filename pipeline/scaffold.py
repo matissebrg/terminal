@@ -262,8 +262,27 @@ def _append(mapping, key, value) -> None:
             trailing[2] = None
 
 
+def family_of_sic(sic) -> str | None:
+    """SEC industry code -> broad sector used by the badges (tech, conso, sante, finance, energie, industrie)."""
+    try:
+        c = int(sic)
+    except (TypeError, ValueError):
+        return None
+    if 3570 <= c <= 3579 or 3600 <= c <= 3699 or 7370 <= c <= 7379 or 4810 <= c <= 4899 or 3820 <= c <= 3829:
+        return "tech"
+    if 2833 <= c <= 2836 or 3840 <= c <= 3851 or 8000 <= c <= 8099 or c == 5122:
+        return "sante"
+    if 6000 <= c <= 6799:
+        return "finance"
+    if 1300 <= c <= 1399 or 2900 <= c <= 2999 or 4900 <= c <= 4999:
+        return "energie"
+    if 2000 <= c <= 2399 or 2840 <= c <= 2844 or 5000 <= c <= 5999 or 7000 <= c <= 7299 or c in (3711, 3714, 3751):
+        return "conso"
+    return "industrie"
+
+
 def update_universe(path: Path, ticker: str, entry: dict, peers: dict[str, tuple[int, str]], cik: int,
-                    etf: str | None, etf_name: str | None) -> None:
+                    etf: str | None, etf_name: str | None, families: dict[str, str] | None = None) -> None:
     from ruamel.yaml.comments import CommentedMap, CommentedSeq
     y = _yaml()
     u = y.load(path.read_text())
@@ -289,6 +308,11 @@ def update_universe(path: Path, ticker: str, entry: dict, peers: dict[str, tuple
             _append(names, p, title)
         if p not in ciks:
             _append(ciks, p, pcik)
+    if families:
+        fam = u.setdefault("families", CommentedMap())
+        for k, v in families.items():
+            if v and k not in fam:
+                _append(fam, k, v)
     if etf:
         benches = u.setdefault("benchmarks", CommentedMap())
         if etf not in benches:
@@ -324,10 +348,15 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
         raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (pas de chiffre d'affaires trimestriel).")
 
     peer_info = {}
+    fams = {ticker: family_of_sic(subs.get("sic"))}
     for p in peers:
         try:
             pcik, ptitle = src.lookup(p)
             peer_info[p] = (pcik, _pretty(ptitle))
+            try:
+                fams[p] = family_of_sic(src.submissions(pcik).get("sic"))
+            except Exception:  # noqa: BLE001 - the sector is a nice-to-have
+                pass
         except SystemExit as exc:
             print(f"  ! pair ignoré : {exc}")
     apath = root / "config" / "assumptions" / f"{ticker}.yaml"
@@ -341,7 +370,7 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
              "industry": industry or (subs.get("sicDescription") or "").capitalize() or "-",
              "peers": list(peer_info)}
     entry["benchmarks"] = ["SPY"] + ([etf] if etf else [])
-    update_universe(root / "config" / "universe.yaml", ticker, entry, peer_info, cik, etf, etf_name)
+    update_universe(root / "config" / "universe.yaml", ticker, entry, peer_info, cik, etf, etf_name, fams)
     print(f"config/universe.yaml : {ticker} ajouté ({len(peer_info)} pair(s)).")
 
     # sanity check with the generated assumptions (price unknown here: per-share value only)

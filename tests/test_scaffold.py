@@ -101,3 +101,13 @@ def test_terminal_roic_from_history(repo):
     r = a["dcf"]["terminal_roic"]
     assert r is None or 0.06 <= r <= 0.40
     assert "ROIC" in (repo / "config" / "assumptions" / "AMD.yaml").read_text()
+
+
+def test_sector_family_from_sic(repo):
+    assert scaffold.family_of_sic("3674") == "tech" and scaffold.family_of_sic(5331) == "conso"
+    assert scaffold.family_of_sic("2834") == "sante" and scaffold.family_of_sic("6021") == "finance"
+    assert scaffold.family_of_sic("2911") == "energie" and scaffold.family_of_sic("3720") == "industrie"
+    assert scaffold.family_of_sic(None) is None
+    scaffold.scaffold("AMD", ["INTC"], FakeSec(), root=repo, today="2026-10-29")
+    fam = yaml.safe_load((repo / "config" / "universe.yaml").read_text())["families"]
+    assert fam["NVDA"] == "tech"                                       # existing entries kept

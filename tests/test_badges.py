@@ -36,20 +36,22 @@ def badges_of(c, uid):
 
 def test_join_awards_members_founder_and_first_ten(club):
     f = club["founder"]
-    assert badges_of(f, club["f_id"]) == {"members", "founders"}
+    first10 = {"members", "founders", "archer", "visionnaire"}
+    assert badges_of(f, club["f_id"]) == first10
     first9 = [uid for uid, _ in club["members"][:9]]         # founder + 9 = the first 10 members
     for uid in first9:
-        assert badges_of(f, uid) == {"members", "founders"}
-    assert badges_of(f, club["members"][10][0]) == {"members"}    # 12th member: not a founder
-    assert badges_of(f, club["members"][9][0]) == {"members"}     # 11th member
+        assert badges_of(f, uid) == first10
+    assert badges_of(f, club["members"][10][0]) == {"members", "archer"}    # 12th member: not a founder
+    assert badges_of(f, club["members"][9][0]) == {"members", "archer"}     # 11th member
 
 
 def test_notifications_are_private_and_can_be_marked_read(club):
     uid, m = club["members"][0]
     mine = m.q("select title, kind, user_id from public.notifications")
-    assert {r[0] for r in mine} == {"Nouveau badge : Members", "Nouveau badge : Founders"}
+    assert {r[0] for r in mine} == {"Nouveau badge : Members", "Nouveau badge : Founders",
+                                    "Nouveau badge : Archer", "Nouveau badge : Visionnaire"}
     assert all(r[2] == uid for r in mine)                       # nobody else's notifications
-    assert m.q("select public.mark_notifications_read(null)")[0][0] == 2
+    assert m.q("select public.mark_notifications_read(null)")[0][0] == 4
     assert m.q("select count(*) from public.notifications where read_at is null")[0][0] == 0
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         m.q("update public.notifications set read_at = null", fetch=False)
@@ -88,7 +90,12 @@ def test_prediction_achievements_are_immediate(club):
     assert "raisonnement" not in badges_of(m, uid) and "multi_valeurs" not in badges_of(m, uid)
     m.q("insert into public.predictions (ticker, period, metrics, note) values ('WMT', 'Q3 FY2027', %s, %s)",
         (json.dumps({"revenue": {"value": 186}}), "x" * 240), fetch=False)
-    assert {"raisonnement", "multi_valeurs"} <= badges_of(m, uid)
+    assert "raisonnement" in badges_of(m, uid)
+    assert "multi_valeurs" not in badges_of(m, uid)                  # « Multi-casquettes » : 3 valeurs
+    _su(club["url"], "insert into public.periods (ticker, period, deadline) values ('GOOG', 'Q4 FY2026', now() + interval '10 days')")
+    m.q("insert into public.predictions (ticker, period, metrics) values ('GOOG', 'Q4 FY2026', %s)",
+        (json.dumps({"revenue": {"value": 140}}),), fetch=False)
+    assert "multi_valeurs" in badges_of(m, uid)
     titles = {r[0] for r in m.q("select title from public.notifications")}
     assert "Nouveau badge : Premier tir" in titles
 

@@ -490,7 +490,7 @@ def run(src, only: list[str] | None = None) -> int:
                      **{t: c["name"] for t, c in universe["tickers"].items()}}
             status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
                                                  guidance=guid_all, consensus=cons_all, next_earnings=ne_all,
-                                                 names=names)
+                                                 names=names, families=universe.get("families") or {})
             print("  [membres]", status["community"])
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()

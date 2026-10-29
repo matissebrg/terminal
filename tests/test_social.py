@@ -166,3 +166,55 @@ def test_portfolio_achievements_and_complete_analyst(town):
             ("revenue", "gross_margin", "operating_income", "operating_margin", "net_income", "eps_diluted", "fcf")}
     a.q("insert into public.predictions (ticker, period, metrics) values ('AMD', 'Q4 FY2026', %s)", (json.dumps(full),), fetch=False)
     assert "analyste_complet" in _badges(url, uid)
+
+
+# ------------------------------------------------------------------------------ 0004: sectors, Sharpe, seniority
+def test_sector_badges_and_touche_a_tout(town):
+    url = town["url"]
+    uid, b = town["p"]["bob"]
+    _su(url, """insert into public.latest_prices (ticker, name, close, price_date, family) values
+                ('NVDA', 'NVIDIA', 200, '2026-10-28', 'tech'), ('WMT', 'Walmart', 118, '2026-10-28', 'conso'),
+                ('JPM', 'JPMorgan', 300, '2026-10-28', 'finance')
+                on conflict (ticker) do update set family = excluded.family""")
+    _su(url, "insert into public.periods (ticker, period, deadline) values ('NVDA', 'Q3 FY2027', now() + interval '5 days') "
+             "on conflict do nothing")
+    b.q("insert into public.predictions (ticker, period, metrics) values ('NVDA', 'Q3 FY2027', %s)",
+        (json.dumps({"revenue": {"value": 110}}),), fetch=False)
+    assert "secteur_tech" in _badges(url, uid) and "touche_a_tout" not in _badges(url, uid)
+    pf = b.q("insert into public.portfolios (name) values ('s') returning id")[0][0]
+    svc = Client(url, None, role="service_role")
+    for t in ("WMT", "JPM"):
+        svc.q("insert into public.trades (portfolio_id, user_id, ticker, side, qty, price, price_date) "
+              "values (%s, %s, %s, 'buy', 1, 10, '2026-10-28')", (pf, uid, t), fetch=False)
+    got = _badges(url, uid)
+    assert {"secteur_conso", "secteur_finance", "touche_a_tout"} <= got
+
+
+def test_sharpe_needs_90_days_and_investment(town):
+    url = town["url"]
+    uid, c = town["p"]["carol"]
+    svc = Client(url, None, role="service_role")
+    steady = c.q("insert into public.portfolios (name) values ('steady') returning id")[0][0]
+    _, a = town["p"]["alice"]
+    cashy = a.q("insert into public.portfolios (name) values ('cash') returning id")[0][0]   # 90 % cash: same returns
+    d, v = date.today() - timedelta(days=89), 100000.0
+    k = 0
+    while d <= date.today():
+        if d.weekday() < 5:
+            k += 1
+            v *= 1.0015 + (0.004 if k % 2 else -0.004)           # ~38 % a year, low volatility: Sharpe >> 2
+            svc.q("insert into public.portfolio_values (portfolio_id, date, value, cash) values (%s, %s, %s, %s), (%s, %s, %s, %s)",
+                  (steady, d, v, 10000, cashy, d, v, v * 0.9), fetch=False)
+        d += timedelta(days=1)
+    svc.q("select public.grant_auto_badges()")
+    assert "maitre_sharpe" in _badges(url, uid)
+    assert "maitre_sharpe" not in _badges(url, town["p"]["alice"][0])     # invested < 50 %: not counted
+
+
+def test_seniority_badges(town):
+    url = town["url"]
+    uid, _ = town["p"]["alice"]
+    _su(url, "update public.profiles set created_at = now() - interval '400 days' where id = %s", (uid,))
+    Client(url, None, role="service_role").q("select public.grant_auto_badges()")
+    got = _badges(url, uid)
+    assert {"anciennete_1m", "anciennete_6m", "anciennete_1a", "archer"} <= got and "anciennete_2a" not in got

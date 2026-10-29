@@ -153,7 +153,7 @@ def _price_reaction(bars: list[dict], release: date) -> float | None:
 
 # --------------------------------------------------------------------------- main
 def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, consensus: dict,
-         next_earnings: dict, names: dict, now: datetime | None = None) -> dict:
+         next_earnings: dict, names: dict, now: datetime | None = None, families: dict | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     summary = {}
 
@@ -178,7 +178,8 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
     summary["periods"] = len(period_rows)
 
     # 2. latest prices ----------------------------------------------------------------------
-    price_rows = [{"ticker": s, "name": names.get(s, s), "close": b[-1]["c"], "price_date": b[-1]["t"],
+    families = families or {}
+    price_rows = [{"ticker": s, "name": names.get(s, s), "family": families.get(s), "close": b[-1]["c"], "price_date": b[-1]["t"],
                    "updated_at": now.isoformat()} for s, b in bars.items() if b]
     if price_rows:
         client.upsert("latest_prices", price_rows, "ticker")

@@ -33,6 +33,16 @@
     rocket: '<path d="M14 4c3-1 6-1 6-1s0 3-1 6l-6 6-4-4z"/><path d="M9 11l-4 1-2 3 4 1M13 15l-1 4-3 2-1-4"/><circle cx="15.5" cy="8.5" r="1.3"/>',
     trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>',
     chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12.5h5"/>',
+    telescope: '<path d="M3 14l11-6 2 4-11 6z"/><path d="M14 8l4-2 2 4-4 2"/><path d="M9 16l-2 5M11 15l3 6"/>',
+    sigma: '<path d="M18 5H6l6 7-6 7h12"/>',
+    chip: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
+    cart: '<path d="M3 4h2l2.4 11h10.6l2-8H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/>',
+    health: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+    coin: '<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',
+    drop: '<path d="M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z"/><path d="M10 15.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+    factory: '<path d="M3 21V10l5 3V10l5 3V10l5 3V5h3v16z"/><path d="M7 17h2M12 17h2M17 17h1"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    hourglass: '<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>',
     flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   };
   const svg = (name, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ICONS.target}</svg>`;
@@ -48,7 +58,7 @@
         <stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient></defs>
         <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="#07090d" stroke="url(#mg${lv})" stroke-width="${lv >= 3 ? 2 : 1.6}"/>
         <path d="M24 6.5l15.2 8.8v17.4L24 41.5 8.8 32.7V15.3z" fill="none" stroke="rgba(255,255,255,.08)"/></svg>
-      <span class="medal-icon">${svg(b.icon, Math.round(size * 0.44))}</span></span>`; };
+      <span class="medal-icon">${b.icon === "archer" ? `<img src="assets/brand/archer-mark.png" alt="" style="width:${Math.round(size * 0.5)}px;height:auto">` : svg(b.icon, Math.round(size * 0.44))}</span></span>`; };
 
   B.tierImg = (b, h = 22) => `<img class="tier-img" src="assets/badges/${b.image}" alt="${T.esc(b.name)}" title="${T.esc(b.name)} : ${T.esc(b.description)}" style="height:${h}px">`;
 

@@ -56,6 +56,31 @@ peer_names:
   PLTR: Palantir Technologies Inc.
   ORCL: Oracle Corp
 
+# Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
+# Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
+families:
+  NVDA: tech
+  AMD: tech
+  AVGO: tech
+  QCOM: tech
+  INTC: tech
+  MRVL: tech
+  SOXX: tech
+  GOOG: tech
+  MSFT: tech
+  META: tech
+  PLTR: tech
+  ORCL: tech
+  XLK: tech
+  WMT: conso
+  COST: conso
+  TGT: conso
+  KR: conso
+  BJ: conso
+  DG: conso
+  AMZN: conso
+  XLP: conso
+
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
   NVDA: 1045810

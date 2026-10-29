@@ -79,6 +79,11 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   calibration, jamais le volume, et exigent un minimum de résultats (ex. Chirurgien : CA à 0,25 % ; Fléau de Wall Street :
   bat le consensus 3 publications de suite ; Maître de la calibration : 20 intervalles, 75 à 85 % de réussite ; Alpha :
   portefeuille qui bat le S&P 500 sur 90 jours). Rareté affichée (% des membres qui l'ont).
+- **Succès ajoutés** (`0004_achievements.sql`) : Archer (inscription), Visionnaire (10 premiers inscrits), Maître du Sharpe
+  (Sharpe annualisé >= 2 sur 90 jours, portefeuille investi à 50 % ou plus ; sur 30 jours l'erreur type du Sharpe
+  annualisé est d'environ 3,5, donc trop dépendant de la chance), secteurs (« Adepte de la tech »… selon `families` dans
+  `config/universe.yaml`, rempli depuis le code SIC à l'ajout d'une valeur) et Touche-à-tout (3 secteurs), ancienneté
+  (1 mois à 10 ans).
 - **Titres** : chaque badge d'argent ou plus donne un titre, affiché à côté du pseudo (choisi dans *Mon compte*, vérifié par la base).
 - **Profils** (`#/membre/<pseudo>`) : statut, titre, statistiques, badges, portefeuilles visibles et prédictions
   après la date limite. **Liste des membres** avec e-mails et dernières connexions : administrateurs seulement.
@@ -169,7 +174,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 140 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
+python -m pytest -q                                   # 149 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py

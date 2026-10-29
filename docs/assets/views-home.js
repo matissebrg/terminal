@@ -188,7 +188,7 @@
           <div>Communauté</div><div>médiane des membres, calculée sans ta propre prévision quand on te compare au groupe</div>
           <div>Questions oui / non</div><div>résolues automatiquement (guidance, analystes, communauté, réaction du cours veille → lendemain)</div>
           <div>Portefeuilles</div><div>fictifs, 100 000 $ chacun, ordres exécutés à la clôture de la séance suivante, pas de vente à découvert</div>
-          <div>Badges</div><div>statuts Supporter, Members, Founders, VIP (le nombre de barres donne le rang) et 26 succès en 4 niveaux (bronze, argent, or, platine) ; les plus durs exigent précision, calibration et un minimum de résultats ; attribués uniquement par la base</div>
+          <div>Badges</div><div>statuts Supporter, Members, Founders, VIP (le nombre de barres donne le rang) et 42 succès en 4 niveaux (dont secteurs, ancienneté et ratio de Sharpe) (bronze, argent, or, platine) ; les plus durs exigent précision, calibration et un minimum de résultats ; attribués uniquement par la base</div>
           <div>Messagerie</div><div>privée entre deux membres, illisible par les administrateurs ; blocage et signalement (seul le message signalé est transmis) ; non chiffrée de bout en bout</div>
         </div>
         <p class="note">Toutes ces règles sont appliquées par la base de données elle-même (sécurité au niveau des lignes), pas seulement par l'interface.
