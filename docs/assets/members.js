@@ -388,14 +388,32 @@
     const pos = positions(trades);
     const rows = Object.entries(pos).map(([tk, p]) => { const last = px[tk] ? +px[tk].close : null; const val = last != null ? p.qty * last : null;
       return { tk, qty: p.qty, avg: p.cost / p.qty, last, val, pnl: val != null ? val - p.cost : null, pnlPct: val != null ? val / p.cost - 1 : null }; });
-    const invested = rows.reduce((a, r) => a + (r.val || 0), 0);
+    // options: positions from the trades, marked at the latest quote mid (intrinsic value if none)
+    const [otr, oord] = await Promise.all([
+      must(M.sb.from("option_trades").select("*").eq("portfolio_id", id).order("id")).catch(() => []),
+      own ? must(M.sb.from("option_orders").select("*").eq("portfolio_id", id).order("id", { ascending: false }).limit(50)).catch(() => []) : [],
+    ]);
+    const okey = (t) => `${t.ticker}|${t.expiry}|${+t.strike}|${t.type}`;
+    const opos = {};
+    otr.forEach((t) => { const k = okey(t), p = opos[k] || (opos[k] = { ticker: t.ticker, expiry: t.expiry, strike: +t.strike, type: t.type, qty: 0, cost: 0 });
+      if (t.side === "buy") { p.cost += t.qty * +t.price * 100; p.qty += t.qty; } else { const avg = p.qty ? p.cost / p.qty : 0; p.qty -= t.qty; p.cost -= avg * t.qty; } });
+    const oheld = Object.values(opos).filter((p) => p.qty > 0);
+    let oquotes = [];
+    if (oheld.length) oquotes = await must(M.sb.from("option_quotes").select("*").in("ticker", [...new Set(oheld.map((p) => p.ticker))])).catch(() => []);
+    const oq = Object.fromEntries(oquotes.map((q) => [okey(q), q]));
+    const orows = oheld.map((p) => { const q = oq[okey(p)]; const S = px[p.ticker] ? +px[p.ticker].close : null;
+      const mark = q && q.mid ? +q.mid : S != null ? Math.max(0, p.type === "C" ? S - p.strike : p.strike - S) : null;
+      const val = mark != null ? mark * 100 * p.qty : null;
+      return { ...p, mark, val, pnl: val != null ? val - p.cost : null, avg: p.cost / p.qty / 100, dte: Math.ceil((new Date(p.expiry + "T21:00:00Z") - Date.now()) / 864e5) }; });
+    const optValue = orows.reduce((a, r) => a + (r.val || 0), 0);
+    const invested = rows.reduce((a, r) => a + (r.val || 0), 0) + optValue;
     const total = +pf.cash + invested;
     const perf = total / +pf.initial_cash - 1;
     view.innerHTML = `<div class="thead"><div class="id"><h1>${T.esc(pf.name)}</h1><div class="sub">${own ? "Mon portefeuille" : "Portefeuille de " + `<span data-user="${T.esc((pf.profiles || {}).username || "")}">${T.esc((pf.profiles || {}).username || "?")}</span>`} · fictif · créé le ${F.date(pf.created_at.slice(0, 10))}</div></div>
         <div class="quote"><span class="px">${F.n(total, 0)} $</span><span class="chg ${T.cls(perf)}">${F.pct(perf, 2, true)}</span></div></div>
       <div class="kpis"><div class="kpi"><div class="l">Liquidités</div><div class="v">${F.n(+pf.cash, 0)} $</div><div class="s">${F.pct(+pf.cash / total, 0)} du total</div></div>
-        <div class="kpi"><div class="l">Investi</div><div class="v">${F.n(invested, 0)} $</div><div class="s">${rows.length} ligne(s)</div></div>
-        <div class="kpi"><div class="l">Plus-value latente</div><div class="v ${T.cls(rows.reduce((a, r) => a + (r.pnl || 0), 0))}">${F.n(rows.reduce((a, r) => a + (r.pnl || 0), 0), 0)} $</div><div class="s">au dernier cours de clôture</div></div>
+        <div class="kpi"><div class="l">Investi</div><div class="v">${F.n(invested, 0)} $</div><div class="s">${rows.length} ligne(s)${orows.length ? ` + ${orows.length} option(s)` : ""}</div></div>
+        <div class="kpi"><div class="l">Plus-value latente</div><div class="v ${T.cls(rows.concat(orows).reduce((a, r) => a + (r.pnl || 0), 0))}">${F.n(rows.concat(orows).reduce((a, r) => a + (r.pnl || 0), 0), 0)} $</div><div class="s">actions et options, dernière clôture</div></div>
         <div class="kpi"><div class="l">Départ</div><div class="v">${F.n(+pf.initial_cash, 0)} $</div><div class="s">capital fictif</div></div></div>
       <div class="grid g-main">
         <div class="stack">
@@ -403,6 +421,14 @@
             ${rows.map((r) => `<tr><td><b>${r.tk}</b> <span class="muted">${T.esc((px[r.tk] || {}).name || "")}</span></td><td class="n">${F.n(r.qty, r.qty % 1 ? 2 : 0)}</td><td class="n">${F.px(r.avg)}</td><td class="n">${F.px(r.last)}</td>
               <td class="n">${F.n(r.val, 0)} $</td><td class="n ${T.cls(r.pnl)}">${F.n(r.pnl, 0)} $ <span class="yoy">${F.pct(r.pnlPct, 1, true)}</span></td><td class="n">${F.pct(r.val / total, 1)}</td></tr>`).join("") || '<tr><td colspan="7" class="muted">Aucune position.</td></tr>'}
             </tbody></table></div></div>
+          ${orows.length || otr.length ? `<div class="panel"><h3>Options <span class="hint">1 contrat = 100 actions · marqué au milieu bid / ask</span></h3>
+            <div class="tbl-wrap"><table class="t"><thead><tr><th>Contrat</th><th class="n">Qté</th><th class="n">Prime moy.</th><th class="n">Dernier</th><th class="n">Valeur</th><th class="n">+/- value</th><th class="n">Échéance</th>${own ? "<th></th>" : ""}</tr></thead><tbody>
+            ${orows.map((r) => `<tr><td><b>${r.ticker}</b> ${F.n(r.strike, r.strike % 1 ? 1 : 0)} ${r.type === "C" ? "call" : "put"} <span class="muted">${F.date(r.expiry)}</span></td><td class="n">${r.qty}</td><td class="n">${F.n(r.avg, 2)}</td><td class="n">${F.n(r.mark, 2)}</td>
+              <td class="n">${F.n(r.val, 0)} $</td><td class="n ${T.cls(r.pnl)}">${F.n(r.pnl, 0)} $ <span class="yoy">${F.pct(r.pnl / r.cost, 0, true)}</span></td><td class="n">${r.dte > 0 ? "J-" + r.dte : "aujourd'hui"}</td>
+              ${own ? `<td><button class="btn btn-xs" data-osell="${T.esc(okey(r))}" data-max="${r.qty}">Vendre</button></td>` : ""}</tr>`).join("") || `<tr><td colspan="${own ? 8 : 7}" class="muted">Aucune position ouverte.</td></tr>`}
+            </tbody></table></div>
+            ${otr.length ? `<details style="margin-top:8px"><summary class="sec" style="cursor:pointer">Historique des contrats (${otr.length})</summary><div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Opération</th><th>Contrat</th><th class="n">Qté</th><th class="n">Prix</th><th class="n">Montant</th></tr></thead><tbody>
+              ${otr.slice().reverse().map((t) => `<tr><td>${F.date(t.trade_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${{ buy: "Achat", sell: "Vente", expire: "Échéance" }[t.side]}</td><td>${t.ticker} ${F.n(+t.strike, 0)} ${t.type} ${F.date(t.expiry)}</td><td class="n">${t.qty}</td><td class="n">${F.n(+t.price, 2)}</td><td class="n">${F.n(t.qty * +t.price * 100, 0)} $</td></tr>`).join("")}</tbody></table></div></details>` : ""}</div>` : ""}
           <div class="panel"><h3>Évolution de la valeur</h3><div class="chart" id="pfchart" style="height:240px"></div></div>
           <div class="panel"><h3>Historique des transactions</h3><div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Sens</th><th>Valeur</th><th class="n">Quantité</th><th class="n">Cours</th><th class="n">Montant</th></tr></thead><tbody>
             ${trades.slice().reverse().map((t) => `<tr><td>${F.date(t.price_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${t.side === "buy" ? "Achat" : "Vente"}</td><td><b>${t.ticker}</b></td><td class="n">${F.n(+t.qty, +t.qty % 1 ? 2 : 0)}</td><td class="n">${F.px(+t.price)}</td><td class="n">${F.n(+t.qty * +t.price, 0)} $</td></tr>`).join("") || '<tr><td colspan="6" class="muted">Aucune transaction.</td></tr>'}
@@ -416,6 +442,17 @@
               <div class="note" id="oest"></div>
               <button class="btn primary" type="submit">Envoyer l'ordre</button><div class="note" id="omsg"></div></form>
             <p class="note">Ordre au marché, exécuté au <b>cours de clôture de la prochaine séance</b> (mise à jour du site à 21h37 UTC les jours ouvrés). Un ordre passé avant 16h00 à New York est exécuté à la clôture du jour même. Rejeté si les liquidités ou la position sont insuffisantes au moment de l'exécution.</p></div>
+          <div class="panel"><h3>Ordre sur options <a class="hint" href="#/t/NVDA/options">analyse et stratégies →</a></h3>
+            <form id="xform" class="aform">
+              <div class="seg" id="xside"><button type="button" data-k="buy" class="on">Achat</button><button type="button" data-k="sell">Vente</button></div>
+              <div class="row"><select name="tk" class="sel"></select><select name="exp" class="sel"></select><select name="type" class="sel"><option value="C">Call</option><option value="P">Put</option></select><select name="k" class="sel"></select></div>
+              <label>Contrats<input name="q" type="number" min="1" max="100" value="1"></label>
+              <div class="note" id="xest"></div><button class="btn primary">Envoyer l'ordre</button><div class="note" id="xmsg"></div></form>
+            <p class="note">Positions acheteuses uniquement : achat, puis revente ou dénouement à l'échéance (valeur intrinsèque). Exécution à la clôture de la prochaine séance, au prix demandé à l'achat et au prix offert à la vente.</p>
+            ${oord.length ? `<div class="group-title">Ordres sur options</div>${oord.map((o) => `<div class="order-row"><span class="${o.side === "buy" ? "up" : "down"}">${o.side === "buy" ? "Achat" : "Vente"}</span> <b>${o.qty} ${o.ticker} ${F.n(+o.strike, 0)} ${o.type}</b> <span class="muted">${F.date(o.expiry)}</span>
+              <span class="badge ${o.status === "filled" ? "st-resolved" : o.status === "pending" ? "st-pending" : "st-late"}">${{ pending: "en attente", filled: "exécuté", rejected: "rejeté", cancelled: "annulé" }[o.status]}</span>
+              <span class="muted num">${o.status === "filled" ? `${F.n(+o.fill_price, 2)} le ${F.date(o.fill_date)}` : o.reason ? T.esc(o.reason) : F.dateTime(o.created_at)}</span>
+              ${o.status === "pending" ? `<button class="btn" data-ocancel="${o.id}">Annuler</button>` : ""}</div>`).join("")}` : ""}</div>
           <div class="panel"><h3>Ordres</h3><div id="olist">${orders.map((o) => `<div class="order-row"><span class="${o.side === "buy" ? "up" : "down"}">${o.side === "buy" ? "Achat" : "Vente"}</span> <b>${F.n(+o.qty, +o.qty % 1 ? 2 : 0)} ${o.ticker}</b>
             <span class="badge ${o.status === "filled" ? "st-resolved" : o.status === "pending" ? "st-pending" : "st-late"}">${{ pending: "en attente", filled: "exécuté", rejected: "rejeté", cancelled: "annulé" }[o.status]}</span>
             <span class="muted num">${o.status === "filled" ? `${F.px(+o.fill_price)} le ${F.date(o.fill_date)}` : o.reason ? T.esc(o.reason) : F.dateTime(o.created_at)}</span>
@@ -447,6 +484,40 @@
     T.$$("[data-cancel]").forEach((b) => b.addEventListener("click", async () => { try { await must(M.sb.rpc("cancel_order", { p_order: +b.dataset.cancel })); T.render(); } catch (ex) { alert(err(ex)); } }));
     T.$("#rform").addEventListener("submit", async (e) => { e.preventDefault(); const f = new FormData(e.target);
       try { await must(M.sb.rpc("rename_portfolio", { p_portfolio: id, p_name: f.get("name"), p_visibility: f.get("vis") })); T.render(); } catch (ex) { alert(err(ex)); } });
+    // ---- options order form (chains from the published options.json of each covered stock)
+    let xside = "buy", chain = null;
+    const u = await T.get("universe.json");
+    const xf = T.$("#xform");
+    const xs = (n) => xf.querySelector(`[name=${n}]`);
+    const optTk = [];
+    for (const t of u.tickers) { try { await T.get(`${t.ticker}/options.json`); optTk.push(t.ticker); } catch (e) { /* no options */ } }
+    xs("tk").innerHTML = optTk.map((t) => `<option>${t}</option>`).join("");
+    const fillStrikes = () => { const rows = (chain.chains[xs("exp").value] || []);
+      const S = chain.spot, keep = xs("k").value;
+      xs("k").innerHTML = rows.map((r) => `<option value="${r.strike}" ${String(r.strike) === keep || (!keep && Math.abs(r.strike - S) === Math.min(...rows.map((x) => Math.abs(x.strike - S)))) ? "selected" : ""}>${F.n(r.strike, r.strike % 1 ? 1 : 0)}${Math.abs(r.strike - S) < S * 0.01 ? " (ATM)" : ""}</option>`).join("");
+      xest(); };
+    const xest = () => { const r = (chain.chains[xs("exp").value] || []).find((x) => String(x.strike) === xs("k").value) || {};
+      const p = xs("type").value === "C" ? "c" : "p", q = +xs("q").value || 0;
+      const px_ = xside === "buy" ? (r[p + "_ask"] || r[p + "_mid"]) : (r[p + "_bid"] || r[p + "_mid"]);
+      T.$("#xest").textContent = T.isNum(px_) ? `Prime ${F.n(px_, 2)} $ (${xside === "buy" ? "ask" : "bid"} du ${F.dateTime(chain.asof)}) · ${xside === "buy" ? "coût" : "produit"} estimé ${F.n(px_ * 100 * q, 0)} $ · IV ${F.pct(r[p + "_iv"], 1)}` : "Pas de cotation récente pour ce contrat."; };
+    const loadTk = async () => { chain = await T.get(`${xs("tk").value}/options.json`);
+      xs("exp").innerHTML = chain.expiries.filter((e) => chain.chains[e.date] && e.dte >= 2).map((e) => `<option value="${e.date}">${F.date(e.date)} · ${F.n(e.dte, 0)} j</option>`).join("");
+      xs("k").innerHTML = ""; fillStrikes(); };
+    if (optTk.length) await loadTk(); else T.$("#xform").innerHTML = '<p class="note">Aucune chaîne d\'options disponible.</p>';
+    xs("tk") && xs("tk").addEventListener("change", loadTk);
+    xs("exp") && xs("exp").addEventListener("change", fillStrikes);
+    ["type", "k", "q"].forEach((n) => xs(n) && xs(n).addEventListener("input", xest));
+    T.$("#xside").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; xside = b.dataset.k; T.$$("#xside button").forEach((x) => x.classList.toggle("on", x === b)); xest(); });
+    xf.addEventListener("submit", async (e) => { e.preventDefault();
+      try { await must(M.sb.rpc("place_option_order", { p_portfolio: id, p_ticker: xs("tk").value, p_expiry: xs("exp").value, p_strike: +xs("k").value, p_type: xs("type").value, p_side: xside, p_qty: +xs("q").value }));
+        T.render(); } catch (ex) { T.$("#xmsg").className = "note warn"; T.$("#xmsg").textContent = err(ex); } });
+    T.$$("[data-ocancel]").forEach((b) => b.addEventListener("click", async () => { try { await must(M.sb.rpc("cancel_option_order", { p_order: +b.dataset.ocancel })); T.render(); } catch (ex) { alert(err(ex)); } }));
+    T.$$("[data-osell]").forEach((b) => b.addEventListener("click", async () => {
+      const [tk, exp, k, typ] = b.dataset.osell.split("|");
+      const q = parseInt(window.prompt(`Vendre combien de contrats ${tk} ${k} ${typ} ${exp} ? (max ${b.dataset.max})`, b.dataset.max), 10);
+      if (!q) return;
+      try { await must(M.sb.rpc("place_option_order", { p_portfolio: id, p_ticker: tk, p_expiry: exp, p_strike: +k, p_type: typ, p_side: "sell", p_qty: q })); T.render(); }
+      catch (ex) { alert(err(ex)); } }));
     T.$("#pfdel").onclick = async () => { if (!confirm("Supprimer ce portefeuille et son historique ?")) return;
       try { await must(M.sb.from("portfolios").delete().eq("id", id)); T.go("#/portefeuilles"); } catch (ex) { alert(err(ex)); } };
   });

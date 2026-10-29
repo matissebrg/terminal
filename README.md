@@ -84,6 +84,12 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   annualisé est d'environ 3,5, donc trop dépendant de la chance), secteurs (« Adepte de la tech »… selon `families` dans
   `config/universe.yaml`, rempli depuis le code SIC à l'ajout d'une valeur) et Touche-à-tout (3 secteurs), ancienneté
   (1 mois à 10 ans).
+- **Options** (`0005_options.sql`, `docs/assets/options-lab.js`) : onglet Options enrichi (grecques par strike, skew 25Δ par
+  échéance, max pain, historique de l'IV 30 j, constructeur de stratégies avec payoff à l'échéance et aujourd'hui, points
+  morts, probabilité de gain log-normale, grecques agrégées) et paper trading d'options : positions acheteuses uniquement,
+  exécution à la clôture suivante au prix demandé (ask) à l'achat et offert (bid) à la vente, dénouement à l'échéance à la
+  valeur intrinsèque. Les cotations du soir (après 16:00 New York) servent aux exécutions ; Yahoo ne publie pas de bid / ask
+  avant l'ouverture. Succès : Premier contrat, Levier gagnant (position soldée à +100 % ou plus).
 - **Titres** : chaque badge d'argent ou plus donne un titre, affiché à côté du pseudo (choisi dans *Mon compte*, vérifié par la base).
 - **Profils** (`#/membre/<pseudo>`) : statut, titre, statistiques, badges, portefeuilles visibles et prédictions
   après la date limite. **Liste des membres** avec e-mails et dernières connexions : administrateurs seulement.
@@ -174,7 +180,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 149 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
+python -m pytest -q                                   # 151 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py

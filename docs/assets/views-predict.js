@@ -563,5 +563,6 @@
     }
     T.$("#oexp").addEventListener("change", (e) => drawExpiry(e.target.value));
     drawExpiry(defExp);
+    if (T.OL) T.OL.render(el, tk, o);
   };
 })();

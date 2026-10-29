@@ -42,6 +42,8 @@
     drop: '<path d="M12 3c3 4.5 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-6.5 6-11z"/><path d="M10 15.5a2.5 2.5 0 0 0 2.5 2.5"/>',
     factory: '<path d="M3 21V10l5 3V10l5 3V10l5 3V5h3v16z"/><path d="M7 17h2M12 17h2M17 17h1"/>',
     compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    option: '<path d="M4 19h4l8-14h4"/><path d="M13 19h7"/>',
+    lever: '<path d="M3 20h18"/><path d="M5 17l14-8"/><circle cx="12" cy="15" r="2"/><path d="M19 9V5"/>',
     hourglass: '<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>',
     flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   };

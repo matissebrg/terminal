@@ -296,7 +296,7 @@ def run(src, only: list[str] | None = None) -> int:
         bench_bars[b] = get_prices(src, b, status)
 
     all_events, index = [], []
-    fins_all, filings_all, bars_all, guid_all, cons_all, ne_all = {}, {}, {}, {}, {}, {}
+    fins_all, filings_all, bars_all, guid_all, cons_all, ne_all, opt_all = {}, {}, {}, {}, {}, {}, {}
     prev_index = {x["ticker"]: x for x in feed.load_json(OUT / "universe.json", {}).get("tickers", [])}
     tickers = [t for t in universe["tickers"] if not only or t in only]
     for t in tickers:
@@ -382,6 +382,7 @@ def run(src, only: list[str] | None = None) -> int:
             try:
                 raw = src.options_raw(t, spot=price, rf=rf[0], earnings_date=ne.get("date"))
                 opt = options.analyze(raw, price, rf[0], earnings_date=ne.get("date"))
+                opt_all[t] = opt
                 opt["earnings_history"] = options.earnings_reactions(filings, bars)
                 opt["next_earnings"] = ne
                 ohp = OUT / t / "options_history.json"
@@ -490,7 +491,8 @@ def run(src, only: list[str] | None = None) -> int:
                      **{t: c["name"] for t, c in universe["tickers"].items()}}
             status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
                                                  guidance=guid_all, consensus=cons_all, next_earnings=ne_all,
-                                                 names=names, families=universe.get("families") or {})
+                                                 names=names, families=universe.get("families") or {},
+                                                 option_chains=opt_all)
             print("  [membres]", status["community"])
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()

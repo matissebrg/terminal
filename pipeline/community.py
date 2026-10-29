@@ -133,6 +133,91 @@ def fill_bar(bars: list[dict], created_at: datetime) -> dict | None:
     return None
 
 
+def option_rows(ticker: str, opt: dict, quote_date: str, evening: bool, now: datetime) -> list[dict]:
+    """Flatten the analysed chain (options.analyze) into one row per contract for option_quotes."""
+    rows = []
+    for exp, chain in (opt.get("chains") or {}).items():
+        for r in chain:
+            for p, typ in (("c", "C"), ("p", "P")):
+                mid = r.get(f"{p}_mid")
+                if not mid and not r.get(f"{p}_ask"):
+                    continue
+                rows.append({"ticker": ticker, "expiry": exp, "strike": r["strike"], "type": typ,
+                             "bid": r.get(f"{p}_bid") or None, "ask": r.get(f"{p}_ask") or None, "mid": mid,
+                             "iv": r.get(f"{p}_iv"), "underlying": opt.get("spot"), "quote_date": quote_date,
+                             "quoted_at": now.isoformat(), "evening": evening})
+    return rows
+
+
+def option_fill_price(q: dict, side: str) -> float | None:
+    """Buy at the ask, sell at the bid (the spread is a real cost); mid only if no quote on that side."""
+    v = q.get("ask") if side == "buy" else q.get("bid")
+    if v and v > 0:
+        return float(v)
+    return float(q["mid"]) if q.get("mid") and q["mid"] > 0 else None
+
+
+def _sync_options(client, chains: dict, bars: dict, now: datetime):
+    ny = now.astimezone(P.NY)
+    today = ny.date().isoformat()
+    quotes: dict[tuple, dict] = {}
+    n_quotes = 0
+    for t, opt in chains.items():
+        trading_day = bool(bars.get(t)) and bars[t][-1]["t"] == today
+        evening = trading_day and ny.time() >= MARKET_CLOSE_NY and ny.weekday() < 5
+        rows = option_rows(t, opt, today, evening, now)
+        for i in range(0, len(rows), 500):
+            client.upsert("option_quotes", rows[i:i + 500], "ticker,expiry,strike,type")
+        n_quotes += len(rows)
+        for r in rows:
+            quotes[(t, r["expiry"], float(r["strike"]), r["type"])] = r
+    # fills: only with an evening snapshot, for orders placed before that session's close
+    evening_tickers = {k[0] for k, v in quotes.items() if v["evening"]}
+    filled = rejected = waiting = 0
+    for o in client.select("option_orders", {"status": "eq.pending", "order": "id.asc"}):
+        created = _ts(o["created_at"]).astimezone(P.NY)
+        cd = created.date().isoformat()
+        if o["ticker"] not in evening_tickers or not (cd < today or (cd == today and created.time() < MARKET_CLOSE_NY)):
+            waiting += 1
+            continue
+        q = quotes.get((o["ticker"], str(o["expiry"]), float(o["strike"]), o["type"]))
+        price = option_fill_price(q, o["side"]) if q else None       # no quote tonight: rejected
+        res = client.rpc("fill_option_order", {"p_order": o["id"], "p_price": price, "p_date": today}) or {}
+        if res.get("status") == "filled":
+            filled += 1
+        else:
+            rejected += 1
+    # expiries: settle at intrinsic value with the underlying's close on the expiry date
+    trades = client.select("option_trades")
+    settled = 0
+    for t, exp in sorted({(tr["ticker"], str(tr["expiry"])) for tr in trades}):
+        b = bars.get(t) or []
+        if not b or b[-1]["t"] < exp:
+            continue                                        # expiry close not known yet
+        close = [x for x in b if x["t"] <= exp][-1]["c"]
+        settled += client.rpc("settle_expired_options", {"p_ticker": t, "p_expiry": exp, "p_underlying": close}) or 0
+    if settled:
+        trades = client.select("option_trades")
+    # marks for portfolio values: quote mid, else intrinsic value
+    pos: dict[tuple, int] = {}
+    for tr in trades:
+        k = (tr["portfolio_id"], tr["ticker"], str(tr["expiry"]), float(tr["strike"]), tr["type"])
+        pos[k] = pos.get(k, 0) + (tr["qty"] if tr["side"] == "buy" else -tr["qty"])
+    marks = {}
+    for k, q in pos.items():
+        if q <= 0:
+            continue
+        _, t, exp, strike, typ = k
+        quote = quotes.get((t, exp, strike, typ))
+        if quote and quote.get("mid"):
+            mark = float(quote["mid"])
+        else:
+            s_ = (bars.get(t) or [{}])[-1].get("c") or 0
+            mark = max(0.0, (s_ - strike) if typ == "C" else (strike - s_))
+        marks[k] = (q, mark)
+    return {"quotes": n_quotes, "filled": filled, "rejected": rejected, "waiting": waiting, "settled": settled}, marks
+
+
 def _quantiles(xs: list[float]) -> dict:
     xs = sorted(xs)
     n = len(xs)
@@ -153,7 +238,8 @@ def _price_reaction(bars: list[dict], release: date) -> float | None:
 
 # --------------------------------------------------------------------------- main
 def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, consensus: dict,
-         next_earnings: dict, names: dict, now: datetime | None = None, families: dict | None = None) -> dict:
+         next_earnings: dict, names: dict, now: datetime | None = None, families: dict | None = None,
+         option_chains: dict | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     summary = {}
 
@@ -198,6 +284,13 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
         else:
             rejected += 1
     summary["orders"] = {"filled": filled, "rejected": rejected, "waiting": waiting}
+
+    # 3b. options: quotes, fills at the evening snapshot, expiries ---------------------------
+    opt_marks: dict[tuple, float] = {}
+    try:
+        summary["options"], opt_marks = _sync_options(client, option_chains or {}, bars, now)
+    except Exception as exc:  # noqa: BLE001 - database without migration 0005 yet
+        summary["options"] = f"indisponible ({str(exc)[:80]})"
 
     # 4-5. predictions & community consensus -------------------------------------------------
     preds = client.select("predictions")
@@ -267,6 +360,7 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
                 q = float(tr["qty"])
                 pos[tr["ticker"]] = pos.get(tr["ticker"], 0.0) + (q if tr["side"] == "buy" else -q)
         value = float(pf["cash"]) + sum(q * last.get(s, 0.0) for s, q in pos.items())
+        value += sum(100 * q * mark for (pid, *_c), (q, mark) in opt_marks.items() if pid == pf["id"])
         rows.append({"portfolio_id": pf["id"], "date": now.date().isoformat(), "value": round(value, 2),
                      "cash": float(pf["cash"]), "spy_close": last.get("SPY")})   # benchmark for « Alpha »
     if rows:

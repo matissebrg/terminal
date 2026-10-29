@@ -501,3 +501,8 @@ body.is-admin .nav a.admin-only { display: flex; }
 .member-card > span[data-user] { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; min-width: 0; }
 @media (max-width: 600px) { .member-grid { grid-template-columns: minmax(0, 1fr); } }
 .results-banner { background: rgba(41,98,255,.10); border-color: rgba(41,98,255,.35); color: var(--text-2); } .results-banner b { color: var(--text); }
+.kpis-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kpis-col .kpi .v { font-size: 15px; white-space: normal; }
+table.legs .sel { padding: 3px 6px; font-size: 12px; }
+.panel-sub { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); font-size: 12.5px; }
+.btn-xs { padding: 2px 8px; font-size: 11px; }
