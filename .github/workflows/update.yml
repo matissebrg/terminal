@@ -97,10 +97,12 @@ jobs:
             git commit -m "data: mise à jour $(date -u +'%Y-%m-%d %H:%M') UTC"
             # un autre run (ajout de valeur, relance) a pu pousser entre-temps : en cas de conflit sur
             # docs/data, les données de CE run, les plus récentes, gagnent ; 3 tentatives
+            ok=0
             for i in 1 2 3; do
-              git pull --rebase --autostash -X theirs origin main && git push && break
+              if git pull --rebase --autostash -X theirs origin main && git push; then ok=1; break; fi
               echo "push refusé (tentative $i), nouvel essai"; git rebase --abort 2>/dev/null || true; sleep $((i * 5))
             done
+            if [[ $ok != 1 ]]; then echo "::error::Impossible d'enregistrer les données dans le repo"; exit 1; fi
           fi
 
       - uses: actions/configure-pages@v6

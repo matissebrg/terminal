@@ -403,8 +403,20 @@ def main(argv=None) -> int:
     ap.add_argument("--force", action="store_true", help="régénère le fichier d'hypothèses existant")
     a = ap.parse_args(argv)
     peers = [p for p in a.peers.replace(";", ",").replace(" ", ",").split(",") if p]
-    scaffold(a.ticker, peers, SecSource(), sector=a.sector, industry=a.industry, etf=(a.etf or "").upper() or None,
-             etf_name=a.etf_name, force=a.force)
+    try:
+        scaffold(a.ticker, peers, SecSource(), sector=a.sector, industry=a.industry, etf=(a.etf or "").upper() or None,
+                 etf_name=a.etf_name, force=a.force)
+    except SystemExit as exc:
+        if exc.code not in (0, None):
+            print(f"::error title=Ajout de {a.ticker.upper()} impossible::{exc.code}")
+        raise
+    except Exception as exc:  # noqa: BLE001 - make the reason visible on the run page
+        import traceback
+        tb = traceback.format_exc().strip().splitlines()
+        where = next((l.strip() for l in reversed(tb) if l.strip().startswith("File ")), "")
+        print(f"::error title=Ajout de {a.ticker.upper()} impossible::{type(exc).__name__}: {exc} ({where})")
+        traceback.print_exc()
+        return 1
     return 0
 
 
