@@ -37,3 +37,19 @@ def test_merged_facts_normalise():
     old = {"facts": {"us-gaap": {"Revenues": {"units": {"USD": [_fact("2025-01-01", "2025-12-31", 330, "o1")]}}}}}
     assert not normalize.fiscal_years(new)
     assert normalize.fiscal_years(sec.merge_facts(new, old))
+
+
+def test_ebit_rebuilt_when_never_tagged():
+    from pipeline import normalize
+    P = "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"
+    us = {"Revenues": [_fact("2024-01-01", "2024-12-31", 300, "a"), _fact("2025-01-01", "2025-12-31", 330, "b")],
+          P: [_fact("2024-01-01", "2024-12-31", 40, "a"), _fact("2025-01-01", "2025-12-31", 50, "b")],
+          "InterestExpense": [_fact("2025-01-01", "2025-12-31", 2, "b")]}
+    fj = {"facts": {"us-gaap": {k: {"units": {"USD": v}} for k, v in us.items()}}}
+    fin = normalize.normalize(fj)
+    assert fin["lines"]["operating_income"]["annual"] == {"FY2024": 40, "FY2025": 52}
+    assert fin["coverage"]["operating_income"]["rebuilt"]
+    # a filer that tags EBIT keeps its own figure
+    us["OperatingIncomeLoss"] = [_fact("2025-01-01", "2025-12-31", 45, "b")]
+    fj = {"facts": {"us-gaap": {k: {"units": {"USD": v}} for k, v in us.items()}}}
+    assert normalize.normalize(fj)["lines"]["operating_income"]["annual"] == {"FY2025": 45}

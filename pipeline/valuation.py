@@ -65,7 +65,7 @@ def resolve(assump: dict, fin: dict, market: dict) -> dict:
     else:
         base_rev, src["base_revenue"] = float(d["base_revenue"]), "hypothèse"
 
-    m0 = (T.get("operating_income") / rev) if rev else None
+    m0 = (T.get("operating_income") / rev) if rev and T.get("operating_income") is not None else None
     da = (T.get("d_and_a") / rev) if rev and T.get("d_and_a") is not None else None
     cx = (T.get("capex") / rev) if rev and T.get("capex") is not None else None
 

@@ -407,6 +407,9 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
         lines[name] = {"annual": av, "quarterly": qv}
 
     _derive(lines, periods)
+    for name in lines.pop("_rebuilt", ()):
+        coverage[name]["tags"] = coverage[name]["tags"] + ["reconstitué : résultat avant impôt + charges d'intérêts"]
+        coverage[name]["rebuilt"] = True
     ttm = _ttm(lines, periods)
 
     # Source filing per period (from revenue / net income facts)
@@ -483,6 +486,8 @@ def _fill_instant_composite(facts_json, name, ends, target) -> list[str]:
 
 
 def _derive(lines: dict, periods: dict) -> None:
+    # Rebuild EBIT only for filers that never tag it (not to patch the odd missing quarter)
+    _ebit_untagged = not lines["operating_income"]["annual"] and not lines["operating_income"]["quarterly"]
     for freq in ("annual", "quarterly"):
         labels = [p["label"] for p in periods[freq]]
         g = lambda n, l: lines[n][freq].get(l)  # noqa: E731
@@ -495,6 +500,13 @@ def _derive(lines: dict, periods: dict) -> None:
             if cost is None and rev is not None and gp is not None:
                 lines["cost_of_revenue"][freq][l] = rev - gp
             ebit, da = g("operating_income", l), g("d_and_a", l)
+            pti = g("pretax_income", l)
+            if ebit is None and pti is not None and _ebit_untagged:
+                # No operating-income line (ExxonMobil, banks...): EBIT ~ pre-tax income + interest expense.
+                # It then includes equity-affiliate income and other non-operating items.
+                ebit = pti + (g("interest_expense", l) or 0.0)
+                lines["operating_income"][freq][l] = ebit
+                lines.setdefault("_rebuilt", set()).add("operating_income")
             if ebit is not None and da is not None:
                 lines["ebitda"][freq][l] = ebit + da
             cfo, capex = g("cfo", l), g("capex", l)
