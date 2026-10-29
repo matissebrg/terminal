@@ -40,6 +40,31 @@
    }
   },
   {
+   "id": "cc6aee05324c",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "price",
+   "title": "GOOG -12,2 % sur la séance",
+   "detail": "Clôture à 282,78 $.",
+   "values": {
+    "change": -0.12150113392773931,
+    "close": 282.78
+   }
+  },
+  {
+   "id": "ff2fc494a111",
+   "date": "2026-10-29",
+   "ticker": "AMZN",
+   "type": "coverage",
+   "title": "AMZN : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 245.975,
+    "value_base": 44.033896293257946,
+    "value_weighted": 45.712272742634006
+   }
+  },
+  {
    "id": "e6a5c996d85e",
    "date": "2026-10-29",
    "ticker": "GOOG",
@@ -121,6 +146,34 @@
     "to": 105.15327798604224,
     "change": 0.2601677983173898,
     "price": 182.02
+   }
+  },
+  {
+   "id": "7d13decfa351",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 121,88 $ → 123,95 $ (+1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 282,78 $, potentiel -56,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.0626
+    }
+   ],
+   "values": {
+    "from": 121.88248822594133,
+    "to": 123.94509560886635,
+    "change": 0.016922918238274187,
+    "price": 282.78
    }
   },
   {
