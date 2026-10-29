@@ -333,6 +333,29 @@ def _pretty(title: str) -> str:
 
 
 # --------------------------------------------------------------------------- main
+def _facts_diagnostic(facts: dict, cik: int) -> str:
+    """What the SEC actually returned, to explain a normalisation failure from the run page."""
+    lines = [f"Diagnostic XBRL : CIK {cik}, entité « {facts.get('entityName', '?')} », "
+             f"taxonomies {sorted(facts.get('facts', {}))}"]
+    for c in ("revenue", "net_income", "cfo", "operating_income"):
+        _k, unit, tags, *_ = normalize.CONCEPTS[c]
+        for tax, tag in tags:
+            node = facts.get("facts", {}).get(tax, {}).get(tag)
+            if not node:
+                continue
+            units = node.get("units", {})
+            rows = units.get(unit, [])
+            forms = sorted({r.get("form", "") for r in rows})
+            spans = []
+            for r in rows:
+                if r.get("start") and str(r.get("form", "")).startswith("10-K"):
+                    d = (date.fromisoformat(r["end"]) - date.fromisoformat(r["start"])).days
+                    spans.append(d)
+            lines.append(f"  {c} / {tax}:{tag} unités {sorted(units)} : {len(rows)} faits en {unit}, formulaires {forms[:8]}, "
+                         f"durées 10-K {sorted(set(spans))[:10]}")
+    return "\n".join(lines)
+
+
 def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str | None = None,
              industry: str | None = None, etf: str | None = None, etf_name: str | None = None,
              force: bool = False, today: str | None = None) -> dict:
@@ -343,7 +366,13 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
     subs = src.submissions(cik)
     name = _pretty(subs.get("name") or title)
     facts = src.facts(cik)
-    fin = normalize.normalize(facts, splits=src.splits(ticker))
+    try:
+        fin = normalize.normalize(facts, splits=src.splits(ticker))
+    except ValueError:
+        diag = _facts_diagnostic(facts, cik)
+        print(diag)
+        print("::warning title=Diagnostic XBRL::" + diag.replace("%", "%25").replace("\n", "%0A"))
+        raise
     if not fin["periods"]["quarterly"] or fin["ttm"].get("revenue") is None:
         raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (pas de chiffre d'affaires trimestriel).")
 
