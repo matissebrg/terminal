@@ -1,0 +1,85 @@
+# ============================================================================
+# Hypothèses de valorisation - Amazon Com Inc (AMZN)
+# ----------------------------------------------------------------------------
+# Fichier créé automatiquement le 2026-10-29 par `python -m pipeline.scaffold` à partir
+# de l'HISTORIQUE seul (SEC) : il décrit le passé, ce n'est pas une prévision.
+# À toi d'écrire la vue : thèse, croissance, marges, scénarios, guidance.
+#   - croissance annuelle moyenne du CA FY2022 → FY2025 : 11,7 %
+#   - marge opérationnelle TTM Q2 FY2026 : 12,1 %
+#   - taux effectif TTM Q2 FY2026 : 22,6 %
+#   - BFR d'exploitation FY2025 : -15,2 % du CA
+#   - ROIC TTM Q2 FY2026 : 16,0 % (NOPAT / capitaux investis)
+#
+# Modifier depuis GitHub : ouvre ce fichier sur github.com, clique sur le crayon,
+# commit -> le site se met à jour tout seul en ~2 minutes. Le simulateur de l'onglet
+# Valorisation permet d'essayer des chiffres puis de copier le YAML correspondant.
+# "auto" = valeur calculée à partir des données (TTM) ou du marché.
+# ============================================================================
+
+ticker: AMZN
+updated: 2026-10-29
+thesis: >
+  À écrire : pourquoi cette valeur, ce que le marché price, ce qui ferait changer d'avis.
+
+dcf:
+  years: 10
+  base_revenue: ttm
+  # Années 1 à 5 (point de départ mécanique : croissance passée qui converge vers 3,0 %).
+  revenue_growth: [0.117, 0.1, 0.082, 0.065, 0.047]
+  ebit_margin_start: auto
+  ebit_margin_target: 0.121          # marge actuelle maintenue (aucune amélioration supposée)
+  margin_years_to_target: 5
+  tax_rate: 0.226
+  d_and_a_pct_revenue: auto
+  capex_pct_revenue: auto
+  nwc_pct_incremental_revenue: -0.15
+  terminal_growth: 0.03
+  # Réinvestissement terminal = croissance terminale / ROIC : le capex actuel n'est pas supposé durer
+  # indéfiniment. null = capex et amortissements des années explicites prolongés tels quels.
+  terminal_roic: 0.16
+  mid_year: true
+  include_equity_investments: true
+
+wacc:
+  method: capm
+  fixed: 0.09
+  risk_free: auto
+  risk_free_fallback: 0.044
+  beta: auto
+  beta_fallback: 1.0
+  equity_risk_premium: 0.045
+  pre_tax_cost_of_debt: 0.05
+  debt_weight: auto
+
+scenarios:
+  base:
+    probability: 0.50
+    narrative: Prolongement mécanique de l'historique (à remplacer par ta vue).
+  bull:
+    probability: 0.25
+    narrative: Croissance supérieure de 3 points et marge cible +15 % (à préciser).
+    overrides:
+      dcf:
+        revenue_growth: [0.147, 0.13, 0.112, 0.095, 0.077]
+        ebit_margin_target: 0.139
+  bear:
+    probability: 0.25
+    narrative: Croissance inférieure de 3 points et marge cible -15 % (à préciser).
+    overrides:
+      dcf:
+        revenue_growth: [0.087, 0.07, 0.052, 0.035, 0.017]
+        ebit_margin_target: 0.103
+
+comps:
+  peers: [TGT, DG, WMT, COST, BJ, KR]
+
+predictions:
+  # Modèle naïf à battre : sequential (dernier trimestre × dernière croissance séquentielle) ou
+  # seasonal (même trimestre de l'an dernier × croissance sur un an, pour les activités saisonnières).
+  # Choisi automatiquement : le plus précis sur l'historique (erreur moyenne du modèle naïf sur 8 trimestres : séquentiel 18,8 %, saisonnier 1,6 %).
+  naive: seasonal
+
+# Guidance publiée par la société, par période (Md$, %), pour comparer tes prédictions.
+# Exemple :
+#   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
+guidance: {}

@@ -44,6 +44,12 @@ tickers:
     industry: Pétrole et gaz intégrés, raffinage, chimie
     peers: [CVX, COP, EOG, OXY]
     benchmarks: [SPY, XLE]
+  AMZN:
+    name: Amazon Com Inc
+    sector: Retail-catalog & mail-order houses
+    industry: Retail-catalog & mail-order houses
+    peers: [TGT, DG, WMT, COST, BJ, KR]
+    benchmarks: [SPY, XLP]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
