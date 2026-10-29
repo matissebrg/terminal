@@ -24,8 +24,10 @@ thesis: >
 dcf:
   years: 10
   base_revenue: ttm
-  # Années 1 à 5 (point de départ mécanique : croissance passée qui converge vers 3,0 %).
-  revenue_growth: [-0.07, -0.05, -0.03, -0.01, 0.01]
+  # Années 1 à 5. Le point de départ mécanique (-7 %/an, CAGR FY2022 → FY2025) partait du pic du
+  # prix du pétrole de 2022 : c'est un artefact du cycle, pas une tendance. Remplacé par un CA stable
+  # qui rejoint lentement la croissance terminale (point de départ neutre, à remplacer par ta vue).
+  revenue_growth: [0.0, 0.005, 0.01, 0.015, 0.02]
   ebit_margin_start: auto
   ebit_margin_target: 0.125          # marge actuelle maintenue (aucune amélioration supposée)
   margin_years_to_target: 5
@@ -33,7 +35,7 @@ dcf:
   d_and_a_pct_revenue: auto
   capex_pct_revenue: auto
   nwc_pct_incremental_revenue: 0.029
-  terminal_growth: 0.03
+  terminal_growth: 0.02             # major pétrolière : croissance de long terme sous l'inflation
   # Réinvestissement terminal = croissance terminale / ROIC : le capex actuel n'est pas supposé durer
   # indéfiniment. null = capex et amortissements des années explicites prolongés tels quels.
   terminal_roic: 0.115
@@ -46,7 +48,7 @@ wacc:
   risk_free: auto
   risk_free_fallback: 0.044
   beta: auto
-  beta_fallback: 1.0
+  beta_fallback: 0.9                # la régression sur 2 ans ne dit rien (R² ≈ 0) : bêta long terme d'une major
   equity_risk_premium: 0.045
   pre_tax_cost_of_debt: 0.05
   debt_weight: auto
@@ -60,14 +62,14 @@ scenarios:
     narrative: Croissance supérieure de 3 points et marge cible +15 % (à préciser).
     overrides:
       dcf:
-        revenue_growth: [-0.04, -0.02, 0.0, 0.02, 0.04]
+        revenue_growth: [0.03, 0.035, 0.04, 0.045, 0.05]
         ebit_margin_target: 0.144
   bear:
     probability: 0.25
     narrative: Croissance inférieure de 3 points et marge cible -15 % (à préciser).
     overrides:
       dcf:
-        revenue_growth: [-0.1, -0.08, -0.06, -0.04, -0.02]
+        revenue_growth: [-0.03, -0.025, -0.02, -0.015, -0.01]
         ebit_margin_target: 0.106
 
 comps:
