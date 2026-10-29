@@ -42,6 +42,7 @@
       T.member = r.data || null;
     }
     drawAccountButton();
+    (M.onProfile || []).forEach((f) => { try { f(); } catch (e) { console.error(e); } });
   }
   M.ready = (async () => {
     if (!M.sb) { drawAccountButton(); return; }
@@ -165,7 +166,10 @@
             <input name="note" placeholder="Pour qui ? (note)" class="sel" style="min-width:180px">
             <button class="btn primary">Créer un code</button></form>
           <div id="inew"></div><div class="tbl-wrap" id="ilist" style="margin-top:10px"></div></div>` : ""}
+        <div class="panel span2" id="mybadges"><div class="loading">Chargement des badges…</div></div>
+        ${me.is_admin ? '<div class="panel span2" id="adminbadges"></div>' : ""}
       </div>`;
+    if (T.badges && T.badges.renderAccount) T.badges.renderAccount(T.$("#mybadges"), me.is_admin ? T.$("#adminbadges") : null).catch((e) => { T.$("#mybadges").innerHTML = `<p class="note warn">${T.esc(err(e))}</p>`; });
     T.$("#logout").onclick = () => M.sb.auth.signOut();
     T.$("#pform2").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -248,7 +252,7 @@
       .map((q) => `<div class="evq"><span>${T.esc(QLABEL[q.id] || q.id)}</span><span class="num">${F.n(q.p, 0)} %</span>
         <span>${q.outcome == null ? '<span class="muted">non résolue</span>' : q.outcome ? '<span class="chip-s ok">oui</span>' : '<span class="chip-s ko">non</span>'}</span>
         <span class="num muted">${T.isNum(q.brier) ? "Brier " + F.n(q.brier, 3) : ""}</span></div>`).join("");
-    return `<div class="pcard"><div class="pcard-h"><div><b>${opts.who ? T.esc(opts.who) + " · " : ""}${T.esc(p.ticker)} ${T.esc(p.period)}</b> <span class="badge ${status[1]}">${status[0]}</span>
+    return `<div class="pcard"><div class="pcard-h"><div>${opts.who ? `<b data-user="${T.esc(opts.who)}">${T.esc(opts.who)}</b> · ` : ""}<b>${T.esc(p.ticker)} ${T.esc(p.period)}</b> <span class="badge ${status[1]}">${status[0]}</span>
         ${p.visibility === "private" ? '<span class="badge">privée</span>' : ""}</div>
         <div class="muted num" style="font-size:11.5px">modifiée ${F.dateTime(p.updated_at)}${r && r.scored_version_at ? ` · version notée du ${F.dateTime(r.scored_version_at)}` : ""}</div></div>
       ${mrows || pts ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Indicateur</th><th class="n">Prévision</th><th class="n">Réel</th><th class="n">Erreur</th><th class="n">Naïf</th><th class="n">Guidance</th><th class="n">Analystes</th><th class="n">Communauté</th><th>Verdict</th></tr></thead><tbody>${mrows}${pts}</tbody></table></div>` : ""}
@@ -299,6 +303,7 @@
             <div class="tbl-wrap"><table class="t"><thead><tr><th>Indicateur</th><th class="n">Membres</th><th class="n">Médiane</th><th class="n">Moyenne</th><th class="n">25 % - 75 %</th></tr></thead><tbody>
             ${rows.map((c) => `<tr><td>${T.esc(METRIC[c.metric] ? METRIC[c.metric][0] : c.metric)}</td><td class="n">${c.n}</td><td class="n"><b>${shown(c.metric, +c.median)}</b></td><td class="n">${shown(c.metric, +c.mean)}</td><td class="n muted">${shown(c.metric, +c.p25)} - ${shown(c.metric, +c.p75)}</td></tr>`).join("")}</tbody></table></div></div>`).join("")}` : ""}
         ${others.length ? `<div class="group-title" style="margin-top:22px">Prédictions des autres membres</div>${others.map((p) => resultCard(p, byId[p.id], { who: (p.profiles || {}).username })).join("")}` : ""}`;
+      if (T.badges && T.badges.decorate) T.badges.decorate(box);
     } catch (ex) { box.innerHTML = `<div class="banner">⚠ <div>${T.esc(err(ex))}</div></div>`; }
   };
 
@@ -319,7 +324,7 @@
     view.innerHTML = `<div class="thead"><div class="id"><h1>Communauté</h1><div class="sub">${profiles.length} membre(s) · classement des prédictions et des portefeuilles fictifs</div></div></div>
       <div class="panel"><h3>Classement des prévisionnistes <span class="hint">trié par erreur moyenne sur le CA</span></h3>
         <div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>Membre</th><th class="n">Prédictions</th><th class="n">Erreur CA</th><th class="n">Biais CA</th><th class="n">Intervalles</th><th class="n">Bat la communauté</th><th class="n">Brier</th></tr></thead><tbody>
-        ${lb.map((r, i) => `<tr class="${r.username === T.member.username ? "hl" : ""}"><td class="n">${i + 1}</td><td><b>${T.esc(r.username)}</b></td><td class="n">${r.n}</td>
+        ${lb.map((r, i) => `<tr class="${r.username === T.member.username ? "hl" : ""}"><td class="n">${i + 1}</td><td data-user="${T.esc(r.username)}"><b>${T.esc(r.username)}</b></td><td class="n">${r.n}</td>
           <td class="n">${r.rev_n ? F.pct(+r.rev_mae, 1) : "-"}</td><td class="n">${r.rev_n ? F.pct(+r.rev_bias, 1, true) : "-"}</td>
           <td class="n">${r.interval_n ? `${r.interval_hit} / ${r.interval_n}` : "-"}</td><td class="n">${r.crowd_n ? `${r.crowd_wins} / ${r.crowd_n}` : "-"}</td>
           <td class="n">${r.brier_n ? F.n(+r.brier, 3) : "-"}</td></tr>`).join("") || '<tr><td colspan="8"><div class="empty">Le classement apparaît après la première publication vérifiée.</div></td></tr>'}
@@ -327,10 +332,11 @@
         <p class="note">Erreur CA = écart moyen en valeur absolue avec le chiffre publié. Biais : + = trop optimiste. Intervalles : à 80 %, l'objectif est d'avoir raison 8 fois sur 10. Brier : 0 = parfait, 0,25 = hasard.</p></div>
       <div class="panel" style="margin-top:14px"><h3><span>Portefeuilles fictifs <span class="hint">100 000 $ de départ</span></span> <a class="hint" href="#/portefeuilles">mes portefeuilles →</a></h3>
         <div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>Portefeuille</th><th>Membre</th><th class="n">Valeur</th><th class="n">Performance</th><th class="n">Créé le</th></tr></thead><tbody>
-        ${ranking.map((p, i) => `<tr style="cursor:pointer" data-href="#/portefeuilles/${p.id}"><td class="n">${i + 1}</td><td><b>${T.esc(p.name)}</b></td><td>${T.esc(uname[p.user_id] || "?")}</td>
+        ${ranking.map((p, i) => `<tr style="cursor:pointer" data-href="#/portefeuilles/${p.id}"><td class="n">${i + 1}</td><td><b>${T.esc(p.name)}</b></td><td data-user="${T.esc(uname[p.user_id] || "")}">${T.esc(uname[p.user_id] || "?")}</td>
           <td class="n">${F.n(p.value, 0)} $</td><td class="n ${T.cls(p.perf)}"><b>${F.pct(p.perf, 2, true)}</b></td><td class="n">${F.date(p.created_at.slice(0, 10))}</td></tr>`).join("") || '<tr><td colspan="6"><div class="empty">Aucun portefeuille pour l\'instant.</div></td></tr>'}
         </tbody></table></div></div>`;
     T.$$("tr[data-href]").forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
+    if (T.badges && T.badges.decorate) T.badges.decorate(view);
   });
 
   // ------------------------------------------------------------------ #/portefeuilles
@@ -382,7 +388,7 @@
     const invested = rows.reduce((a, r) => a + (r.val || 0), 0);
     const total = +pf.cash + invested;
     const perf = total / +pf.initial_cash - 1;
-    view.innerHTML = `<div class="thead"><div class="id"><h1>${T.esc(pf.name)}</h1><div class="sub">${own ? "Mon portefeuille" : "Portefeuille de " + T.esc((pf.profiles || {}).username || "?")} · fictif · créé le ${F.date(pf.created_at.slice(0, 10))}</div></div>
+    view.innerHTML = `<div class="thead"><div class="id"><h1>${T.esc(pf.name)}</h1><div class="sub">${own ? "Mon portefeuille" : "Portefeuille de " + `<span data-user="${T.esc((pf.profiles || {}).username || "")}">${T.esc((pf.profiles || {}).username || "?")}</span>`} · fictif · créé le ${F.date(pf.created_at.slice(0, 10))}</div></div>
         <div class="quote"><span class="px">${F.n(total, 0)} $</span><span class="chg ${T.cls(perf)}">${F.pct(perf, 2, true)}</span></div></div>
       <div class="kpis"><div class="kpi"><div class="l">Liquidités</div><div class="v">${F.n(+pf.cash, 0)} $</div><div class="s">${F.pct(+pf.cash / total, 0)} du total</div></div>
         <div class="kpi"><div class="l">Investi</div><div class="v">${F.n(invested, 0)} $</div><div class="s">${rows.length} ligne(s)</div></div>
@@ -414,6 +420,7 @@
           <div class="panel"><h3>Réglages</h3><form id="rform" class="row"><input name="name" class="sel" value="${T.esc(pf.name)}" maxlength="40"><select name="vis" class="sel"><option value="group" ${pf.visibility === "group" ? "selected" : ""}>visible par le groupe</option><option value="private" ${pf.visibility === "private" ? "selected" : ""}>privé</option></select><button class="btn">Enregistrer</button></form>
             <button class="btn danger" id="pfdel" style="margin-top:10px">Supprimer ce portefeuille</button></div></div>` : ""}
       </div>`;
+    if (!own && T.badges && T.badges.decorate) T.badges.decorate(view);
     // chart
     if (values.length >= 2) {
       T.ec(T.$("#pfchart"), { tooltip: { trigger: "axis", valueFormatter: (v) => F.n(v, 0) + " $" },
@@ -431,7 +438,7 @@
       e.preventDefault();
       const f = new FormData(e.target);
       const q = parseFloat(String(f.get("qty")).replace(",", "."));
-      try { await must(M.sb.rpc("place_order", { p_portfolio: id, p_ticker: f.get("ticker"), p_side: side, p_qty: q })); T.render(); }
+      try { await must(M.sb.rpc("place_order", { p_portfolio: id, p_ticker: f.get("ticker"), p_side: side, p_qty: q })); T.render(); if (T.badges && T.badges.refresh) T.badges.refresh(); }
       catch (ex) { T.$("#omsg").className = "note warn"; T.$("#omsg").textContent = err(ex); }
     });
     T.$$("[data-cancel]").forEach((b) => b.addEventListener("click", async () => { try { await must(M.sb.rpc("cancel_order", { p_order: +b.dataset.cancel })); T.render(); } catch (ex) { alert(err(ex)); } }));

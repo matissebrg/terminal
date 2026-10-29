@@ -70,6 +70,11 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
 - **Le pipeline** (`pipeline/community.py`) ouvre les périodes, publie les derniers cours, exécute les ordres à la clôture
   suivante, calcule le consensus de la communauté et note chaque prédiction (mêmes règles que le registre Git).
 - Sans compte, l'onglet Prédictions garde le mode « fichier GitHub » ci-dessous.
+- **Badges** (`supabase/migrations/0002_badges.sql`) : statuts Supporter (1 barre, attribué par un administrateur),
+  Members (2, à l'adhésion), Founders (3, fondateur et 10 premiers membres), VIP (4, podium du classement dès 6 membres
+  classés, ou attribué) ; 11 succès automatiques (première prédiction, raisonnement, multi-valeurs, premier ordre,
+  CA à moins de 1 %, mieux que la foule, mieux que Wall Street, régulier, bien calibré, oracle, portefeuille +10 %).
+  Chaque badge crée une notification (cloche + animation). Personne ne peut s'attribuer un badge.
 
 **Activation (une fois) :**
 
@@ -154,7 +159,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 125 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
+python -m pytest -q                                   # 132 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py

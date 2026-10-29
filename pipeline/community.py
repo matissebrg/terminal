@@ -271,6 +271,12 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
     if rows:
         client.upsert("portfolio_values", rows, "portfolio_id,date")
     summary["portfolios"] = len(rows)
+
+    # 7. achievements earned from verified results and portfolio values (each one notifies its holder)
+    try:
+        summary["badges"] = client.rpc("grant_auto_badges", {})
+    except Exception as exc:  # noqa: BLE001 - database without migration 0002 yet
+        summary["badges"] = f"indisponible ({str(exc)[:80]})"
     return summary
 
 

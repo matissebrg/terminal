@@ -112,6 +112,7 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
                          consensus={"NVDA": [{"date": "2026-08-25", "period": "Q2 FY2027", "revenue_avg": 94.5e9}]},
                          next_earnings=ne, names={"NVDA": "NVIDIA"}, now=datetime(2026, 10, 30, 22, tzinfo=timezone.utc))
     assert out["orders"]["filled"] == 1
+    assert isinstance(out["badges"], int) and out["badges"] >= 1      # e.g. alice: bat la foule
     o = sb.select("orders", {"id": f"eq.{oid}"})[0]
     assert o["fill_date"] == "2026-10-29"           # 17:30 New York on the 28th -> next session's close
     nv = {b["t"]: b["c"] for b in bars["NVDA"]}

@@ -434,6 +434,7 @@
           msg.className = "note up"; msg.textContent = `Enregistrée le ${F.dateTime(row.updated_at)} ✓ (version ${dbs.versions})`;
           btn.textContent = "Mettre à jour ma prédiction";
           MB.renderTickerPredictions(T.$("#plist"), tk, nx.label);
+          if (T.badges && T.badges.refresh) T.badges.refresh();     // e.g. « Premier tir » unlocked
         } catch (e) { msg.className = "note warn"; msg.textContent = e.message; }
         btn.disabled = false;
       };
