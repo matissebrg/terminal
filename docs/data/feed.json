@@ -14,6 +14,19 @@
    }
   },
   {
+   "id": "d339a689de7a",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "filing",
+   "title": "GOOG a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000084/goog-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001652044-26-000084"
+   }
+  },
+  {
    "id": "e6a5c996d85e",
    "date": "2026-10-29",
    "ticker": "GOOG",
@@ -38,6 +51,34 @@
     "from": 45.135008674039064,
     "to": 129.59788655238486,
     "change": 1.871338465631613,
+    "price": 321.89
+   }
+  },
+  {
+   "id": "d1b2f4ff3d2d",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 129,60 $ → 121,88 $ (-6,0 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 321,89 $, potentiel -62,1 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -7.6945
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.0209
+    }
+   ],
+   "values": {
+    "from": 129.59788655238486,
+    "to": 121.88248822594133,
+    "change": -0.059533365332503974,
     "price": 321.89
    }
   },
