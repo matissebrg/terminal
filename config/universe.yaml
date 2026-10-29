@@ -16,6 +16,7 @@ benchmarks:
   XLP: Consommation de base (ETF XLP)
   XLK: Technologie (ETF XLK)
   XLE: Énergie (ETF XLE)
+  IBB: IBB
 
 beta_benchmark: SPY
 
@@ -50,6 +51,12 @@ tickers:
     industry: Retail-catalog & mail-order houses
     peers: [TGT, DG, WMT, COST, BJ, KR]
     benchmarks: [SPY, XLP]
+  BBIO:
+    name: BridgeBio Pharma, Inc.
+    sector: Pharmaceutical preparations
+    industry: Pharmaceutical preparations
+    peers: []
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -102,6 +109,7 @@ families:
   COP: energie
   EOG: energie
   OXY: energie
+  BBIO: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -128,3 +136,4 @@ ciks:
   COP: 1163165
   EOG: 821189
   OXY: 797468
+  BBIO: 1743881
