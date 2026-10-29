@@ -17,6 +17,7 @@ benchmarks:
   XLK: Technologie (ETF XLK)
   XLE: Énergie (ETF XLE)
   IBB: IBB
+  XLV: XLV
 
 beta_benchmark: SPY
 
@@ -57,6 +58,12 @@ tickers:
     industry: Pharmaceutical preparations
     peers: []
     benchmarks: [SPY, IBB]
+  REGN:
+    name: Regeneron Pharmaceuticals, Inc.
+    sector: Pharmaceutical preparations
+    industry: Pharmaceutical preparations
+    peers: [MRK, BMY, AMGN, UL, AZN]
+    benchmarks: [SPY, XLV]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -79,6 +86,11 @@ peer_names:
   COP: Conocophillips
   EOG: Eog Resources Inc
   OXY: Occidental Petroleum Corp
+  MRK: Merck & Co., Inc.
+  BMY: Bristol Myers Squibb Co
+  AMGN: Amgen Inc
+  UL: Unilever Plc
+  AZN: Astrazeneca Plc
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -110,6 +122,12 @@ families:
   EOG: energie
   OXY: energie
   BBIO: sante
+  REGN: sante
+  MRK: sante
+  BMY: sante
+  AMGN: sante
+  UL: conso
+  AZN: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -137,3 +155,9 @@ ciks:
   EOG: 821189
   OXY: 797468
   BBIO: 1743881
+  REGN: 872589
+  MRK: 310158
+  BMY: 14272
+  AMGN: 318154
+  UL: 217410
+  AZN: 901832
