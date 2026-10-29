@@ -1,67 +1,67 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.4s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.1s)
-  valeur DCF 140.87 $ | pondérée 138.84 $ | cours 213.55
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
+  valeur DCF 140.87 $ | pondérée 138.84 $ | cours 212.93
 == WMT
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.4s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.5s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.6s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.1s)
-  valeur DCF 54.48 $ | pondérée 56.10 $ | cours 120.945
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.0s)
+  valeur DCF 54.47 $ | pondérée 56.08 $ | cours 121.32
 == GOOG
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.5s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001652044.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json (0.8s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.5s)
   [calendrier] GOOG: date Yahoo périmée (2026-10-28), consensus ignoré jusqu'à sa mise à jour
-  valeur DCF 124.03 $ | pondérée 127.32 $ | cours 283.9
+  valeur DCF 123.87 $ | pondérée 127.15 $ | cours 280.96
 == XOM
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0002115436.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000034088.json (0.1s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0002115436.json (0.0s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0002115436.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000034088.json (0.6s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0002115436.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000034088.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000093410.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000797468.json (0.3s)
-  valeur DCF 105.15 $ | pondérée 107.30 $ | cours 182.01
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000093410.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.9s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.7s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000797468.json (1.0s)
+  valeur DCF 105.14 $ | pondérée 107.29 $ | cours 182.575
 == AMZN
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001018724.json (0.0s)
-  valeur DCF 44.03 $ | pondérée 45.71 $ | cours 246.27
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001018724.json (0.1s)
+  valeur DCF 44.05 $ | pondérée 45.72 $ | cours 245.195
 == BBIO
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001743881.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001743881.json (0.0s)
-  valeur DCF -115.71 $ | pondérée -117.58 $ | cours 71.73
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001743881.json (0.4s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001743881.json (0.2s)
+  valeur DCF -116.06 $ | pondérée -117.94 $ | cours 70.8
 == REGN
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000872589.json (0.4s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000872589.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000872589.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.5s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000318154.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000217410.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000217410.json (0.2s)
   ! pair UL: Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.5s)
   ! pair AZN: Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)
-  valeur DCF 561.96 $ | pondérée 571.46 $ | cours 815.48
-  [membres] {'periods': 49, 'prices': 35, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0}, 'options': {'quotes': 3766, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 1, 'scored': 0, 'crowd_metrics': 0}, 'portfolios': 2, 'badges': 0}
+  valeur DCF 562.00 $ | pondérée 571.50 $ | cours 812.89
+  [membres] {'periods': 49, 'prices': 35, 'orders': {'filled': 1, 'rejected': 0, 'waiting': 0}, 'options': {'quotes': 3756, 'filled': 0, 'rejected': 0, 'waiting': 1, 'settled': 0}, 'predictions': {'total': 3, 'scored': 0, 'crowd_metrics': 0}, 'portfolios': 2, 'badges': 0}
 Erreurs :
   pair UL: Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)
   pair AZN: Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)
