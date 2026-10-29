@@ -65,6 +65,19 @@
    }
   },
   {
+   "id": "e3499dc97214",
+   "date": "2026-10-29",
+   "ticker": "BBIO",
+   "type": "coverage",
+   "title": "BBIO : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 71.93,
+    "value_base": -115.59420529160897,
+    "value_weighted": -117.46057693106115
+   }
+  },
+  {
    "id": "e6a5c996d85e",
    "date": "2026-10-29",
    "ticker": "GOOG",
