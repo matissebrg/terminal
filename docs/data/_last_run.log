@@ -1,22 +1,22 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.1s)
   valeur DCF 140.93 $ | pondérée 138.90 $ | cours 215.38
 == WMT
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.0s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.6s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.0s)
   valeur DCF 54.78 $ | pondérée 56.41 $ | cours 118.77
 == GOOG

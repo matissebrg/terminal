@@ -2,6 +2,5 @@ SUPABASE_DB_URL      : schéma postgresql, hôte aws-0-eu-west-1.pooler.supabase
 SUPABASE_SERVICE_KEY : sb_secret_, 41 caractères (espaces / retours à la ligne internes retirés)
 ARCHER_ADMIN_EMAIL   : présent
 connexion OK : postgres · PostgreSQL 17.11 on aarch64-unknown-linux-gnu
-application de 0005_options.sql
-1 migration(s) appliquée(s), 4 déjà en place.
+0 migration(s) appliquée(s), 5 déjà en place.
 E-mail du fondateur enregistré.
