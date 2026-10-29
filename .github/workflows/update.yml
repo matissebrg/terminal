@@ -95,8 +95,12 @@ jobs:
             echo "Aucun changement de données."
           else
             git commit -m "data: mise à jour $(date -u +'%Y-%m-%d %H:%M') UTC"
-            git pull --rebase --autostash origin main
-            git push
+            # un autre run (ajout de valeur, relance) a pu pousser entre-temps : en cas de conflit sur
+            # docs/data, les données de CE run, les plus récentes, gagnent ; 3 tentatives
+            for i in 1 2 3; do
+              git pull --rebase --autostash -X theirs origin main && git push && break
+              echo "push refusé (tentative $i), nouvel essai"; git rebase --abort 2>/dev/null || true; sleep $((i * 5))
+            done
           fi
 
       - uses: actions/configure-pages@v6

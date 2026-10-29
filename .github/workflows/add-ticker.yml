@@ -92,8 +92,10 @@ jobs:
             echo "Rien de nouveau (valeur déjà suivie ?)."
           else
             git commit -m "couverture : ajout de ${IN_TICKER^^}"
-            git pull --rebase --autostash origin main
-            git push
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin main && git push && break
+              echo "push refusé (tentative $i), nouvel essai"; git rebase --abort 2>/dev/null || true; sleep $((i * 5))
+            done
           fi
           # un push fait avec ce jeton ne relance pas les workflows : relance explicite
           gh workflow run update.yml --ref main
