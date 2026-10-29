@@ -1,32 +1,32 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.6s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.4s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
   valeur DCF 140.93 $ | pondérée 138.90 $ | cours 215.38
 == WMT
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000104169.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.0s)
   valeur DCF 54.78 $ | pondérée 56.41 $ | cours 118.77
 == GOOG
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001652044.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.0s)
   [calendrier] GOOG: date Yahoo périmée (2026-10-28), consensus ignoré jusqu'à sa mise à jour
   valeur DCF 121.88 $ | pondérée 125.11 $ | cours 321.89
-  [membres] {'periods': 21, 'prices': 22, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 4}, 'predictions': {'total': 0, 'scored': 0, 'crowd_metrics': 0}, 'portfolios': 2, 'badges': 0}
+  [membres] {'periods': 21, 'prices': 22, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 4}, 'options': {'quotes': 2008, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 0, 'scored': 0, 'crowd_metrics': 0}, 'portfolios': 2, 'badges': 0}
