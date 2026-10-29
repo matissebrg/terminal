@@ -3,8 +3,8 @@
   "use strict";
   const T = window.T, F = T.fmt;
 
-  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎" };
-  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction" };
+  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎", results: "★" };
+  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction", results: "Résultats" };
 
   T.banner = (meta, status) => {
     let s = "";

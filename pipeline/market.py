@@ -181,6 +181,35 @@ def calendar(sym: str) -> dict:
             "eps_high": f("Earnings High")}
 
 
+def reported_quarters(sym: str) -> list[dict]:
+    """Latest quarterly income statement lines as published (Yahoo, via yfinance), most recent first.
+
+    Used only as a PROVISIONAL view between the earnings release (8-K, not XBRL-tagged) and the
+    10-Q, whose XBRL data feeds the terminal. Raw USD; diluted EPS in $."""
+    import yfinance as yf
+    df = yf.Ticker(sym).quarterly_income_stmt
+    if df is None or getattr(df, "empty", True):
+        return []
+    rows = {"revenue": ("Total Revenue", "Operating Revenue"), "gross_profit": ("Gross Profit",),
+            "operating_income": ("Operating Income", "Total Operating Income As Reported"),
+            "net_income": ("Net Income", "Net Income Common Stockholders"), "eps_diluted": ("Diluted EPS",)}
+    out = []
+    for col in df.columns:
+        rec = {"end": col.date().isoformat() if hasattr(col, "date") else str(col)[:10]}
+        for k, names in rows.items():
+            v = None
+            for n in names:
+                if n in df.index:
+                    x = df.at[n, col]
+                    if x is not None and x == x:   # not NaN
+                        v = float(x)
+                        break
+            rec[k] = v
+        if rec["revenue"]:
+            out.append(rec)
+    return sorted(out, key=lambda r: r["end"], reverse=True)
+
+
 def beta(stock: list[dict], bench: list[dict], weeks: int = 104) -> dict | None:
     """OLS beta of weekly (Friday-to-Friday) log returns over `weeks` weeks, plus Blume adjustment."""
     def weekly(bars):

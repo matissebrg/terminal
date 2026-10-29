@@ -64,6 +64,9 @@ class LiveSource:
     def options_raw(self, sym, spot=None, rf=None, earnings_date=None):
         return options.fetch_raw(sym)
 
+    def reported_quarters(self, sym):
+        return market.reported_quarters(sym)
+
 
 class FixtureSource:
     """Reads synthetic files written by tests/fixtures/make_fixtures.py (no network)."""
@@ -100,6 +103,9 @@ class FixtureSource:
 
     def options_raw(self, sym, spot=None, rf=None, earnings_date=None):
         return options.synthetic_raw(spot, rf, date.today(), earnings_date)
+
+    def reported_quarters(self, sym):
+        return []
 
 
 # --------------------------------------------------------------------------- helpers
@@ -211,6 +217,40 @@ def update_consensus(t: str, today: str, period: str | None, cal: dict | None) -
     return snaps
 
 
+def provisional_results(src, t: str, fin: dict, filings: list[dict], cons: list[dict]) -> dict | None:
+    """Results announced (8-K item 2.02) but not yet in the SEC's XBRL data, which only arrives with
+    the 10-Q / 10-K (usually 1 to 5 days later). Shows the headline figures as PROVISIONAL meanwhile."""
+    nq = predictions.next_quarter(fin)
+    if not nq:
+        return None
+    end = date.fromisoformat(nq["end_estimate"])
+    rel = [f for f in filings if f.get("is_results") and f["form"] == "8-K"
+           and date.fromisoformat(f["filed"]) > end - timedelta(days=5)]
+    if not rel:
+        return None
+    rel = min(rel, key=lambda f: f["filed"])
+    out = {"period": nq["label"], "end_estimate": nq["end_estimate"], "filed": rel["filed"], "url": rel.get("url"),
+           "values": None, "source": None}
+    try:
+        rows = src.reported_quarters(t)
+    except Exception as exc:  # noqa: BLE001 - provisional view only
+        print(f"  [provisoire] {t}: {exc}")
+        rows = []
+    hit = next((r for r in rows if abs((date.fromisoformat(r["end"]) - end).days) <= 12), None)
+    if hit:
+        out["values"] = {k: hit.get(k) for k in ("revenue", "gross_profit", "operating_income", "net_income", "eps_diluted")}
+        out["end"] = hit["end"]
+        out["source"] = "Yahoo Finance (chiffres du communiqué), provisoire jusqu'au dépôt du 10-Q"
+        prev_label = f"Q{nq['q']} FY{nq['fy'] - 1}"
+        prev = predictions.actual(fin, prev_label, "revenue")
+        out["revenue_yoy"] = hit["revenue"] / prev - 1 if prev and hit.get("revenue") else None
+        c = predictions._frozen_consensus(cons, nq["label"], date.fromisoformat(rel["filed"]))
+        if c and c.get("revenue_avg") and hit.get("revenue"):
+            out["consensus_revenue"] = c["revenue_avg"]
+            out["surprise"] = hit["revenue"] / c["revenue_avg"] - 1
+    return out
+
+
 def predict_context(t: str, fin: dict, ne: dict, guidance: dict, cons: list[dict]) -> dict:
     nq = predictions.next_quarter(fin)
     label = nq["label"] if nq else None
@@ -320,6 +360,19 @@ def run(src, only: list[str] | None = None) -> int:
             fins_all[t], filings_all[t], bars_all[t] = fin, filings, bars
             guid_all[t], cons_all[t], ne_all[t] = guid, cons, ne
             write(OUT / t / "predict.json", {"meta": meta, **predict_context(t, fin, ne, guid, cons)})
+            prov = provisional_results(src, t, fin, filings, cons)
+            if prov and prov.get("values"):
+                v = prov["values"]
+                all_events.append({
+                    "id": feed._eid(t, "provisional", prov["period"]), "date": prov["filed"], "ticker": t, "type": "results",
+                    "title": f"{t} : résultats {prov['period']} publiés",
+                    "detail": (f"CA {v['revenue'] / 1e9:,.2f} Md$".replace(",", " ").replace(".", ",")
+                               + (f" ({prov['revenue_yoy'] * 100:+.1f} % sur un an)".replace(".", ",") if prov.get("revenue_yoy") is not None else "")
+                               + (f", consensus {prov['consensus_revenue'] / 1e9:,.2f} Md$ (surprise {prov['surprise'] * 100:+.1f} %)".replace(",", " ").replace(".", ",")
+                                  if prov.get("surprise") is not None else "")
+                               + ". Chiffres du communiqué, provisoires : la valorisation et les prédictions seront mises à jour avec le 10-Q."),
+                    "url": prov.get("url"), "values": {"period": prov["period"], **v},
+                })
 
             # ---- options (best effort: never blocks the run)
             try:
@@ -366,7 +419,7 @@ def run(src, only: list[str] | None = None) -> int:
                 "meta": meta, "ticker": t, "name": cfg["name"], "sector": cfg.get("sector"), "next_earnings": ne,
                 "industry": cfg.get("industry"), "profile": prof, "thesis": assump.get("thesis"),
                 "price": price, "shares": shares, "market_cap": mcap, "perf": perf, "beta": b,
-                "filings": filings[:30], "latest_period": snapshot["latest_period"],
+                "filings": filings[:30], "latest_period": snapshot["latest_period"], "provisional": prov,
             })
             write(OUT / t / "financials.json", {"meta": meta, **{k: fin[k] for k in (
                 "periods", "lines", "ttm", "sources", "labels", "statement", "kinds", "shares_outstanding")},

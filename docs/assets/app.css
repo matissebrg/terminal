@@ -500,3 +500,4 @@ body.is-admin .nav a.admin-only { display: flex; }
 .member-card { flex-wrap: nowrap; }
 .member-card > span[data-user] { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px; min-width: 0; }
 @media (max-width: 600px) { .member-grid { grid-template-columns: minmax(0, 1fr); } }
+.results-banner { background: rgba(41,98,255,.10); border-color: rgba(41,98,255,.35); color: var(--text-2); } .results-banner b { color: var(--text); }

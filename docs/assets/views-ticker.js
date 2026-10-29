@@ -28,6 +28,7 @@
           <span class="chg ${T.cls(p.chg_1d)}">${F.pct(p.chg_1d, 2, true)}</span></div>
         <div class="asof">Clôture du ${F.date(p.date)}<br>Données au ${F.dateTime(co.meta.generated_at)}</div>
       </div>
+      ${provisionalBanner(co)}
       <div class="kpis">
         <div class="kpi"><div class="l">Capitalisation</div><div class="v">${F.usd(co.market_cap)}</div><div class="s">VE ${F.usd(ev)}</div></div>
         <div class="kpi hl"><div class="l">Valeur pondérée (scénarios)</div><div class="v">${F.px(w)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>
@@ -122,6 +123,19 @@
   }
 
   // ================================================================== Synthèse
+  // results announced (8-K) but not yet in the SEC's XBRL data (arrives with the 10-Q)
+  function provisionalBanner(co) {
+    const pv = co.provisional;
+    if (!pv) return "";
+    const v = pv.values;
+    const fig = v ? `CA <b>${F.usd(v.revenue)}</b>${T.isNum(pv.revenue_yoy) ? ` (<span class="${T.cls(pv.revenue_yoy)}">${F.pct(pv.revenue_yoy, 1, true)}</span> sur un an)` : ""}
+        ${T.isNum(pv.surprise) ? ` · consensus ${F.usd(pv.consensus_revenue)}, surprise <b class="${T.cls(pv.surprise)}">${F.pct(pv.surprise, 1, true)}</b>` : ""}
+        ${T.isNum(v.operating_income) ? ` · résultat opérationnel ${F.usd(v.operating_income)}` : ""}${T.isNum(v.net_income) ? ` · résultat net ${F.usd(v.net_income)}` : ""}${T.isNum(v.eps_diluted) ? ` · BPA ${F.n(v.eps_diluted, 2)} $` : ""}`
+      : "chiffres détaillés pas encore disponibles";
+    return `<div class="banner results-banner">◆ <div><b>Résultats ${T.esc(pv.period)} publiés le ${F.date(pv.filed)}</b>${pv.url ? ` (<a href="${T.esc(pv.url)}" target="_blank" rel="noopener">communiqué 8-K ↗</a>)` : ""} : ${fig}.
+      <div class="muted" style="margin-top:3px">Provisoire : le communiqué n'est pas balisé en XBRL. Les états financiers, la valorisation et la vérification des prédictions se mettent à jour automatiquement au dépôt du 10-Q (en général 1 à 5 jours après).${v ? " Source des chiffres : Yahoo Finance." : ""}</div></div></div>`;
+  }
+
   async function synthese(el, tk, co, val) {
     const [px, fin, feed] = await Promise.all([T.get(`${tk}/prices.json`), T.get(`${tk}/financials.json`), T.get("feed.json")]);
     const ttm = fin.ttm;
