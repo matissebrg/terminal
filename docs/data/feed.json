@@ -96,6 +96,34 @@
    }
   },
   {
+   "id": "5c23b2ebc9b1",
+   "date": "2026-10-29",
+   "ticker": "XOM",
+   "type": "valuation",
+   "title": "XOM : valeur DCF 83,44 $ → 105,15 $ (+26,0 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 182,02 $, potentiel -42,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 21.7094
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 83.44387003575694,
+    "to": 105.15327798604224,
+    "change": 0.2601677983173898,
+    "price": 182.02
+   }
+  },
+  {
    "id": "25fe6125c2c2",
    "date": "2026-10-28",
    "ticker": "NVDA",
