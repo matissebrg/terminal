@@ -78,6 +78,19 @@
    }
   },
   {
+   "id": "85a59536a2bc",
+   "date": "2026-10-29",
+   "ticker": "REGN",
+   "type": "coverage",
+   "title": "REGN : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 815.48,
+    "value_base": 561.9570993706599,
+    "value_weighted": 571.455757697687
+   }
+  },
+  {
    "id": "e6a5c996d85e",
    "date": "2026-10-29",
    "ticker": "GOOG",
