@@ -334,7 +334,10 @@
         <div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>Portefeuille</th><th>Membre</th><th class="n">Valeur</th><th class="n">Performance</th><th class="n">Créé le</th></tr></thead><tbody>
         ${ranking.map((p, i) => `<tr style="cursor:pointer" data-href="#/portefeuilles/${p.id}"><td class="n">${i + 1}</td><td><b>${T.esc(p.name)}</b></td><td data-user="${T.esc(uname[p.user_id] || "")}">${T.esc(uname[p.user_id] || "?")}</td>
           <td class="n">${F.n(p.value, 0)} $</td><td class="n ${T.cls(p.perf)}"><b>${F.pct(p.perf, 2, true)}</b></td><td class="n">${F.date(p.created_at.slice(0, 10))}</td></tr>`).join("") || '<tr><td colspan="6"><div class="empty">Aucun portefeuille pour l\'instant.</div></td></tr>'}
-        </tbody></table></div></div>`;
+        </tbody></table></div></div>
+      <div class="panel" style="margin-top:14px"><h3>Membres <span class="hint">clique sur un pseudo pour voir son profil</span></h3>
+        <div class="member-grid">${profiles.slice().sort((a, b) => a.username.localeCompare(b.username)).map((p) => `<a class="member-card" href="#/membre/${encodeURIComponent(p.username)}">
+          <span class="conv-av">${T.esc(p.username.slice(0, 1).toUpperCase())}</span><span data-user="${T.esc(p.username)}"><b>${T.esc(p.username)}</b></span></a>`).join("")}</div></div>`;
     T.$$("tr[data-href]").forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
     if (T.badges && T.badges.decorate) T.badges.decorate(view);
   });

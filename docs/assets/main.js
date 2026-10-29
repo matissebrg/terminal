@@ -47,7 +47,8 @@
       ...(T.members && T.members.configured ? [
         { label: "Communauté classement membres", kind: "page", href: "#/communaute", icon: "◎" },
         { label: "Portefeuilles fictifs ordres", kind: "page", href: "#/portefeuilles", icon: "▤" },
-        { label: "Mon compte connexion invitation", kind: "page", href: "#/compte", icon: "●" }] : []),
+        { label: "Mon compte connexion invitation badges titre", kind: "page", href: "#/compte", icon: "●" },
+        { label: "Messages messagerie conversations", kind: "page", href: "#/messages", icon: "✉" }] : []),
     ];
     window.addEventListener("hashchange", T.render);
     T.render();

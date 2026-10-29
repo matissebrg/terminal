@@ -20,16 +20,35 @@
     eye: '<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     chart: '<path d="M4 19h16"/><path d="M5 16l4.5-5 3.5 3 6-7"/><path d="M15 7h4v4"/>',
     bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 17.5l9 5 9-5" opacity=".5"/>',
+    pie: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>',
+    crosshair: '<circle cx="12" cy="12" r="8"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/>',
+    crown: '<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 10H5z"/><path d="M5 21h14"/>',
+    swap: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+    road: '<path d="M8 3L4 21M16 3l4 18M12 4v3M12 10.5v3M12 17v3"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    alpha: '<path d="M18 7c-1 6-2.5 10-6.5 10A4.5 4.5 0 0 1 7 12.5C7 9 9.5 7 12 7c3 0 4 3.5 6 10"/>',
+    scalpel: '<path d="M3 21l9-9"/><path d="M12 12l6.5-6.5a2.1 2.1 0 0 1 3 3L15 15z"/>',
+    flame: '<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.6 1.2 2.5 2 2.5 0-3-1-5 1-8z"/>',
+    rocket: '<path d="M14 4c3-1 6-1 6-1s0 3-1 6l-6 6-4-4z"/><path d="M9 11l-4 1-2 3 4 1M13 15l-1 4-3 2-1-4"/><circle cx="15.5" cy="8.5" r="1.3"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12.5h5"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   };
   const svg = (name, size = 22) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ICONS.target}</svg>`;
 
   // silver hexagonal medal (same visual language as the status badges)
-  B.medal = (b, size = 46, locked = false) => `<span class="medal ${locked ? "locked" : ""}" style="width:${size}px;height:${size}px" title="${T.esc(b.name)}">
-      <svg viewBox="0 0 48 48" width="${size}" height="${size}" class="medal-frame"><defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f4f6fa"/><stop offset=".45" stop-color="#9aa3b2"/><stop offset=".7" stop-color="#e3e7ee"/><stop offset="1" stop-color="#6d7584"/></linearGradient></defs>
-        <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="#07090d" stroke="url(#mg)" stroke-width="1.6"/>
+  // frame colour by difficulty: 1 bronze, 2 argent, 3 or, 4 platine
+  const LEVELS = { 1: ["Bronze", ["#f3c39a", "#a8673a", "#e8b088", "#6e3f22"]], 2: ["Argent", ["#f4f6fa", "#9aa3b2", "#e3e7ee", "#6d7584"]],
+    3: ["Or", ["#fff1b8", "#c9971f", "#ffe08a", "#7a5a10"]], 4: ["Platine", ["#e9fbff", "#7fc8de", "#ffffff", "#4f8fa6"]] };
+  B.LEVELS = LEVELS;
+  B.medal = (b, size = 46, locked = false) => { const lv = LEVELS[b.level] ? b.level : 2, c = LEVELS[lv][1];
+    return `<span class="medal lv${lv} ${locked ? "locked" : ""}" style="width:${size}px;height:${size}px" title="${T.esc(b.name || "")}${b.level ? " · " + LEVELS[lv][0] : ""}">
+      <svg viewBox="0 0 48 48" width="${size}" height="${size}" class="medal-frame"><defs><linearGradient id="mg${lv}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient></defs>
+        <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="#07090d" stroke="url(#mg${lv})" stroke-width="${lv >= 3 ? 2 : 1.6}"/>
         <path d="M24 6.5l15.2 8.8v17.4L24 41.5 8.8 32.7V15.3z" fill="none" stroke="rgba(255,255,255,.08)"/></svg>
-      <span class="medal-icon">${svg(b.icon, Math.round(size * 0.44))}</span></span>`;
+      <span class="medal-icon">${svg(b.icon, Math.round(size * 0.44))}</span></span>`; };
 
   B.tierImg = (b, h = 22) => `<img class="tier-img" src="assets/badges/${b.image}" alt="${T.esc(b.name)}" title="${T.esc(b.name)} : ${T.esc(b.description)}" style="height:${h}px">`;
 
@@ -49,8 +68,12 @@
   B.loadAll = async () => {
     await B.load();
     const [ub, pr] = await Promise.all([M.sb.from("user_badges").select("user_id, badge_id, awarded_at"),
-      M.sb.from("profiles").select("id, username")]);
+      M.sb.from("profiles").select("id, username, title_badge")]);
     const name = Object.fromEntries((pr.data || []).map((p) => [p.id, p.username]));
+    B.titleOf = Object.fromEntries((pr.data || []).map((p) => [p.username, p.title_badge]));
+    B.memberCount = (pr.data || []).length;
+    B.holders = {};
+    (ub.data || []).forEach((r) => { B.holders[r.badge_id] = (B.holders[r.badge_id] || 0) + 1; });
     B.byUser = {};
     (ub.data || []).forEach((r) => { const u = name[r.user_id]; if (u) (B.byUser[u] = B.byUser[u] || []).push(r.badge_id); });
     return B.byUser;
@@ -70,26 +93,52 @@
     const els = T.$$("[data-user]", root);
     if (!els.length) return;
     try { await B.loadAll(); } catch (e) { return; }
-    els.forEach((el) => { if (!el.querySelector(".badge-inline")) el.insertAdjacentHTML("beforeend", " " + B.inline(B.byUser[el.dataset.user])); });
+    els.forEach((el) => {
+      if (el.querySelector(".badge-inline") || !el.dataset.user) return;
+      const u = el.dataset.user, t = B.titleOf && B.titleOf[u] && B.byId[B.titleOf[u]];
+      el.insertAdjacentHTML("beforeend", (t && t.title ? ` <span class="utitle">${T.esc(t.title)}</span>` : "") + " " + B.inline(B.byUser[u]));
+      if (!el.closest("a")) { el.classList.add("ulink"); el.addEventListener("click", (e) => { e.stopPropagation(); T.go(`#/membre/${encodeURIComponent(u)}`); }); }
+    });
   };
 
   // ------------------------------------------------------------------ Mon compte : vitrine + admin
-  B.renderAccount = async (box, adminBox) => {
-    await B.load(true);
-    const { data: mine } = await M.sb.from("user_badges").select("*").eq("user_id", T.member.id);
-    const have = Object.fromEntries((mine || []).map((r) => [r.badge_id, r]));
+  // badge showcase (Mon compte, and read-only on a member's profile)
+  B.showcase = (have, opts = {}) => {
     const tiers = B.catalog.filter((b) => b.kind === "tier");
     const ach = B.catalog.filter((b) => b.kind === "achievement");
+    const rare = (b) => (B.memberCount ? `<span class="rarity">${Math.round(100 * (B.holders[b.id] || 0) / B.memberCount)} % des membres</span>` : "");
     const got = ach.filter((b) => have[b.id]).length;
-    box.innerHTML = `<h3>Mes badges <span class="hint">${Object.keys(have).length} obtenu(s)</span></h3>
-      <div class="group-title" style="margin-top:0">Statut</div>
-      <div class="tier-grid">${tiers.map((b) => `<div class="tier-card ${have[b.id] ? "" : "locked"}">${B.tierImg(b, 54)}
+    const shownTiers = opts.ownedOnly ? tiers.filter((b) => have[b.id]) : tiers;
+    return `<div class="group-title" style="margin-top:0">Statut</div>
+      <div class="tier-grid">${shownTiers.map((b) => `<div class="tier-card ${have[b.id] ? "" : "locked"}">${B.tierImg(b, 54)}
           <div class="tier-meta"><b>${T.esc(b.name)}</b> <span class="bars">${"▰".repeat(b.rank)}</span><div class="muted">${T.esc(b.description)}</div>
-          <div class="note" style="margin-top:4px">${have[b.id] ? `Obtenu le ${F.date(have[b.id].awarded_at.slice(0, 10))}${have[b.id].note ? " · " + T.esc(have[b.id].note) : ""}` : b.auto ? "À débloquer" : "Attribué par un administrateur"}</div></div></div>`).join("")}</div>
+          <div class="note" style="margin-top:4px">${have[b.id] ? `Obtenu le ${F.date(have[b.id].awarded_at.slice(0, 10))}${have[b.id].note ? " · " + T.esc(have[b.id].note) : ""}` : b.auto ? "À débloquer" : "Attribué par un administrateur"}${b.title ? ` · titre « ${T.esc(b.title)} »` : ""}</div></div></div>`).join("") || '<div class="muted">Aucun statut.</div>'}</div>
       <div class="group-title">Succès <span class="muted" style="text-transform:none;letter-spacing:0">${got} / ${ach.length}</span></div>
-      <div class="ach-grid">${ach.map((b) => `<div class="ach ${have[b.id] ? "" : "locked"}">${B.medal(b, 46, !have[b.id])}
+      ${[1, 2, 3, 4].map((lv) => { const list = ach.filter((b) => (b.level || 1) === lv && (!opts.ownedOnly || have[b.id]));
+        if (!list.length) return "";
+        return `<div class="lv-title lv${lv}">${B.LEVELS[lv][0]} <span class="muted">${list.filter((b) => have[b.id]).length} / ${list.length}</span></div>
+        <div class="ach-grid">${list.map((b) => `<div class="ach ${have[b.id] ? "" : "locked"}">${B.medal(b, 46, !have[b.id])}
           <div><b>${T.esc(b.name)}</b><div class="muted">${T.esc(b.description)}</div>
-          ${have[b.id] ? `<div class="note" style="margin-top:2px">Obtenu le ${F.date(have[b.id].awarded_at.slice(0, 10))}</div>` : ""}</div></div>`).join("")}</div>`;
+          <div class="note" style="margin-top:2px">${have[b.id] ? `Obtenu le ${F.date(have[b.id].awarded_at.slice(0, 10))} · ` : ""}${rare(b)}${b.title ? ` · titre « ${T.esc(b.title)} »` : ""}</div></div></div>`).join("")}</div>`; }).join("")}`;
+  };
+
+  B.renderAccount = async (box, adminBox) => {
+    await B.load(true);
+    await B.loadAll();
+    const { data: mine } = await M.sb.from("user_badges").select("*").eq("user_id", T.member.id);
+    const have = Object.fromEntries((mine || []).map((r) => [r.badge_id, r]));
+    const titles = B.catalog.filter((b) => b.title && have[b.id]);
+    box.innerHTML = `<h3>Mes badges <span class="hint">${Object.keys(have).length} obtenu(s)</span></h3>
+      <form id="tform" class="row" style="margin-bottom:14px"><label class="inline">Titre affiché à côté de mon pseudo
+        <select name="t" class="sel"><option value="">Aucun</option>${titles.map((b) => `<option value="${b.id}" ${T.member.title_badge === b.id ? "selected" : ""}>${T.esc(b.title)}</option>`).join("")}</select></label>
+        <span class="note" id="tmsg" style="margin:0">${titles.length ? "" : "Débloque un succès d'argent ou plus pour obtenir un titre."}</span></form>
+      ${B.showcase(have)}`;
+    T.$("#tform select").addEventListener("change", async (e) => {
+      const r = await M.sb.from("profiles").update({ title_badge: e.target.value || null }).eq("id", T.member.id);
+      T.$("#tmsg").className = r.error ? "note warn" : "note up";
+      T.$("#tmsg").textContent = r.error ? r.error.message : "Titre mis à jour ✓";
+      if (!r.error) T.member.title_badge = e.target.value || null;
+    });
     if (!adminBox) return;
     const { data: profs } = await M.sb.from("profiles").select("username").order("username");
     adminBox.innerHTML = `<h3>Attribuer un badge <span class="hint">administrateur</span></h3>
@@ -128,7 +177,7 @@
       <div class="notif-panel ${open ? "open" : ""}" id="notifPanel">
         <div class="notif-h"><b>Notifications</b>${unread ? '<button class="btn" id="notifAll">Tout marquer comme lu</button>' : ""}</div>
         <div class="notif-list">${notes.length ? notes.map((n) => `<a class="notif ${n.read_at ? "" : "unread"}" href="${T.esc(n.link || "#/compte")}" data-id="${n.id}">
-            <span class="notif-ic">${n.kind === "badge" && n.data && n.data.image ? `<img src="assets/badges/${T.esc(n.data.image)}" alt="">` : n.kind === "badge" && n.data ? B.medal({ name: "", icon: n.data.icon }, 30) : svg("bell", 18)}</span>
+            <span class="notif-ic">${n.kind === "badge" && n.data && n.data.image ? `<img src="assets/badges/${T.esc(n.data.image)}" alt="">` : n.kind === "badge" && n.data ? B.medal({ name: "", icon: n.data.icon, level: (B.byId && B.byId[n.data.badge_id] || {}).level }, 30) : svg(n.kind === "message" ? "chat" : n.kind === "report" ? "flag" : "bell", 20)}</span>
             <span><b>${T.esc(n.title)}</b><span class="muted">${T.esc(n.body || "")}</span><span class="notif-t">${F.dateTime(n.created_at)}</span></span></a>`).join("")
           : '<div class="empty" style="margin:10px">Aucune notification pour l\'instant.</div>'}</div></div>`;
     T.$("#bellBtn").onclick = (e) => { e.stopPropagation(); open = !open; T.$("#notifPanel").classList.toggle("open", open); if (open) markRead(null); };
@@ -182,6 +231,9 @@
     if (error) return;
     notes = data;
     drawBell();
+    const msgs = notes.filter((n) => n.kind === "message" && !n.read_at).length;
+    const nav = T.$('.nav a[data-nav="messages"]');
+    if (nav) nav.dataset.unread = msgs ? String(msgs) : "";
     await B.load();
     const s = shown();
     notes.filter((n) => n.kind === "badge" && !n.read_at && !s.has(n.id)).reverse().forEach(toast);

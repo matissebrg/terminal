@@ -267,7 +267,7 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
                 pos[tr["ticker"]] = pos.get(tr["ticker"], 0.0) + (q if tr["side"] == "buy" else -q)
         value = float(pf["cash"]) + sum(q * last.get(s, 0.0) for s, q in pos.items())
         rows.append({"portfolio_id": pf["id"], "date": now.date().isoformat(), "value": round(value, 2),
-                     "cash": float(pf["cash"])})
+                     "cash": float(pf["cash"]), "spy_close": last.get("SPY")})   # benchmark for « Alpha »
     if rows:
         client.upsert("portfolio_values", rows, "portfolio_id,date")
     summary["portfolios"] = len(rows)

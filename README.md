@@ -75,6 +75,16 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   classés, ou attribué) ; 11 succès automatiques (première prédiction, raisonnement, multi-valeurs, premier ordre,
   CA à moins de 1 %, mieux que la foule, mieux que Wall Street, régulier, bien calibré, oracle, portefeuille +10 %).
   Chaque badge crée une notification (cloche + animation). Personne ne peut s'attribuer un badge.
+- **Succès à 4 niveaux** (bronze, argent, or, platine ; `0003_social.sql`) : les plus durs récompensent la précision et la
+  calibration, jamais le volume, et exigent un minimum de résultats (ex. Chirurgien : CA à 0,25 % ; Fléau de Wall Street :
+  bat le consensus 3 publications de suite ; Maître de la calibration : 20 intervalles, 75 à 85 % de réussite ; Alpha :
+  portefeuille qui bat le S&P 500 sur 90 jours). Rareté affichée (% des membres qui l'ont).
+- **Titres** : chaque badge d'argent ou plus donne un titre, affiché à côté du pseudo (choisi dans *Mon compte*, vérifié par la base).
+- **Profils** (`#/membre/<pseudo>`) : statut, titre, statistiques, badges, portefeuilles visibles et prédictions
+  après la date limite. **Liste des membres** avec e-mails et dernières connexions : administrateurs seulement.
+- **Messagerie privée** : lisible uniquement par les deux membres (pas par les administrateurs) ; blocage, 30 messages
+  par 10 minutes, signalement (seul le message signalé est transmis aux administrateurs). Pas de chiffrement de bout en
+  bout : les messages sont stockés dans la base Supabase. Rafraîchissement toutes les 8 secondes dans une conversation.
 
 **Activation (une fois) :**
 
@@ -159,7 +169,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 132 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
+python -m pytest -q                                   # 140 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py
