@@ -15,6 +15,7 @@ benchmarks:
   SOXX: Semi-conducteurs (ETF iShares SOXX)
   XLP: Consommation de base (ETF XLP)
   XLK: Technologie (ETF XLK)
+  XLE: Énergie (ETF XLE)
 
 beta_benchmark: SPY
 
@@ -37,6 +38,12 @@ tickers:
     industry: Recherche en ligne, publicité, cloud, YouTube
     peers: [MSFT, META, PLTR, ORCL]
     benchmarks: [SPY, XLK]
+  XOM:
+    name: ExxonMobil Holdings Corp
+    sector: Énergie
+    industry: Pétrole et gaz intégrés, raffinage, chimie
+    peers: [CVX, COP, EOG, OXY]
+    benchmarks: [SPY, XLE]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -55,6 +62,10 @@ peer_names:
   META: Meta Platforms, Inc.
   PLTR: Palantir Technologies Inc.
   ORCL: Oracle Corp
+  CVX: Chevron Corp
+  COP: Conocophillips
+  EOG: Eog Resources Inc
+  OXY: Occidental Petroleum Corp
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -80,6 +91,11 @@ families:
   DG: conso
   AMZN: conso
   XLP: conso
+  XOM: energie
+  CVX: energie
+  COP: energie
+  EOG: energie
+  OXY: energie
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -101,3 +117,8 @@ ciks:
   META: 1326801
   PLTR: 1321655
   ORCL: 1341439
+  XOM: 2115436
+  CVX: 93410
+  COP: 1163165
+  EOG: 821189
+  OXY: 797468
