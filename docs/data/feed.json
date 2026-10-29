@@ -14,6 +14,34 @@
    }
   },
   {
+   "id": "e6a5c996d85e",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 45,14 $ → 129,60 $ (+187,1 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 321,89 $, potentiel -59,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 84.4629
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 45.135008674039064,
+    "to": 129.59788655238486,
+    "change": 1.871338465631613,
+    "price": 321.89
+   }
+  },
+  {
    "id": "25fe6125c2c2",
    "date": "2026-10-28",
    "ticker": "NVDA",
