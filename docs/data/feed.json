@@ -1,23 +1,23 @@
 {
  "events": [
   {
-   "id": "3ac7ebafcf7b",
+   "id": "18d8b514a0db",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:56:14Z",
-   "ticker": "SMMT",
+   "ts": "2026-10-30T23:58:57Z",
+   "ticker": "CAPR",
    "type": "coverage",
-   "title": "SMMT : couverture initiée",
+   "title": "CAPR : couverture initiée",
    "detail": "Premier calcul de valorisation à partir des données SEC.",
    "values": {
-    "price": 16.03,
-    "value_base": 0.8657829452605605,
-    "value_weighted": 0.8657829452605605
+    "price": 6.38,
+    "value_base": 4.092516675857573,
+    "value_weighted": 4.092516675857573
    }
   },
   {
    "id": "6bda3e11e518",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:56:06Z",
+   "ts": "2026-10-30T23:58:47Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 562,00 $ → 623,52 $ (+10,9 %)",
@@ -46,7 +46,7 @@
   {
    "id": "b965f17dc434",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:55:56Z",
+   "ts": "2026-10-30T23:58:38Z",
    "ticker": "BBIO",
    "type": "valuation",
    "title": "BBIO : valeur DCF -116,06 $ → 71,33 $ (+161,5 %)",
@@ -75,7 +75,7 @@
   {
    "id": "5a85556e441e",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:55:53Z",
+   "ts": "2026-10-30T23:58:35Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 44,05 $ → 14,45 $ (-67,2 %)",
@@ -104,7 +104,7 @@
   {
    "id": "d207681eeb01",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:55:40Z",
+   "ts": "2026-10-30T23:58:24Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 123,87 $ → 120,95 $ (-2,4 %)",
@@ -128,6 +128,20 @@
     "to": 120.95474521890496,
     "change": -0.023552623045558455,
     "price": 278.22
+   }
+  },
+  {
+   "id": "3ac7ebafcf7b",
+   "date": "2026-10-30",
+   "ts": "2026-10-30T23:56:14Z",
+   "ticker": "SMMT",
+   "type": "coverage",
+   "title": "SMMT : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 16.03,
+    "value_base": 0.8657829452605605,
+    "value_weighted": 0.8657829452605605
    }
   },
   {
