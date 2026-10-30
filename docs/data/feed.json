@@ -3,7 +3,7 @@
   {
    "id": "6bda3e11e518",
    "date": "2026-10-30",
-   "ts": "2026-10-30T22:58:03Z",
+   "ts": "2026-10-30T23:21:37Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 562,00 $ → 623,52 $ (+10,9 %)",
@@ -32,11 +32,11 @@
   {
    "id": "b965f17dc434",
    "date": "2026-10-30",
-   "ts": "2026-10-30T22:57:47Z",
+   "ts": "2026-10-30T23:21:27Z",
    "ticker": "BBIO",
    "type": "valuation",
-   "title": "BBIO : valeur DCF -116,06 $ → -143,68 $ (-23,8 %)",
-   "detail": "Valeur DCF négative : le modèle ne capte pas cette société (pré-rentable ?).",
+   "title": "BBIO : valeur DCF -116,06 $ → 71,33 $ (+161,5 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 74,95 $, potentiel -4,8 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -44,24 +44,24 @@
     },
     {
      "label": "Hypothèses modifiées",
-     "delta": 0.0
+     "delta": 214.5571
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -0.447
+     "delta": 0.0
     }
    ],
    "values": {
     "from": -116.06054859510563,
-    "to": -143.67568606129538,
-    "change": -0.23793733357688354,
+    "to": 71.32842711076378,
+    "change": 1.6145794412845966,
     "price": 74.95
    }
   },
   {
    "id": "5a85556e441e",
    "date": "2026-10-30",
-   "ts": "2026-10-30T22:57:43Z",
+   "ts": "2026-10-30T23:21:23Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 44,05 $ → 14,45 $ (-67,2 %)",
@@ -90,7 +90,7 @@
   {
    "id": "d207681eeb01",
    "date": "2026-10-30",
-   "ts": "2026-10-30T22:57:18Z",
+   "ts": "2026-10-30T23:21:10Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 123,87 $ → 120,95 $ (-2,4 %)",
