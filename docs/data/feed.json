@@ -3,7 +3,7 @@
   {
    "id": "6bda3e11e518",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:21:37Z",
+   "ts": "2026-10-30T23:53:25Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 562,00 $ → 623,52 $ (+10,9 %)",
@@ -32,7 +32,7 @@
   {
    "id": "b965f17dc434",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:21:27Z",
+   "ts": "2026-10-30T23:53:17Z",
    "ticker": "BBIO",
    "type": "valuation",
    "title": "BBIO : valeur DCF -116,06 $ → 71,33 $ (+161,5 %)",
@@ -61,7 +61,7 @@
   {
    "id": "5a85556e441e",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:21:23Z",
+   "ts": "2026-10-30T23:53:14Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 44,05 $ → 14,45 $ (-67,2 %)",
@@ -90,7 +90,7 @@
   {
    "id": "d207681eeb01",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:21:10Z",
+   "ts": "2026-10-30T23:53:04Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 123,87 $ → 120,95 $ (-2,4 %)",
