@@ -20,6 +20,8 @@ ticker: BBIO
 updated: 2026-10-29
 thesis: >
   À écrire : pourquoi cette valeur, ce que le marché price, ce qui ferait changer d'avis.
+  (Valeur suivie par rNPV : le DCF ci-dessous, construit sur des marges encore négatives, n'est gardé
+  que pour référence.)
 
 dcf:
   years: 10
@@ -61,14 +63,14 @@ scenarios:
     overrides:
       dcf:
         revenue_growth: [0.43, 0.356, 0.282, 0.208, 0.134]
-        ebit_margin_target: -0.803
+        ebit_margin_target: -0.593
   bear:
     probability: 0.25
     narrative: Croissance inférieure de 3 points et marge cible -15 % (à préciser).
     overrides:
       dcf:
         revenue_growth: [0.37, 0.296, 0.222, 0.148, 0.074]
-        ebit_margin_target: -0.593
+        ebit_margin_target: -0.803
 
 comps:
   peers: []
@@ -83,3 +85,136 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - valeur du portefeuille de médicaments, pondérée par la probabilité de succès
+# ----------------------------------------------------------------------------
+# HYPOTHÈSES DE DÉPART posées le 31/10/2026 pour faire tourner le modèle : les pics de ventes, dates
+# de perte d'exclusivité et marges ci-dessous sont des ordres de grandeur, PAS un consensus. À
+# remplacer par ta recherche (taille de population, prix, pénétration, brevets, guidance).
+# Faits (communiqué T3 2026 du 29/10/2026) : Attruby US 253,2 M$ au T3 ; redevances Bayer 20,5 M$ ;
+# BBP-418 PDUFA 27/11/2026 ; infigratinib (achondroplasie) PDUFA 04/02/2027 ; encaleret (ADH1)
+# PDUFA 08/05/2027 ; encaleret (hypoparathyroïdie chronique) phase 3 RECLAIM-HP, résultats début 2028.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+#
+# stage : phase1 | phase2 | phase3 | filed | marketed
+# area  : taux de succès historiques (BIO 2011-2020) : rare, oncology, cardiovascular, endocrine,
+#         neurology, metabolic, hematology, autoimmune... ; pos: auto = produit des taux restants
+# Montants en $ ; peak_sales = ventes au pic (part économique : share, ou royalty_rate si licencié)
+# ============================================================================
+rnpv:
+  primary: true            # la valeur affichée (en-tête, tableau de bord, portefeuilles) est la rNPV
+  discount_rate: 0.10      # le risque d'échec est dans les probabilités, pas dans le taux
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto           # trésorerie + placements - dette (convertibles comptées à leur nominal)
+  corporate:
+    annual_cost: 250000000 # frais centraux non affectés aux programmes, par an
+    years: 10
+  assets:
+    - name: Attruby (acoramidis), États-Unis
+      indication: Cardiomyopathie amyloïde à transthyrétine (ATTR-CM)
+      stage: marketed
+      area: cardiovascular
+      launch_year: 2025
+      peak_sales: 2500000000
+      years_to_peak: 6
+      loe_year: 2038          # à vérifier (brevets)
+      cogs_pct: 0.08
+      opex_pct: 0.30
+    - name: BEYONTTRA (redevances Bayer, Europe)
+      indication: ATTR-CM
+      stage: marketed
+      area: cardiovascular
+      launch_year: 2025
+      peak_sales: 800000000   # ventes de Bayer ; BridgeBio touche une redevance
+      royalty_rate: 0.30      # paliers « low-thirties » (contrat Bayer 2024), à vérifier
+      years_to_peak: 6
+      loe_year: 2038
+    - name: BBP-418
+      indication: Dystrophie des ceintures LGMD2I/R9
+      stage: filed
+      area: rare
+      launch_year: 2027
+      peak_sales: 700000000
+      years_to_peak: 6
+      loe_year: 2041
+      cogs_pct: 0.10
+      opex_pct: 0.30
+    - name: Infigratinib (achondroplasie)
+      indication: Achondroplasie
+      stage: filed
+      area: rare
+      launch_year: 2027
+      peak_sales: 1500000000
+      years_to_peak: 6
+      loe_year: 2040
+      cogs_pct: 0.08
+      opex_pct: 0.30
+    - name: Encaleret (ADH1)
+      indication: Hypocalcémie autosomique dominante de type 1
+      stage: filed
+      area: rare
+      launch_year: 2027
+      peak_sales: 400000000
+      years_to_peak: 5
+      loe_year: 2040
+      cogs_pct: 0.10
+      opex_pct: 0.30
+    - name: Encaleret (hypoparathyroïdie chronique)
+      indication: Hypoparathyroïdie chronique
+      stage: phase3
+      area: endocrine
+      launch_year: 2029
+      peak_sales: 1000000000
+      years_to_peak: 6
+      loe_year: 2040
+      dev_cost: 200000000
+      cogs_pct: 0.10
+      opex_pct: 0.30
+    - name: Infigratinib (hypochondroplasie)
+      indication: Hypochondroplasie
+      stage: phase2
+      area: rare
+      launch_year: 2030
+      peak_sales: 600000000
+      years_to_peak: 6
+      loe_year: 2040
+      dev_cost: 150000000
+      cogs_pct: 0.08
+      opex_pct: 0.30
+
+# Calendrier des catalyseurs. outcome: success | failure | mixed une fois l'événement passé.
+catalysts:
+  - id: bbp418-pdufa
+    date: 2026-11-27
+    kind: pdufa
+    asset: BBP-418
+    title: Décision de la FDA sur BBP-418 (examen prioritaire, pas de comité consultatif prévu)
+    confirmed: true
+    source: https://www.globenewswire.com/news-release/2026/10/29/3391801/0/en/bridgebio-reports-third-quarter-2026-financial-results-and-corporate-updates.html
+  - id: infigratinib-ach-pdufa
+    date: 2027-02-04
+    kind: pdufa
+    asset: Infigratinib (achondroplasie)
+    title: Décision de la FDA sur l'infigratinib oral dans l'achondroplasie (examen prioritaire)
+    confirmed: true
+    source: https://www.globenewswire.com/news-release/2026/10/29/3391801/0/en/bridgebio-reports-third-quarter-2026-financial-results-and-corporate-updates.html
+  - id: encaleret-adh1-pdufa
+    date: 2027-05-08
+    kind: pdufa
+    asset: Encaleret (ADH1)
+    title: Décision de la FDA sur l'encaleret dans l'ADH1 (examen prioritaire)
+    confirmed: true
+    source: https://www.globenewswire.com/news-release/2026/10/29/3391801/0/en/bridgebio-reports-third-quarter-2026-financial-results-and-corporate-updates.html
+  - id: encaleret-hp-topline
+    date: 2028-02-15
+    kind: readout
+    asset: Encaleret (hypoparathyroïdie chronique)
+    title: Résultats principaux de la phase 3 RECLAIM-HP (« début 2028 », date approximative)
+    confirmed: false
+    source: https://www.globenewswire.com/news-release/2026/10/29/3391801/0/en/bridgebio-reports-third-quarter-2026-financial-results-and-corporate-updates.html
+
+# Essais cliniques suivis sur ClinicalTrials.gov (promoteur principal : la société et ses filiales)
+trials:
+  sponsors: [BridgeBio, QED Therapeutics, Calcilytix, ML Bio Solutions, Eidos Therapeutics]

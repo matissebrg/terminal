@@ -12,7 +12,7 @@ What it does
      - tax rate: effective rate TTM, kept within 10 %-30 %
      - working capital: operating NWC / revenue of the last fiscal year (negative for retailers
        paid by customers before they pay suppliers)
-     - bull / bear: growth ±3 pts and margin ×1.15 / ×0.85
+     - bull / bear: growth ±3 pts and margin ±15 % of its size (better / worse, also when negative)
    These are deliberately mechanical: they describe the past, not a view. Writing the view
    (thesis, growth, margins, scenarios, guidance) is the exercise.
 3. Writes config/assumptions/<TICKER>.yaml (never overwrites an existing file without --force)
@@ -215,14 +215,14 @@ scenarios:
     overrides:
       dcf:
         revenue_growth: {_fmt_list(bull)}
-        ebit_margin_target: {round(m * 1.15, 3)}
+        ebit_margin_target: {round(m + 0.15 * abs(m), 3)}
   bear:
     probability: 0.25
     narrative: Croissance inférieure de 3 points et marge cible -15 % (à préciser).
     overrides:
       dcf:
         revenue_growth: {_fmt_list(bear)}
-        ebit_margin_target: {round(m * 0.85, 3)}
+        ebit_margin_target: {round(m - 0.15 * abs(m), 3)}
 
 comps:
   peers: [{", ".join(peers)}]

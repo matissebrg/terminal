@@ -13,11 +13,13 @@
   T.route(/^\/t\/([A-Za-z.\-]+)(?:\/(\w+))?$/, async (view, tk, tab) => {
     tk = tk.toUpperCase();
     tab = tab || "synthese";
-    const [co, val, status] = await Promise.all([T.get(`${tk}/company.json`), T.get(`${tk}/valuation.json`),
-      T.get("status.json").catch(() => null)]);
+    const [co, val, status, bio] = await Promise.all([T.get(`${tk}/company.json`), T.get(`${tk}/valuation.json`),
+      T.get("status.json").catch(() => null), T.getBio ? T.getBio(tk) : null]);
     const p = co.perf || {};
     const sc = val.scenarios || {};
-    const w = sc.weighted_value_per_share, base = val.dcf.result.value_per_share;
+    const rn = bio && bio.rnpv && bio.rnpv.primary ? bio.rnpv : null;
+    const w = rn ? rn.value_per_share : sc.weighted_value_per_share, base = val.dcf.result.value_per_share;
+    const tabs = bio ? [...TABS.slice(0, 4), ["biotech", "Biotech"], ...TABS.slice(4)] : TABS;
     const up = T.isNum(w) && T.isNum(co.price) ? w / co.price - 1 : null;
     const ev = val.target ? val.target.enterprise_value : null;
     view.innerHTML = `${T.banner(co.meta, status)}
@@ -31,21 +33,21 @@
       ${provisionalBanner(co)}
       <div class="kpis">
         <div class="kpi"><div class="l">Capitalisation</div><div class="v">${F.usd(co.market_cap)}</div><div class="s">VE ${F.usd(ev)}</div></div>
-        <div class="kpi hl"><div class="l">Valeur pondérée (scénarios)</div><div class="v">${F.px(w)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>
-        <div class="kpi"><div class="l">DCF scénario base</div><div class="v">${F.px(base)}</div><div class="s">WACC ${F.pct(val.dcf.inputs.wacc, 2)}</div></div>
+        <div class="kpi hl"><div class="l">${rn ? `<a href="#/t/${tk}/biotech">Valeur rNPV (pipeline)</a>` : "Valeur pondérée (scénarios)"}</div><div class="v">${F.px(w)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>
+        <div class="kpi"><div class="l">DCF scénario base${rn ? " (référence)" : ""}</div><div class="v">${F.px(base)}</div><div class="s">WACC ${F.pct(val.dcf.inputs.wacc, 2)}</div></div>
         <div class="kpi"><div class="l">Comparables (médiane)</div><div class="v">${F.px((val.comps.implied_summary || {}).median)}</div><div class="s">${F.px((val.comps.implied_summary || {}).low, 0)} - ${F.px((val.comps.implied_summary || {}).high, 0)}</div></div>
         <div class="kpi"><div class="l">P/E · VE/CA (TTM)</div><div class="v">${F.x(val.target.pe)} · ${F.x(val.target.ev_sales)}</div><div class="s">VE/EBITDA ${F.x(val.target.ev_ebitda)}</div></div>
         <div class="kpi"><div class="l">52 semaines</div><div class="v">${F.n(p.low_52w, 0)} - ${F.n(p.high_52w, 0)}</div><div class="s">1 an <span class="${T.cls(p.r_1y)}">${F.pct(p.r_1y, 0, true)}</span> · β ${F.n((co.beta || {}).adjusted, 2)}</div></div>
       </div>
-      <nav class="tabs">${TABS.map(([k, l]) => `<a href="#/t/${tk}/${k}" class="${k === tab ? "active" : ""}">${l}</a>`).join("")}</nav>
+      <nav class="tabs">${tabs.map(([k, l]) => `<a href="#/t/${tk}/${k}" class="${k === tab ? "active" : ""}">${l}</a>`).join("")}</nav>
       <div id="tab"></div>
       <footer class="foot"><span>Sources : SEC EDGAR (XBRL), Yahoo Finance / Stooq (cours), FRED (taux).</span>
         <span>Graphiques : <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache ECharts.</span>
         <span>Pas un conseil en investissement.</span></footer>`;
-    T.onKey = (e) => { const i = parseInt(e.key, 10); if (i >= 1 && i <= TABS.length) T.go(`#/t/${tk}/${TABS[i - 1][0]}`); };
+    T.onKey = (e) => { const i = parseInt(e.key, 10); if (i >= 1 && i <= tabs.length) T.go(`#/t/${tk}/${tabs[i - 1][0]}`); };
     const el = T.$("#tab");
     const fn = { synthese, financiers, ratios, valorisation, secteur, performance, depots,
-      predictions: T.tabPredictions, options: T.tabOptions }[tab] || synthese;
+      predictions: T.tabPredictions, options: T.tabOptions, biotech: T.tabBiotech }[tab] || synthese;
     await fn(el, tk, co, val);
   });
 

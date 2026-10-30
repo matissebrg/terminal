@@ -15,7 +15,7 @@ from pathlib import Path
 
 import yaml
 
-from . import community, feed, market, normalize, options, predictions, ratios, sec, valuation
+from . import biotech, community, feed, market, normalize, options, predictions, ratios, rnpv, sec, trials, valuation
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "data"
@@ -69,6 +69,9 @@ class LiveSource:
 
     def fx(self, cur):
         return market.fx_to_usd(cur)
+
+    def trials(self, sponsors):
+        return trials.fetch(sponsors)
 
     def quote(self, sym):
         return market.quote_info(sym)
@@ -309,6 +312,7 @@ def run(src, only: list[str] | None = None) -> int:
 
     all_events, index = [], []
     fins_all, filings_all, bars_all, guid_all, cons_all, ne_all, opt_all = {}, {}, {}, {}, {}, {}, {}
+    biotech_all: dict = {}
     prev_index = {x["ticker"]: x for x in feed.load_json(OUT / "universe.json", {}).get("tickers", [])}
     tickers = [t for t in universe["tickers"] if not only or t in only]
     for t in tickers:
@@ -422,17 +426,37 @@ def run(src, only: list[str] | None = None) -> int:
                 print(f"  [options] {t}: {exc}")
                 status["errors"].append(f"{t}: options indisponibles ({str(exc)[:80]})")
 
+            # ---- biotech layer: rNPV, catalysts, clinical trials (best effort)
+            bio = None
+            try:
+                bio = biotech.build(ticker=t, assump=assump, fin=fin, price=price, shares=shares, opt=opt_all.get(t),
+                                    today=today, src=src, out_dir=OUT, family=(universe.get("families") or {}).get(t),
+                                    company_name=cfg["name"], status=status)
+            except Exception as exc:  # noqa: BLE001
+                traceback.print_exc()
+                status["errors"].append(f"{t}: module biotech ({str(exc)[:100]})")
+            if bio:
+                all_events += bio.pop("events")
+                write(OUT / t / "biotech.json", {"meta": meta, **bio})
+                biotech_all[t] = bio
+            use_rnpv = bool(bio and bio.get("rnpv") and bio["rnpv"].get("primary") and bio["rnpv"].get("value_per_share") is not None)
+
             # ---- history, feed, bridge
-            value_base = base["value_per_share"]
+            value_base = bio["rnpv"]["value_per_share"] if use_rnpv else base["value_per_share"]
+            value_weighted = value_base if use_rnpv else scen["weighted_value_per_share"]
 
             def recompute(a, m):
                 try:
+                    if use_rnpv and a.get("rnpv"):
+                        nc, _ = biotech.net_cash_from(fin, a["rnpv"])
+                        return rnpv.value(a["rnpv"], net_cash=nc, shares=m.get("shares"), price=m.get("price"),
+                                          valuation_date=date.fromisoformat(today))["value_per_share"]
                     return valuation.dcf(valuation.resolve(a, fin, m))["value_per_share"]
                 except Exception:  # noqa: BLE001
                     return None
 
             snapshot = {
-                "price": price, "value_base": value_base, "value_weighted": scen["weighted_value_per_share"],
+                "price": price, "value_base": value_base, "value_weighted": value_weighted, "method": "rnpv" if use_rnpv else "dcf",
                 "comps_median": (comp.get("implied_summary") or {}).get("median"),
                 "scenarios": {k: v["value_per_share"] for k, v in scen["cases"].items()},
                 "wacc": resolved["wacc"], "assumptions": assump,
@@ -477,12 +501,12 @@ def run(src, only: list[str] | None = None) -> int:
                                            "peers": peers_out})
             index.append({"ticker": t, "name": cfg["name"], "sector": cfg.get("sector"), "price": price,
                           "chg_1d": perf.get("chg_1d"), "market_cap": mcap, "value_base": value_base,
-                          "value_weighted": scen["weighted_value_per_share"],
+                          "value_weighted": value_weighted, "method": "rnpv" if use_rnpv else "dcf",
+                          "family": (universe.get("families") or {}).get(t),
                           "upside": (value_base / price - 1) if value_base and price else None,
-                          "upside_weighted": (scen["weighted_value_per_share"] / price - 1)
-                          if scen["weighted_value_per_share"] and price else None,
+                          "upside_weighted": (value_weighted / price - 1) if value_weighted and price else None,
                           "spark": [x["c"] for x in bars[-60:]], "latest_period": snapshot["latest_period"]})
-            print(f"  valeur DCF {value_base:.2f} $ | pondérée {scen['weighted_value_per_share']:.2f} $ | "
+            print(f"  valeur {'rNPV' if use_rnpv else 'DCF'} {value_base:.2f} $ | pondérée {value_weighted:.2f} $ | "
                   f"cours {price}")
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()
@@ -517,11 +541,33 @@ def run(src, only: list[str] | None = None) -> int:
             status["community"] = community.sync(client, fins=fins_all, filings=filings_all, bars=bars_all,
                                                  guidance=guid_all, consensus=cons_all, next_earnings=ne_all,
                                                  names=names, families=universe.get("families") or {},
-                                                 option_chains=opt_all)
+                                                 option_chains=opt_all,
+                                                 catalysts=[{**c, "ticker": bt} for bt, bb in biotech_all.items()
+                                                            for c in bb.get("catalysts", [])])
             print("  [membres]", status["community"])
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()
             status["errors"].append(f"espace membres : {str(exc)[:160]}")
+
+    # ---- cross-ticker biotech calendar
+    cal = []
+    for bt, bio in biotech_all.items():
+        for c in bio.get("catalysts", []):
+            cal.append({**c, "ticker": bt, "price": bio.get("price")})
+        for r in (bio.get("trials") or {}).get("expected_readouts", [])[:12]:
+            cal.append({"id": r["nct"], "ticker": bt, "date": r["primary_completion_date"], "kind": "trial",
+                        "kind_label": "Fin principale d'essai (ClinicalTrials.gov)", "title": r["title"],
+                        "asset": ", ".join(r.get("interventions") or [])[:80], "status": "estimée"
+                        if r.get("primary_completion_type") == "ESTIMATED" else "réelle",
+                        "phase": r["phase"], "nct": r["nct"], "confirmed": False})
+    cal.sort(key=lambda x: x["date"])
+    write(OUT / "biotech.json", {"meta": meta, "calendar": cal, "base_rates": {
+        "source": rnpv.SOURCE, "areas": {k: {"label": rnpv.AREA_LABELS[k], "rates": v} for k, v in rnpv.BASE_RATES.items()}},
+        "tickers": {bt: {"price": b.get("price"), "rnpv": (b.get("rnpv") or {}).get("value_per_share"),
+                         "upside": (b.get("rnpv") or {}).get("upside"),
+                         "trials": (b.get("trials") or {}).get("count"),
+                         "next": next((c for c in b.get("catalysts", []) if c["days"] >= 0 and not c.get("outcome")), None)}
+                    for bt, b in biotech_all.items()}})
 
     write(OUT / "universe.json", {"meta": meta, "tickers": index, "benchmarks": benches,
                                   "risk_free": status["risk_free"]})

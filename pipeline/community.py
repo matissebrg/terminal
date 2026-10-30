@@ -239,7 +239,7 @@ def _price_reaction(bars: list[dict], release: date) -> float | None:
 # --------------------------------------------------------------------------- main
 def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, consensus: dict,
          next_earnings: dict, names: dict, now: datetime | None = None, families: dict | None = None,
-         option_chains: dict | None = None) -> dict:
+         option_chains: dict | None = None, catalysts: list[dict] | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     summary = {}
 
@@ -366,6 +366,21 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
     if rows:
         client.upsert("portfolio_values", rows, "portfolio_id,date")
     summary["portfolios"] = len(rows)
+
+    # 6b. biotech catalysts members can predict (outcome set in the YAML resolves them and scores)
+    if catalysts:
+        rows = []
+        for c in catalysts:
+            d = date.fromisoformat(c["date"])
+            rows.append({"id": f"{c['ticker']}:{c['id']}", "ticker": c["ticker"], "asset": c.get("asset"),
+                         "kind": c.get("kind", "other"), "title": c.get("title"), "event_date": c["date"],
+                         "deadline": P.deadline_for(d).isoformat(), "p_base": c.get("p_base"),
+                         "p_model": c.get("p_model"), "p_market": c.get("p_market"),
+                         "confirmed": bool(c.get("confirmed")), "outcome": c.get("outcome"),
+                         "resolved_at": f"{c['date']}T21:00:00Z" if c.get("outcome") else None,
+                         "source": c.get("source"), "updated_at": now.isoformat()})
+        client.upsert("catalysts", rows, "id")
+        summary["catalysts"] = len(rows)
 
     # 7. achievements earned from verified results and portfolio values (each one notifies its holder)
     try:

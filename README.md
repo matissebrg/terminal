@@ -145,6 +145,27 @@ Limites : sociétés déposant à la SEC uniquement (US et quelques étrangères
 des états financiers que le DCF « FCFF » ne modélise pas correctement. Retirer une valeur : supprimer son entrée
 dans `config/universe.yaml`.
 
+## Biotech : rNPV, catalyseurs, essais cliniques
+
+Onglet **Biotech** d'une valeur (dès qu'elle est dans la famille « santé » ou que son fichier d'hypothèses contient
+un bloc `rnpv:`, `catalysts:` ou `trials:`) et page **Biotech** du menu (calendrier de toutes les valeurs).
+
+- **rNPV** (`pipeline/rnpv.py`, jumeau navigateur `docs/assets/rnpv.js`, parité testée) : somme des programmes, chacun
+  = flux (montée vers le pic de ventes, plateau, chute après la perte d'exclusivité, marge, impôt, coûts de
+  développement restants) × probabilité d'arriver sur le marché, actualisés ; + trésorerie nette - frais centraux.
+  Probabilités par défaut : taux historiques de passage de phase par aire thérapeutique (BIO, Informa, QLS,
+  2011-2020). Avec `primary: true`, la rNPV remplace le DCF comme valeur affichée (BBIO).
+- **Catalyseurs** : date, type (PDUFA, résultats, comité...), programme lié. Calculés : saut du cours en cas de
+  succès / d'échec, probabilité impliquée par le cours, mouvement anticipé par les options (volatilité ordinaire
+  retirée via l'échéance précédente), comparaison au mouvement attendu par le modèle. Une fois l'événement passé,
+  écrire `outcome: success` (ou `failure`, `mixed`) : les prédictions des membres sont notées.
+- **Essais** : ClinicalTrials.gov (API v2), promoteurs listés dans `trials: {sponsors: [...]}`. Le feed signale
+  les nouveaux essais, changements de statut (arrêt, suspension), retards de date de fin principale et résultats publiés.
+- **Prédictions de catalyseurs** (migration `0006_catalysts.sql`) : probabilité donnée avant 00:00 New York le
+  jour de l'événement, cachée aux autres tant qu'ils n'ont pas donné la leur, score de Brier contre le taux historique.
+
+Modèle de bloc : `config/assumptions/BBIO.yaml`. Les pics de ventes y sont des hypothèses de départ à retravailler.
+
 ## Méthode
 
 **Reconstruction des états financiers** (`pipeline/normalize.py`) - le XBRL de la SEC n'est pas utilisable tel quel :
@@ -202,14 +223,16 @@ retraitement, changement d'étiquette) et les tests vérifient chaque reconstruc
 - Cours de **clôture**, pas de temps réel ; sources de cours gratuites non officielles (repli automatique, signalé dans l'interface).
 - **Consensus** : seulement le prochain trimestre (CA et BPA moyens, haut, bas) via Yahoo ; l'historique se construit jour après jour.
 - **Options** : données Yahoo différées ; la qualité dépend de la liquidité des strikes.
-- Couverture **US uniquement** (SEC). L'Europe (ESEF) demandera un mapping IFRS.
+- Couverture **sociétés déposant à la SEC** : américaines, et étrangères en 20-F (IFRS, converties en dollars,
+  dernier exercice au lieu du TTM). Les sociétés européennes non cotées aux États-Unis (rapports ESEF) restent à faire.
 - Les hypothèses de départ de NVDA sont un **point de départ** posé le 27/10/2026, pas une prévision.
 
 ## Pistes pour la suite
 
 Forecasting par segment
-(Data Center, Gaming…) à partir des tableaux XBRL dimensionnels · extraction des KPI des communiqués 8-K · rNPV pour les
-biotechs (AGIO) · couverture européenne via filings.xbrl.org / ESAP · alertes par e-mail · pondération de portefeuille.
+(Data Center, Gaming…) à partir des tableaux XBRL dimensionnels · extraction des KPI des communiqués 8-K · ventes
+d'Attruby et des concurrents par trimestre dans le modèle biotech · couverture européenne via filings.xbrl.org / ESAP ·
+alertes par e-mail.
 
 ---
 Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, Stooq. Graphiques :

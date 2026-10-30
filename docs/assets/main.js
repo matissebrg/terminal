@@ -42,6 +42,8 @@
       ...u.tickers.flatMap((t) => tabs.map(([k, l, kw]) => ({ label: `${t.ticker} ${l}`, keywords: kw, html: `<b>${t.ticker}</b> · ${l}`, kind: "onglet", href: `#/t/${t.ticker}/${k}`, icon: "›" }))),
       { label: "Tableau de bord accueil home", kind: "page", href: "#/", icon: "⌂" },
       { label: "Feed événements actualités", kind: "page", href: "#/feed", icon: "◉" },
+      { label: "Biotech catalyseurs PDUFA essais cliniques rNPV probabilité de succès", kind: "page", href: "#/biotech", icon: "⚗" },
+      ...u.tickers.filter((t) => t.family === "sante" || t.method === "rnpv").map((t) => ({ label: `${t.ticker} biotech pipeline rNPV catalyseurs essais`, html: `<b>${t.ticker}</b> · Biotech`, kind: "onglet", href: `#/t/${t.ticker}/biotech`, icon: "⚗" })),
       { label: "Options volatilité grecques stratégies paper trading", kind: "page", href: "#/options", icon: "⌁" },
       ...u.tickers.map((t) => ({ label: `${t.ticker} options stratégies`, html: `<b>${t.ticker}</b> · Options (espace dédié)`, kind: "page", href: `#/options/${t.ticker}/strategies`, icon: "⌁" })),
       { label: "Prédictions registre score entraînement forecasting", kind: "page", href: "#/predictions", icon: "◎" },
