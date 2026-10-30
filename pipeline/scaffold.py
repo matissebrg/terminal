@@ -381,8 +381,13 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
     if fin["ttm"].get("_annual"):
         raise SystemExit(f"{ticker} : émetteur étranger (20-F, comptes semestriels) : pris en charge comme pair "
                          f"(comparables) mais pas encore comme valeur suivie, faute de résultats trimestriels.")
-    if not fin["periods"]["quarterly"] or fin["ttm"].get("revenue") is None:
-        raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (pas de chiffre d'affaires trimestriel).")
+    if not fin["periods"]["quarterly"]:
+        raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (aucun trimestre reconstruit).")
+    pre_revenue = not (fin["ttm"].get("revenue") or 0) > 0
+    if pre_revenue:
+        print(f"::warning title={ticker} pré-commercial::pas de chiffre d'affaires : le DCF vaut la trésorerie nette ; "
+              f"ajoute un bloc rnpv: (programmes, probabilités, pics de ventes) dans config/assumptions/{ticker}.yaml "
+              f"(modèle : BBIO.yaml)")
 
     peer_info = {}
     fams = {ticker: family_of_sic(subs.get("sic"))}
@@ -415,14 +420,15 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
     assump = yaml.safe_load(apath.read_text())
     shares = (fin.get("shares_outstanding") or [{}])[-1].get("shares") or fin["ttm"].get("diluted_shares")
     mkt = {"price": None, "shares": shares, "mcap": None, "rf": (0.044, "défaut", None), "beta": None}
-    v = valuation.dcf(valuation.resolve(assump, fin, mkt))
+    fin_v = {**fin, "ttm": {**fin["ttm"], "revenue": 0.0}} if pre_revenue else fin
+    v = valuation.dcf(valuation.resolve(assump, fin_v, mkt))
     d = history_defaults(fin)
     summary = {"ticker": ticker, "name": name, "cik": cik, "peers": list(peer_info),
                "last_quarter": fin["periods"]["quarterly"][-1]["label"],
                "revenue_ttm": fin["ttm"].get("revenue"), "defaults": {k: d[k] for k in ("growth", "margin", "tax", "nwc")},
                "value_per_share_hint": v["value_per_share"], "quality": normalize.quality(fin)}
     print(f"{name} ({ticker}) · dernier trimestre {summary['last_quarter']} · CA TTM "
-          f"{summary['revenue_ttm'] / 1e9:,.1f} Md$ · valeur indicative {v['value_per_share']:,.2f} $/action "
+          f"{(summary['revenue_ttm'] or 0) / 1e9:,.1f} Md$ · valeur indicative {v['value_per_share']:,.2f} $/action "
           f"(WACC provisoire, avant le bêta réel)")
     for q in summary["quality"]:
         print(f"  ! qualité : {q}")

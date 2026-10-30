@@ -251,6 +251,7 @@
       T.$("#unitHint").textContent = `en ${u} sauf BPA et actions`;
       const ps = periods();
       const rows = STMTS[st.stmt].rows.filter(([k]) => ps.some((p) => T.isNum(val(k, p.label))));
+      if (rows.length && !rows.some(([k]) => k === st.row)) st.row = rows[0][0];   // pre-revenue: no CA line
       const srcs = fin.sources[st.freq] || {};
       const head = ps.map((p) => {
         const acc = srcs[p.label];

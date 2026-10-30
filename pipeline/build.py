@@ -104,7 +104,7 @@ class FixtureSource:
 
     def calendar(self, sym, fin=None):
         nq = predictions.next_quarter(fin) if fin else None
-        last = fin["lines"]["revenue"]["quarterly"][fin["periods"]["quarterly"][-1]["label"]] if fin else None
+        last = fin["lines"]["revenue"]["quarterly"].get(fin["periods"]["quarterly"][-1]["label"]) if fin else None
         d = (date.fromisoformat(nq["end_estimate"]) + timedelta(days=24)).isoformat() if nq else None
         return {"earnings_dates": [d] if d else [], "revenue_avg": last * 1.12 if last else None,
                 "revenue_low": last * 1.08 if last else None, "revenue_high": last * 1.17 if last else None,
@@ -339,11 +339,15 @@ def run(src, only: list[str] | None = None) -> int:
             b = market.beta(bars, bench_bars.get(universe.get("beta_benchmark", "SPY"), []))
             mkt = {"price": price, "shares": shares, "mcap": mcap, "rf": list(rf), "beta": b}
 
-            resolved = valuation.resolve(assump, fin, mkt)
+            # Pre-revenue companies (clinical-stage biotechs): the DCF of today's business is its net cash
+            # (revenue 0); their value comes from the rNPV block.
+            pre_revenue = not (fin["ttm"].get("revenue") or 0) > 0
+            fin_v = {**fin, "ttm": {**fin["ttm"], "revenue": 0.0}} if pre_revenue else fin
+            resolved = valuation.resolve(assump, fin_v, mkt)
             base = valuation.dcf(resolved)
             sens = valuation.sensitivity(resolved)
             rev_dcf = valuation.reverse_dcf(resolved)
-            scen = valuation.scenarios(assump, fin, mkt)
+            scen = valuation.scenarios(assump, fin_v, mkt)
 
             # ---- comparables
             target_snap = valuation.company_snapshot(t, cfg["name"], fin, price, shares)
@@ -451,7 +455,7 @@ def run(src, only: list[str] | None = None) -> int:
                         nc, _ = biotech.net_cash_from(fin, a["rnpv"])
                         return rnpv.value(a["rnpv"], net_cash=nc, shares=m.get("shares"), price=m.get("price"),
                                           valuation_date=date.fromisoformat(today))["value_per_share"]
-                    return valuation.dcf(valuation.resolve(a, fin, m))["value_per_share"]
+                    return valuation.dcf(valuation.resolve(a, fin_v, m))["value_per_share"]
                 except Exception:  # noqa: BLE001
                     return None
 
