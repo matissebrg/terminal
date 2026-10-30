@@ -71,6 +71,12 @@ tickers:
     industry: Services-prepackaged software
     peers: [CRM, ORCL, CERT]
     benchmarks: [SPY, XSW]
+  SMMT:
+    name: Summit Therapeutics Inc.
+    sector: Biotechnologie
+    industry: Oncologie (ivonescimab, anticorps bispécifique PD-1 x VEGF)
+    peers: [MRK, BMY, PFE]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -100,6 +106,7 @@ peer_names:
   AZN: Astrazeneca Plc
   CRM: Salesforce, Inc.
   CERT: Certara, Inc.
+  PFE: Pfizer Inc
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -140,6 +147,8 @@ families:
   VEEV: tech
   CRM: tech
   CERT: tech
+  SMMT: sante
+  PFE: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -176,3 +185,5 @@ ciks:
   VEEV: 1393052
   CRM: 1108524
   CERT: 1827090
+  SMMT: 1599298
+  PFE: 78003
