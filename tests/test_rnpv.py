@@ -76,7 +76,10 @@ process.stdout.write(JSON.stringify(R.value({json.dumps(CFG)}, {json.dumps(CTX)}
     assert js["value_per_share"] == pytest.approx(py["value_per_share"], rel=1e-12)
     for a, b in zip(js["assets"], py["assets"]):
         for k in ("rnpv", "revenue_pv", "dev_pv", "value_if_success", "implied_pos", "move_up", "move_down", "expected_abs_move"):
-            assert a[k] == pytest.approx(b[k], rel=1e-10, abs=1e-6), (a["name"], k)
+            if b[k] is None:
+                assert a[k] is None, (a["name"], k)
+            else:
+                assert a[k] == pytest.approx(b[k], rel=1e-10, abs=1e-6), (a["name"], k)
 
 
 def test_options_event_move_strips_ordinary_volatility():
