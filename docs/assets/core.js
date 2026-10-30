@@ -210,3 +210,29 @@
     });
   });
 })();
+
+// Wide tables: mark the scroll wrapper once scrolled sideways (shadow on the sticky label column)
+document.addEventListener("scroll", (e) => {
+  const w = e.target;
+  if (w && w.classList && w.classList.contains("tbl-wrap")) w.classList.toggle("scrolled", w.scrollLeft > 2);
+}, true);
+
+// Tab strips that overflow (phones): fade the clipped edge and keep the active tab in view
+function archerTabs() {
+  document.querySelectorAll(".tabs").forEach((t) => {
+    const upd = () => {
+      t.classList.toggle("fade-r", t.scrollLeft + t.clientWidth < t.scrollWidth - 2);
+      t.classList.toggle("fade-l", t.scrollLeft > 2);
+    };
+    if (!t.dataset.tabsInit) {
+      t.dataset.tabsInit = "1";
+      t.addEventListener("scroll", upd, { passive: true });
+      const a = t.querySelector("a.active");
+      if (a && t.scrollWidth > t.clientWidth) t.scrollLeft = Math.max(0, a.offsetLeft - t.clientWidth / 2 + a.offsetWidth / 2);
+    }
+    upd();
+  });
+}
+new MutationObserver(() => { clearTimeout(archerTabs._t); archerTabs._t = setTimeout(archerTabs, 60); })
+  .observe(document.documentElement, { childList: true, subtree: true });
+window.addEventListener("resize", archerTabs);

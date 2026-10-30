@@ -150,7 +150,7 @@
     const up = T.isNum(w) && T.isNum(price) ? w / price - 1 : null;
     const g = (k) => ttm[k];
     const yoy = (k) => (T.isNum(ttm[k]) && T.isNum(ttm[k + "_prev"]) && ttm[k + "_prev"] > 0 ? ttm[k] / ttm[k + "_prev"] - 1 : null);
-    const events = (feed.events || []).filter((e) => e.ticker === tk).slice(0, 6);
+    const events = T.sortEvents((feed.events || []).filter((e) => e.ticker === tk)).slice(0, 6);
     const keyFigs = `<div class="panel"><h3>Chiffres clés <span class="hint">${T.esc(ttm._label || "TTM")}</span></h3>
           <div class="kv">
             <div>Chiffre d'affaires</div><div>${F.usd(g("revenue"))} <span class="${T.cls(yoy("revenue"))}">${F.pct(yoy("revenue"), 0, true)}</span></div>

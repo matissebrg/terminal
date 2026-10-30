@@ -111,12 +111,27 @@ def recent_filings(subs: dict, limit: int = 60) -> list[dict]:
             "filed": rec["filingDate"][i],
             "report_date": rec.get("reportDate", [""] * n)[i] or None,
             "items": items,
+            "accepted": _accepted(rec, i, n),
             "is_results": form in ("10-K", "10-Q", "20-F") or (form == "8-K" and "2.02" in items),
             "url": ARCHIVE_URL.format(cik=fcik, acc_nodash=acc.replace("-", ""), doc=doc),
         })
         if len(out) >= limit:
             break
     return out
+
+
+def _accepted(rec: dict, i: int, n: int) -> str | None:
+    """EDGAR acceptance time (Eastern time, given with a misleading 'Z') -> UTC ISO string."""
+    raw = (rec.get("acceptanceDateTime") or [None] * n)[i]
+    if not raw:
+        return None
+    try:
+        from datetime import datetime, timedelta
+        dt = datetime.fromisoformat(raw.replace("Z", "").split(".")[0])
+        off = 4 if 3 < dt.month < 11 else 5   # EDT / EST, close enough for ordering
+        return (dt + timedelta(hours=off)).isoformat() + "Z"
+    except ValueError:
+        return None
 
 
 def profile(subs: dict) -> dict:

@@ -1,4 +1,5 @@
 """Feed / history: events and the valuation bridge."""
+import json
 from pipeline import feed
 
 
@@ -74,3 +75,36 @@ def test_merge_feed_dedupes(tmp_path):
     feed.merge_feed(p, [e])
     out = feed.merge_feed(p, [e, {**e, "id": "2", "date": "2026-10-02"}])
     assert [x["id"] for x in out] == ["2", "1"]
+
+
+def test_feed_order_and_one_valuation_per_day(tmp_path):
+    from pipeline import feed
+    p = tmp_path / "feed.json"
+    base = {"ticker": "AMZN", "type": "valuation", "date": "2026-10-30", "detail": ""}
+    legacy = [{**base, "id": "a", "title": "x", "values": {"from": 44.05, "to": 14.08}},
+              {**base, "id": "b", "title": "y", "values": {"from": 44.05, "to": 13.80}},
+              {"id": "c", "ticker": "BBIO", "type": "valuation", "date": "2026-10-30", "title": "z", "detail": "",
+               "values": {"from": -116.06, "to": -141.83, "change": 0.222}},
+              {"id": "f", "ticker": "XOM", "type": "filing", "date": "2026-10-30", "ts": "2026-10-30T13:31:00Z", "title": "8-K"},
+              {"id": "q", "ticker": "NVDA", "type": "price", "date": "2026-10-30", "ts": "2026-10-30T20:00:00Z", "title": "-5 %"},
+              {"id": "old", "ticker": "NVDA", "type": "coverage", "date": "2026-10-28", "title": "cov"}]
+    p.write_text(json.dumps({"events": legacy}))
+    out = feed.merge_feed(p, [])
+    amzn = [e for e in out if e["ticker"] == "AMZN"]
+    assert len(amzn) == 1 and amzn[0]["values"]["to"] == 13.80
+    bbio = next(e for e in out if e["ticker"] == "BBIO")
+    assert bbio["values"]["change"] < 0 and "-22" in bbio["title"]
+    assert [e["id"] for e in out][:2] == ["q", "f"] and out[-1]["id"] == "old"
+    # a re-run the same day replaces the valuation event instead of adding one
+    new = {**base, "id": feed._eid("AMZN", "valuation", "2026-10-30"), "ts": "2026-10-30T21:40:00Z", "title": "new",
+           "values": {"from": 44.05, "to": 13.5}}
+    out = feed.merge_feed(p, [new])
+    out = feed.merge_feed(p, [{**new, "values": {"from": 44.05, "to": 13.4}}])
+    amzn = [e for e in out if e["ticker"] == "AMZN"]
+    assert len(amzn) == 1 and amzn[0]["values"]["to"] == 13.4 and out[0]["ticker"] == "AMZN"
+
+
+def test_rel_change_signed_base():
+    from pipeline import feed
+    assert round(feed.rel_change(-100, -120), 3) == -0.2
+    assert round(feed.rel_change(100, 120), 3) == 0.2

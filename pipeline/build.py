@@ -500,7 +500,8 @@ def run(src, only: list[str] | None = None) -> int:
 
     write(OUT / "universe.json", {"meta": meta, "tickers": index, "benchmarks": benches,
                                   "risk_free": status["risk_free"]})
-    feed.merge_feed(OUT / "feed.json", all_events)
+    accepted = {f["accession"]: f["accepted"] for fl in filings_all.values() for f in fl if f.get("accepted")}
+    feed.merge_feed(OUT / "feed.json", all_events, accepted=accepted)
     write(OUT / "status.json", status)
     if status["errors"]:
         print("Erreurs :", *status["errors"], sep="\n  ")

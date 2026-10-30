@@ -44,8 +44,10 @@
       <div class="ic ${e.type}" title="${TYPE_LABEL[e.type] || e.type}">${ICON[e.type] || "•"}</div>
       <div><div class="t1">${isNew ? '<span class="new">NEW</span>' : ""}${T.esc(e.title)}</div>
         <div class="t2">${tk}${T.esc(e.detail || "")}${link}</div>${bridge}</div>
-      <div class="dt">${F.date(e.date)}</div></div>`;
+      <div class="dt">${F.date(e.date)}${e.ts && !/T12:00:00Z$/.test(e.ts) ? `<br><span class="muted">${new Date(e.ts).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>` : ""}</div></div>`;
   };
+  // newest first by timestamp (events without one sit at noon of their day)
+  T.sortEvents = (ev) => ev.slice().sort((a, b) => ((b.ts || b.date + "T12:00:00Z") > (a.ts || a.date + "T12:00:00Z") ? 1 : -1));
 
   // ------------------------------------------------------------------ home
   T.route(/^\/$/, async (view) => {
@@ -86,7 +88,7 @@
             </div></div>
         </div>
         <div class="panel"><h3>Feed <a class="hint" href="#/feed">tout voir →</a></h3>
-          <div class="feed">${(feed.events || []).slice(0, 12).map((e) => T.renderEvent(e)).join("") || '<div class="empty">Aucun événement pour l’instant.</div>'}</div></div>
+          <div class="feed">${T.sortEvents(feed.events || []).slice(0, 12).map((e) => T.renderEvent(e)).join("") || '<div class="empty">Aucun événement pour l’instant.</div>'}</div></div>
       </div>`;
     T.$$("#wlTable tbody tr").forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
   });
@@ -94,7 +96,7 @@
   // ------------------------------------------------------------------ feed
   T.route(/^\/feed$/, async (view) => {
     const feed = await T.get("feed.json");
-    const ev = feed.events || [];
+    const ev = T.sortEvents(feed.events || []);
     const types = [...new Set(ev.map((e) => e.type))];
     const tks = [...new Set(ev.map((e) => e.ticker))];
     const st = { type: null, tk: null };

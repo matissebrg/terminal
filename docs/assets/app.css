@@ -140,7 +140,7 @@ main { min-width: 0; padding: 18px 22px 60px; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--border);
   border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
 .kpi { background: var(--panel); padding: 10px 14px; min-width: 0; }
-.kpi .l { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi .l { color: var(--muted); font-size: 11px; line-height: 1.35; text-transform: uppercase; letter-spacing: .06em; overflow-wrap: anywhere; }
 .kpi .v { font: 600 17px/1.3 var(--mono); margin-top: 3px; white-space: nowrap; }
 .kpi .s { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
 .kpi.hl { background: linear-gradient(180deg, rgba(41,98,255,.10), var(--panel)); }
@@ -167,16 +167,21 @@ main { min-width: 0; padding: 18px 22px 60px; }
 .tbl-wrap { overflow-x: auto; margin: 0 -4px; }
 table.t { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 table.t th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
-  padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; background: var(--panel); }
+  padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--panel); }
 table.t td { padding: 6px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
 table.t th.n, table.t td.n { text-align: right; }
-table.t tr:hover td { background: rgba(255,255,255,.02); }
-table.t tr.sel td { background: var(--accent-soft); }
+/* Row tints are drawn as a background IMAGE: the sticky label cell keeps its opaque background
+   colour underneath, so figures scrolled behind it never show through. */
+table.t tr:hover td { background-image: linear-gradient(rgba(255,255,255,.03), rgba(255,255,255,.03)); }
+table.t tr.sel td { background-image: linear-gradient(var(--accent-soft), var(--accent-soft)); }
 table.t tr.sub td:first-child { padding-left: 22px; color: var(--text-2); }
 table.t tr.total td { font-weight: 600; border-top: 1px solid var(--border-2); }
-table.t tr.hl td { background: rgba(41,98,255,.07); }
-table.t td.lbl { position: sticky; left: 0; background: var(--panel); z-index: 1; min-width: 180px; white-space: normal; }
-table.t th.lbl { position: sticky; left: 0; z-index: 2; }
+table.t tr.hl td { background-image: linear-gradient(rgba(41,98,255,.07), rgba(41,98,255,.07)); }
+table.t td.lbl, table.t th.lbl { position: sticky; left: 0; background-color: var(--panel); min-width: 180px; white-space: normal; }
+table.t td.lbl { z-index: 1; }
+table.t th.lbl { z-index: 2; }
+/* edge shadow only once the table is scrolled sideways */
+.tbl-wrap.scrolled td.lbl, .tbl-wrap.scrolled th.lbl { box-shadow: 6px 0 8px -6px rgba(0,0,0,.6); clip-path: inset(0 -12px 0 0); }
 th.sortable { cursor: pointer; } th.sortable:hover { color: var(--text); }
 table.t td .yoy { display: block; font-size: 10.5px; }
 
@@ -201,7 +206,7 @@ table.t td .yoy { display: block; font-size: 10.5px; }
 .ev .t1 { font-weight: 600; }
 .ev .t1 .new { font: 700 9.5px var(--mono); color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 4px; margin-right: 6px; letter-spacing: .06em; vertical-align: 1px; }
 .ev .t2 { color: var(--text-2); font-size: 12.5px; margin-top: 2px; }
-.ev .dt { color: var(--muted); font: 11.5px var(--mono); white-space: nowrap; }
+.ev .dt { color: var(--muted); font: 11.5px var(--mono); white-space: nowrap; text-align: right; line-height: 1.5; }
 .bridge { margin-top: 8px; display: grid; grid-template-columns: minmax(120px, 230px) 1fr 70px; gap: 4px 10px; align-items: center; font-size: 12px; }
 .bridge .bar { height: 8px; border-radius: 2px; background: var(--panel-3); position: relative; overflow: hidden; }
 .bridge .bar span { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
@@ -338,7 +343,8 @@ table.chain td.itm { background: rgba(57,135,229,.07); }
   .evq > :last-child { display: none; }
 }
 table.t td.wrap { white-space: normal; min-width: 180px; }
-.sticky-panel { position: sticky; top: calc(var(--top) + 14px); align-self: start; }
+.sticky-panel { position: sticky; top: calc(var(--top) + 14px); align-self: start;
+  max-height: calc(100vh - var(--top) - 28px); overflow-y: auto; overscroll-behavior: contain; }
 @media (max-width: 1180px) { .sticky-panel { position: static; } }
 
 /* ---------------------------------------------------------------- members' space */
@@ -513,3 +519,10 @@ table.legs .sel { padding: 3px 6px; font-size: 12px; }
 .opt-tk:hover { border-color: var(--border-2); text-decoration: none; }
 .opt-tk.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: linear-gradient(180deg, rgba(41,98,255,.10), var(--panel)); }
 .tabs .tabs-aside { margin-left: auto; color: var(--muted); }
+
+@media (max-width: 640px) {
+  table.t td.lbl, table.t th.lbl { min-width: 120px; max-width: 150px; }
+}
+.tabs.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.tabs.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%); mask-image: linear-gradient(90deg, transparent, #000 15%); }
+.tabs.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); }
