@@ -59,11 +59,11 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: |
-          set -o pipefail
           # each failure becomes an annotation (readable on the run page without opening the logs)
-          python -m pytest -q -rf --tb=line 2>&1 | tee pytest.log
-          status=${PIPESTATUS[0]}
+          status=0
+          python -m pytest -q -rf --tb=line 2>&1 | tee pytest.log || status=$?
           if [[ $status != 0 ]]; then
+            tail -5 pytest.log | while IFS= read -r l; do echo "::warning title=pytest::${l//%/%25}"; done
             grep -E "^(FAILED|ERROR) |^/.*:[0-9]+: |^E  " pytest.log | head -15 | while IFS= read -r l; do echo "::error title=Test::${l//%/%25}"; done
           fi
           exit $status
