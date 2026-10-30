@@ -77,6 +77,12 @@ tickers:
     industry: Oncologie (ivonescimab, anticorps bispécifique PD-1 x VEGF)
     peers: [MRK, BMY, PFE]
     benchmarks: [SPY, IBB]
+  CAPR:
+    name: Capricor Therapeutics, Inc.
+    sector: Biotechnologie
+    industry: Thérapie cellulaire (deramiocel, myopathie de Duchenne)
+    peers: [SRPT, DYN]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -107,6 +113,8 @@ peer_names:
   CRM: Salesforce, Inc.
   CERT: Certara, Inc.
   PFE: Pfizer Inc
+  SRPT: Sarepta Therapeutics, Inc.
+  DYN: Dyne Therapeutics, Inc.
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -149,6 +157,9 @@ families:
   CERT: tech
   SMMT: sante
   PFE: sante
+  CAPR: sante
+  SRPT: sante
+  DYN: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -187,3 +198,6 @@ ciks:
   CERT: 1827090
   SMMT: 1599298
   PFE: 78003
+  CAPR: 1133869
+  SRPT: 873303
+  DYN: 1818794
