@@ -1,9 +1,23 @@
 {
  "events": [
   {
+   "id": "3ac7ebafcf7b",
+   "date": "2026-10-30",
+   "ts": "2026-10-30T23:56:14Z",
+   "ticker": "SMMT",
+   "type": "coverage",
+   "title": "SMMT : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 16.03,
+    "value_base": 0.8657829452605605,
+    "value_weighted": 0.8657829452605605
+   }
+  },
+  {
    "id": "6bda3e11e518",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:53:25Z",
+   "ts": "2026-10-30T23:56:06Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 562,00 $ → 623,52 $ (+10,9 %)",
@@ -32,7 +46,7 @@
   {
    "id": "b965f17dc434",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:53:17Z",
+   "ts": "2026-10-30T23:55:56Z",
    "ticker": "BBIO",
    "type": "valuation",
    "title": "BBIO : valeur DCF -116,06 $ → 71,33 $ (+161,5 %)",
@@ -61,7 +75,7 @@
   {
    "id": "5a85556e441e",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:53:14Z",
+   "ts": "2026-10-30T23:55:53Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 44,05 $ → 14,45 $ (-67,2 %)",
@@ -90,7 +104,7 @@
   {
    "id": "d207681eeb01",
    "date": "2026-10-30",
-   "ts": "2026-10-30T23:53:04Z",
+   "ts": "2026-10-30T23:55:40Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 123,87 $ → 120,95 $ (-2,4 %)",
