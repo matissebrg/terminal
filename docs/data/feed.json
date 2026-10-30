@@ -40,6 +40,68 @@
    }
   },
   {
+   "id": "7210927d4abb",
+   "date": "2026-10-30",
+   "ticker": "NVDA",
+   "type": "price",
+   "title": "NVDA -5,5 % sur la séance",
+   "detail": "Clôture à 201,82 $.",
+   "values": {
+    "change": -0.05541748572498362,
+    "close": 201.8195
+   }
+  },
+  {
+   "id": "6f888034e744",
+   "date": "2026-10-30",
+   "ticker": "BBIO",
+   "type": "price",
+   "title": "BBIO +5,2 % sur la séance",
+   "detail": "Clôture à 74,38 $.",
+   "values": {
+    "change": 0.05160469390640454,
+    "close": 74.38
+   }
+  },
+  {
+   "id": "ba276ef8aacb",
+   "date": "2026-10-30",
+   "ticker": "REGN",
+   "type": "filing",
+   "title": "REGN a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/872589/000087258926000034/regn-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0000872589-26-000034"
+   }
+  },
+  {
+   "id": "8b952730f745",
+   "date": "2026-10-30",
+   "ticker": "REGN",
+   "type": "filing",
+   "title": "REGN a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-10-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/872589/000087258926000032/regn-20261030.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0000872589-26-000032"
+   }
+  },
+  {
+   "id": "692fa466d2aa",
+   "date": "2026-10-30",
+   "ticker": "REGN",
+   "type": "price",
+   "title": "REGN +12,6 % sur la séance",
+   "detail": "Clôture à 921,62 $.",
+   "values": {
+    "change": 0.1256152521465126,
+    "close": 921.62
+   }
+  },
+  {
    "id": "bef6729efc7b",
    "date": "2026-10-30",
    "ticker": "GOOG",
@@ -205,6 +267,118 @@
     "to": -141.85260330164897,
     "change": 0.22222930202167768,
     "price": 70.73
+   }
+  },
+  {
+   "id": "b97a1ef0bb6d",
+   "date": "2026-10-30",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 123,87 $ → 118,85 $ (-4,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 276,12 $, potentiel -57,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -5.0252
+    }
+   ],
+   "values": {
+    "from": 123.87226190945914,
+    "to": 118.84705595959696,
+    "change": -0.04056764502722343,
+    "price": 276.12
+   }
+  },
+  {
+   "id": "b871eb0596eb",
+   "date": "2026-10-30",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 44,05 $ → 13,80 $ (-68,7 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 237,61 $, potentiel -94,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -29.5247
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.7206
+    }
+   ],
+   "values": {
+    "from": 44.04532691900977,
+    "to": 13.8001005058296,
+    "change": -0.6866841167689566,
+    "price": 237.61
+   }
+  },
+  {
+   "id": "de4b9d2e6ea2",
+   "date": "2026-10-30",
+   "ticker": "BBIO",
+   "type": "valuation",
+   "title": "BBIO : valeur DCF -116,06 $ → -142,62 $ (+22,9 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 74,38 $, potentiel -291,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -27.1682
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.6092
+    }
+   ],
+   "values": {
+    "from": -116.06054859510563,
+    "to": -142.6195238817753,
+    "change": 0.2288372371849161,
+    "price": 74.38
+   }
+  },
+  {
+   "id": "29b58713216b",
+   "date": "2026-10-30",
+   "ticker": "REGN",
+   "type": "valuation",
+   "title": "REGN : valeur DCF 562,00 $ → 618,14 $ (+10,0 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 921,62 $, potentiel -32,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 62.5114
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -6.3751
+    }
+   ],
+   "values": {
+    "from": 561.9989967692206,
+    "to": 618.1352981883726,
+    "change": 0.09988683563825607,
+    "price": 921.62
    }
   },
   {
