@@ -18,6 +18,7 @@ benchmarks:
   XLE: Énergie (ETF XLE)
   IBB: IBB
   XLV: XLV
+  XSW: XSW
 
 beta_benchmark: SPY
 
@@ -64,6 +65,12 @@ tickers:
     industry: Pharmaceutical preparations
     peers: [MRK, BMY, AMGN, UL, AZN]
     benchmarks: [SPY, XLV]
+  VEEV:
+    name: Veeva Systems Inc
+    sector: Services-prepackaged software
+    industry: Services-prepackaged software
+    peers: [CRM, ORCL, CERT]
+    benchmarks: [SPY, XSW]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -91,6 +98,8 @@ peer_names:
   AMGN: Amgen Inc
   UL: Unilever Plc
   AZN: Astrazeneca Plc
+  CRM: Salesforce, Inc.
+  CERT: Certara, Inc.
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -128,6 +137,9 @@ families:
   AMGN: sante
   UL: conso
   AZN: sante
+  VEEV: tech
+  CRM: tech
+  CERT: tech
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -161,3 +173,6 @@ ciks:
   AMGN: 318154
   UL: 217410
   AZN: 901832
+  VEEV: 1393052
+  CRM: 1108524
+  CERT: 1827090
