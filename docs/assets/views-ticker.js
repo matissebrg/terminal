@@ -519,13 +519,22 @@
   }
 
   // ================================================================== Secteur
+  // Foreign issuers (20-F): IFRS, converted to $ at the spot rate, last fiscal year instead of TTM
+  function acctTag(x) {
+    const a = x.accounting; if (!a) return "";
+    const bits = [];
+    if (a.standard === "ifrs") bits.push("IFRS");
+    if (a.reporting && a.reporting !== "USD") bits.push(`${a.reporting} → $ à ${F.n(a.usd_per_unit, 3)}`);
+    if (a.annual_only) bits.push(x.period || "dernier exercice");
+    return bits.length ? ` <span class="tag" title="Émetteur étranger (formulaire 20-F) : ${T.esc(bits.join(" · "))}. Multiples calculés sur le dernier exercice publié, convertis au cours de change du jour.">${T.esc(bits.join(" · "))}</span>` : "";
+  }
   async function secteur(el, tk) {
     const [pe, px] = await Promise.all([T.get(`${tk}/peers.json`), T.get(`${tk}/prices.json`)]);
     const all = [pe.target, ...pe.peers];
     const order = all.map((x) => x.ticker);
     order.forEach((t) => T.colorOf(t, order));
     const cols = [
-      ["ticker", "Valeur", (x) => `<b>${x.ticker}</b> <span class="muted">${T.esc(x.name)}</span>`],
+      ["ticker", "Valeur", (x) => `<b>${x.ticker}</b> <span class="muted">${T.esc(x.name)}</span>${acctTag(x)}`],
       ["market_cap", "Capi.", (x) => F.usd(x.market_cap)], ["revenue_ttm", "CA TTM", (x) => F.usd(x.revenue_ttm)],
       ["revenue_growth_ttm", "Croiss.", (x) => `<span class="${T.cls(x.revenue_growth_ttm)}">${F.pct(x.revenue_growth_ttm, 0, true)}</span>`],
       ["gross_margin_ttm", "Marge brute", (x) => F.pct(x.gross_margin_ttm, 0)], ["operating_margin_ttm", "Marge opé.", (x) => F.pct(x.operating_margin_ttm, 0)],
@@ -534,7 +543,7 @@
       ["pe", "P/E", (x) => F.x(x.pe)], ["p_fcf", "Capi/FCF", (x) => F.x(x.p_fcf)],
     ];
     const st = { sort: "market_cap", dir: -1 };
-    el.innerHTML = `<div class="panel" style="margin-bottom:14px"><h3>Pairs <span class="hint">TTM, données SEC · clic sur un en-tête pour trier</span></h3><div class="tbl-wrap" id="pt"></div></div>
+    el.innerHTML = `<div class="panel" style="margin-bottom:14px"><h3>Pairs <span class="hint">TTM, données SEC (dernier exercice pour les émetteurs étrangers) · clic sur un en-tête pour trier</span></h3><div class="tbl-wrap" id="pt"></div></div>
       <div class="grid g2">
         <div class="panel"><h3>Valorisation vs croissance <span class="hint">VE/CA (y) · croissance du CA TTM (x)</span></h3><div class="chart" id="sc1"></div></div>
         <div class="panel"><h3>Marge opérationnelle TTM</h3><div class="chart" id="sc2"></div></div>

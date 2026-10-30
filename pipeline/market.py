@@ -285,3 +285,46 @@ def _dedupe(bars):
     for b in bars:
         seen[b["t"]] = b
     return [seen[k] for k in sorted(seen)]
+
+
+# --------------------------------------------------------------------------- foreign issuers
+_FX: dict[str, float] = {}
+
+
+def fx_to_usd(cur: str) -> float | None:
+    """USD per unit of `cur` (last daily close of the Yahoo pair, e.g. EURUSD=X). GBp is pence."""
+    cur = cur.upper()
+    if cur == "USD":
+        return 1.0
+    if cur in _FX:
+        return _FX[cur]
+    rate = None
+    try:
+        bars = _yfinance(f"{cur}USD=X", "1mo")
+        rate = bars[-1]["c"] if bars else None
+    except Exception:  # noqa: BLE001 - fall back to the chart endpoint
+        try:
+            bars = _yahoo(f"{cur}USD=X", "1mo")
+            rate = bars[-1]["c"] if bars else None
+        except Exception:  # noqa: BLE001
+            rate = None
+    if rate:
+        _FX[cur] = float(rate)
+    return rate
+
+
+def quote_info(sym: str) -> dict:
+    """Market cap and share count as Yahoo sees the US line (ADRs: in ADS-equivalent shares)."""
+    import warnings
+
+    import yfinance as yf
+    warnings.filterwarnings("ignore", module="yfinance")
+    fi = yf.Ticker(sym).fast_info
+    out = {}
+    for k_out, k_in in (("market_cap", "market_cap"), ("shares", "shares"), ("currency", "currency"),
+                        ("last", "last_price")):
+        try:
+            out[k_out] = fi[k_in]
+        except Exception:  # noqa: BLE001
+            out[k_out] = None
+    return out

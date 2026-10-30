@@ -56,6 +56,9 @@ class SecSource:
     def facts(self, cik: int) -> dict:
         return sec.company_facts(cik)
 
+    def fx(self, cur: str):
+        return market.fx_to_usd(cur)
+
     def splits(self, ticker: str) -> list[dict]:
         try:
             return market.splits(ticker)
@@ -367,7 +370,7 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
     name = _pretty(subs.get("name") or title)
     facts = src.facts(cik)
     try:
-        fin = normalize.normalize(facts, splits=src.splits(ticker))
+        fin = normalize.normalize(facts, splits=src.splits(ticker), fx=getattr(src, "fx", None))
     except ValueError:
         diag = _facts_diagnostic(facts, cik)
         print(diag)
@@ -375,6 +378,9 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
         raise SystemExit(f"{ticker} : aucun exercice annuel (10-K) sous le CIK {cik}. Si la société vient de se "
                          f"réorganiser sous une nouvelle holding, son historique est resté sous l'ancien CIK : "
                          f"l'ajouter dans PREDECESSORS (pipeline/sec.py).")
+    if fin["ttm"].get("_annual"):
+        raise SystemExit(f"{ticker} : émetteur étranger (20-F, comptes semestriels) : pris en charge comme pair "
+                         f"(comparables) mais pas encore comme valeur suivie, faute de résultats trimestriels.")
     if not fin["periods"]["quarterly"] or fin["ttm"].get("revenue") is None:
         raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (pas de chiffre d'affaires trimestriel).")
 

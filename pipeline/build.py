@@ -67,6 +67,12 @@ class LiveSource:
     def reported_quarters(self, sym):
         return market.reported_quarters(sym)
 
+    def fx(self, cur):
+        return market.fx_to_usd(cur)
+
+    def quote(self, sym):
+        return market.quote_info(sym)
+
 
 class FixtureSource:
     """Reads synthetic files written by tests/fixtures/make_fixtures.py (no network)."""
@@ -106,6 +112,12 @@ class FixtureSource:
 
     def reported_quarters(self, sym):
         return []
+
+    def fx(self, cur):
+        return {"EUR": 1.08, "GBP": 1.27, "CHF": 1.12}.get(cur)
+
+    def quote(self, sym):
+        return {}
 
 
 # --------------------------------------------------------------------------- helpers
@@ -309,7 +321,7 @@ def run(src, only: list[str] | None = None) -> int:
 
             facts = src.facts(t)
             subs = src.submissions(t)
-            fin = normalize.normalize(facts, splits=get_splits(src, t, status))
+            fin = normalize.normalize(facts, splits=get_splits(src, t, status), fx=src.fx)
             fin["naive_method"] = (assump.get("predictions") or {}).get("naive", "sequential")
             status["coverage"][t] = fin["coverage"]
             status.setdefault("quality", {})[t] = normalize.quality(fin)
@@ -335,13 +347,26 @@ def run(src, only: list[str] | None = None) -> int:
             for p in (assump.get("comps", {}).get("peers") or cfg.get("peers") or []):
                 try:
                     pfacts = src.facts(p)
-                    pfin = normalize.normalize(pfacts, splits=get_splits(src, p, status))
-                    status.setdefault("quality", {})[p] = normalize.quality(pfin)
                     write(OUT / "_diag" / f"{p}_tags.json", normalize.tag_inventory(pfacts))
+                    pfin = normalize.normalize(pfacts, splits=get_splits(src, p, status), fx=src.fx)
+                    status.setdefault("quality", {})[p] = normalize.quality(pfin)
                     pbars = get_prices(src, p, status)
                     pprice = pbars[-1]["c"] if pbars else None
+                    pshares = latest_shares(pfin)
+                    foreign = pfin["currency"]["standard"] == "ifrs" or pfin["currency"]["reporting"] != "USD"
+                    if foreign and pprice:
+                        # 20-F issuers trade in New York as ADRs (or ordinary shares on a ratio): the SEC
+                        # share count is in home-market shares, so take the market value Yahoo reports for
+                        # the US line and express it in US-line shares.
+                        try:
+                            qi = src.quote(p) or {}
+                            if qi.get("market_cap") and (qi.get("currency") or "USD") == "USD":
+                                pshares = qi["market_cap"] / pprice
+                        except Exception as exc:  # noqa: BLE001
+                            print(f"  [quote] {p}: {exc}")
                     snap = valuation.company_snapshot(p, universe.get("peer_names", {}).get(p, p), pfin,
-                                                      pprice, latest_shares(pfin))
+                                                      pprice, pshares)
+                    snap["accounting"] = {**pfin["currency"], "annual_only": bool(pfin["ttm"].get("_annual"))}
                     snap["quarterly"] = peer_quarterly(pfin)
                     snap["perf"] = {k: v for k, v in market.perf_stats(pbars).items()
                                     if k.startswith("r_") or k in ("last", "date", "chg_1d")}

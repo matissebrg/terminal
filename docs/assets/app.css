@@ -537,3 +537,4 @@ table.legs .sel { padding: 3px 6px; font-size: 12px; }
 .kpis.kpis-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .kpis.kpis-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 @media (max-width: 900px) { .kpis.kpis-4, .kpis.kpis-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 5px; font-size: 10.5px; color: var(--text-2); background: var(--panel-3); border: 1px solid var(--border); white-space: nowrap; vertical-align: 1px; }

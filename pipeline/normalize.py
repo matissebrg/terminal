@@ -115,6 +115,49 @@ CONCEPTS: dict[str, tuple] = {
                "Capitaux propres", "balance"),
 }
 
+# IFRS (ifrs-full taxonomy): foreign private issuers filing a 20-F (AstraZeneca, Unilever, Novartis...)
+# and, later, European ESEF reports. Appended after the US GAAP tags: a filer uses one or the other.
+IFRS_TAGS: dict[str, list[str]] = {
+    "revenue": ["Revenue", "RevenueFromContractsWithCustomers"],
+    "cost_of_revenue": ["CostOfSales"],
+    "gross_profit": ["GrossProfit"],
+    "rnd": ["ResearchAndDevelopmentExpense"],
+    "sga": ["SellingGeneralAndAdministrativeExpense"],
+    "operating_income": ["ProfitLossFromOperatingActivities"],
+    "interest_expense": ["FinanceCosts", "InterestExpense"],
+    "pretax_income": ["ProfitLossBeforeTax"],
+    "income_tax": ["IncomeTaxExpenseContinuingOperations"],
+    "net_income": ["ProfitLossAttributableToOwnersOfParent", "ProfitLoss"],
+    "eps_diluted": ["DilutedEarningsLossPerShare", "DilutedEarningsLossPerShareFromContinuingOperations"],
+    "diluted_shares": ["AdjustedWeightedAverageShares"],
+    "cfo": ["CashFlowsFromUsedInOperatingActivities"],
+    "d_and_a": ["DepreciationAndAmortisationExpense", "AdjustmentsForDepreciationAndAmortisationExpense"],
+    "sbc": ["AdjustmentsForSharebasedPayments", "ExpenseFromSharebasedPaymentTransactionsWithEmployees"],
+    "capex": ["PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+              "PurchaseOfPropertyPlantAndEquipment"],
+    "acquisitions": ["CashFlowsUsedInObtainingControlOfSubsidiariesOrOtherBusinessesClassifiedAsInvestingActivities"],
+    "buybacks": ["PaymentsToAcquireOrRedeemEntitysShares"],
+    "dividends_paid": ["DividendsPaidClassifiedAsFinancingActivities", "DividendsPaid"],
+    "cash": ["CashAndCashEquivalents"],
+    "short_term_investments": ["CurrentInvestments", "OtherCurrentFinancialAssets"],
+    "receivables": ["TradeAndOtherCurrentReceivables", "CurrentTradeReceivables"],
+    "inventory": ["Inventories"],
+    "current_assets": ["CurrentAssets"],
+    "total_assets": ["Assets"],
+    "current_liabilities": ["CurrentLiabilities"],
+    "total_liabilities": ["Liabilities"],
+    "liabilities_and_equity": ["EquityAndLiabilities"],
+    "debt_noncurrent": ["NoncurrentPortionOfNoncurrentBorrowings", "LongtermBorrowings"],
+    "debt_current": ["CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings", "ShorttermBorrowings"],
+    # IFRS 16: every lease is on the balance sheet and its cost sits below EBIT -> treated as debt
+    "finance_leases": ["LeaseLiabilities"],
+    "minority_interest": ["NoncontrollingInterests"],
+    "equity": ["EquityAttributableToOwnersOfParent", "Equity"],
+}
+for _name, _tags in IFRS_TAGS.items():
+    _k, _u, _t, *_r = CONCEPTS[_name]
+    CONCEPTS[_name] = (_k, _u, _t + [("ifrs-full", x) for x in _tags], *_r)
+
 # Lines rebuilt as a SUM of components when no single tag exists for a period.
 # groups: each group is an ordered list of candidate tags; the value is the sum over groups of the
 # first tag found. require_first: the first group must be present (e.g. depreciation for D&A).
@@ -124,8 +167,9 @@ COMPOSITES = {
                                  ("us-gaap", "LongTermDebtAndCapitalLeaseObligationsCurrent")],
                                 [("us-gaap", "ShortTermBorrowings"), ("us-gaap", "CommercialPaper")]],
                      "require_first": False, "prefer": True},
-    "finance_leases": {"groups": [[("us-gaap", "FinanceLeaseLiabilityCurrent")],
-                                  [("us-gaap", "FinanceLeaseLiabilityNoncurrent")]], "require_first": False},
+    "finance_leases": {"groups": [[("us-gaap", "FinanceLeaseLiabilityCurrent"), ("ifrs-full", "CurrentLeaseLiabilities")],
+                                  [("us-gaap", "FinanceLeaseLiabilityNoncurrent"), ("ifrs-full", "NoncurrentLeaseLiabilities")]],
+                       "require_first": False},
     # AMD, Marvell: cash-flow statement splits depreciation and acquisition-intangible amortization
     "d_and_a": {"groups": [[("us-gaap", "OtherDepreciationAndAmortization"), ("us-gaap", "Depreciation"),
                             ("us-gaap", "DepreciationNonproduction")],
@@ -146,7 +190,7 @@ DERIVED = {
     "net_cash": ("Trésorerie nette (cash + placements - dette)", "balance"),
 }
 
-ALLOWED_FORMS = ("10-K", "10-Q", "20-F", "40-F", "10-KT", "10-QT")
+ALLOWED_FORMS = ("10-K", "10-Q", "20-F", "40-F", "10-KT", "10-QT", "6-K")
 
 
 @dataclass(frozen=True)
@@ -197,9 +241,37 @@ def _split_adjust(f: "Fact", splits: list[dict], per_share: bool) -> "Fact":
     return Fact(f.start, f.end, f.val / k if per_share else f.val * k, f.filed, f.form, f.accn, f.rank, f.tag)
 
 
+MONEY_PROBES = [("us-gaap", "Revenues"), ("us-gaap", "RevenueFromContractWithCustomerExcludingAssessedTax"),
+                ("us-gaap", "NetIncomeLoss"), ("us-gaap", "Assets"),
+                ("ifrs-full", "Revenue"), ("ifrs-full", "ProfitLoss"), ("ifrs-full", "Assets")]
+
+
+def reporting_currency(facts_json: dict) -> str:
+    """Presentation currency: the most used ISO unit on a few headline concepts (USD for US filers)."""
+    count: dict[str, int] = {}
+    facts = facts_json.get("facts", {})
+    for tax, tag in MONEY_PROBES:
+        for unit, rows in ((facts.get(tax) or {}).get(tag) or {}).get("units", {}).items():
+            if len(unit) == 3 and unit.isalpha() and unit.isupper():
+                count[unit] = count.get(unit, 0) + len(rows)
+    return max(count, key=count.get) if count else "USD"
+
+
+def _unit_and_rate(facts_json: dict, unit: str) -> tuple[str, float]:
+    """Canonical units are USD; a non-USD filer is read in its own currency and converted at the rate
+    set by normalize() (spot rate: growth rates and margins are unchanged, levels are in today's $)."""
+    cur, rate = facts_json.get("_archer_money", ("USD", 1.0))
+    if unit == "USD":
+        return cur, rate
+    if unit == "USD/shares":
+        return f"{cur}/shares", rate
+    return unit, 1.0
+
+
 def collect_tags(facts_json: dict, unit: str, tags: list[tuple[str, str]]) -> list[Fact]:
     out: list[Fact] = []
     facts = facts_json.get("facts", {})
+    unit, rate = _unit_and_rate(facts_json, unit)
     for rank, (tax, tag) in enumerate(tags):
         node = facts.get(tax, {}).get(tag)
         if not node:
@@ -209,7 +281,7 @@ def collect_tags(facts_json: dict, unit: str, tags: list[tuple[str, str]]) -> li
             if not form.startswith(ALLOWED_FORMS):
                 continue
             try:
-                out.append(Fact(_d(f.get("start")), _d(f["end"]), float(f["val"]), _d(f["filed"]),
+                out.append(Fact(_d(f.get("start")), _d(f["end"]), float(f["val"]) * rate, _d(f["filed"]),
                                 form, f.get("accn", ""), rank, tag))
             except (KeyError, ValueError, TypeError):
                 continue
@@ -329,8 +401,18 @@ def shares_outstanding(facts_json: dict, splits: list[dict] | None = None) -> li
 
 # --------------------------------------------------------------------------- main entry
 def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
-              splits: list[dict] | None = None) -> dict:
-    """splits: [{"date": "YYYY-MM-DD", "ratio": 10.0}] - stock splits, used to restate EPS and share counts."""
+              splits: list[dict] | None = None, fx=None) -> dict:
+    """splits: [{"date": "YYYY-MM-DD", "ratio": 10.0}] - stock splits, used to restate EPS and share counts.
+    fx: callable(currency) -> USD per unit, needed only for filers that do not report in dollars."""
+    cur = reporting_currency(facts_json)
+    rate = 1.0
+    if cur != "USD":
+        rate = fx(cur) if fx else None
+        if not rate:
+            raise ValueError(f"comptes publiés en {cur} : taux de change {cur}/USD indisponible")
+    facts_json = {**facts_json, "_archer_money": (cur, float(rate))}
+    standard = "ifrs" if facts_json.get("facts", {}).get("ifrs-full") and not any(
+        (facts_json.get("facts", {}).get("us-gaap") or {}).get(t) for t in ("Revenues", "NetIncomeLoss", "Assets")) else "us-gaap"
     years = fiscal_years(facts_json)
     if not years:
         raise ValueError("Impossible d'inférer l'exercice fiscal (aucun fait annuel trouvé)")
@@ -430,6 +512,7 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
         "lines": lines,
         "ttm": ttm,
         "shares_outstanding": shares_outstanding(facts_json, splits),
+        "currency": {"reporting": cur, "usd_per_unit": rate, "standard": standard},
         "splits": splits or [],
         "sources": sources,
         "coverage": coverage,
@@ -553,7 +636,29 @@ def _ttm(lines: dict, periods: dict) -> dict:
             series = lines.get(name, {}).get("quarterly", {})
             vals = [series.get(l) for l in prev4]
             out[f"{name}_prev"] = sum(vals) if all(v is not None for v in vals) else None
+    if not consecutive and periods["annual"]:
+        _annual_fallback(out, lines, periods, kinds)
     return out
+
+
+def _annual_fallback(out: dict, lines: dict, periods: dict, kinds: dict) -> None:
+    """Filers without four consecutive quarters (20-F issuers report half-years only): the last fiscal
+    year stands in for the TTM; balance-sheet items come from the most recent closing date."""
+    a = periods["annual"]
+    fy, prev = a[-1]["label"], (a[-2]["label"] if len(a) >= 2 else None)
+    q = periods["quarterly"]
+    q_newer = bool(q) and q[-1]["end"] > a[-1]["end"]
+    for name, kind in kinds.items():
+        ann = lines.get(name, {}).get("annual", {})
+        if kind in (FLOW, PER_SHARE, SHARES_AVG):
+            out[name] = ann.get(fy)
+        elif not (q_newer and out.get(name) is not None):
+            out[name] = ann.get(fy)
+    for name in ("revenue", "operating_income", "net_income", "fcf", "eps_diluted"):
+        out[f"{name}_prev"] = lines.get(name, {}).get("annual", {}).get(prev) if prev else None
+    out["_label"] = f"{fy} (dernier exercice)"
+    out["_quarters"] = []
+    out["_annual"] = True
 
 
 def _consecutive(qs: list[dict]) -> bool:
