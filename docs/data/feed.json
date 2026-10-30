@@ -1,42 +1,119 @@
 {
  "events": [
   {
-   "id": "6c4b3fa499d5",
+   "id": "6bda3e11e518",
    "date": "2026-10-30",
-   "ticker": "XOM",
-   "type": "filing",
-   "title": "XOM a publié son communiqué de résultats (8-K 2.02)",
-   "detail": "Période close le 2026-10-30.",
-   "url": "https://www.sec.gov/Archives/edgar/data/2115436/000211543626000018/xom-20261030.htm",
+   "ts": "2026-10-30T22:47:54Z",
+   "ticker": "REGN",
+   "type": "valuation",
+   "title": "REGN : valeur DCF 562,00 $ → 623,52 $ (+10,9 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 927,89 $, potentiel -32,8 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 62.5114
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.9882
+    }
+   ],
    "values": {
-    "form": "8-K",
-    "accession": "0002115436-26-000018"
+    "from": 561.9989967692206,
+    "to": 623.5221744159485,
+    "change": 0.1094720417659246,
+    "price": 927.89
    }
   },
   {
-   "id": "5f4796f95cdc",
+   "id": "b965f17dc434",
    "date": "2026-10-30",
+   "ts": "2026-10-30T22:47:48Z",
+   "ticker": "BBIO",
+   "type": "valuation",
+   "title": "BBIO : valeur DCF -116,06 $ → -143,68 $ (-23,8 %)",
+   "detail": "Valeur DCF négative : le modèle ne capte pas cette société (pré-rentable ?).",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -27.1682
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.447
+    }
+   ],
+   "values": {
+    "from": -116.06054859510563,
+    "to": -143.67568606129538,
+    "change": -0.23793733357688354,
+    "price": 74.95
+   }
+  },
+  {
+   "id": "5a85556e441e",
+   "date": "2026-10-30",
+   "ts": "2026-10-30T22:47:47Z",
    "ticker": "AMZN",
-   "type": "filing",
-   "title": "AMZN a publié son rapport trimestriel (10-Q)",
-   "detail": "Période close le 2026-09-30.",
-   "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000040/amzn-20260930.htm",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 44,05 $ → 14,45 $ (-67,2 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 240,35 $, potentiel -94,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -29.5247
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.0748
+    }
+   ],
    "values": {
-    "form": "10-Q",
-    "accession": "0001018724-26-000040"
+    "from": 44.04532691900977,
+    "to": 14.445885392857356,
+    "change": -0.672022291503924,
+    "price": 240.35
    }
   },
   {
-   "id": "60cde0d9de13",
+   "id": "d207681eeb01",
    "date": "2026-10-30",
-   "ticker": "VEEV",
-   "type": "coverage",
-   "title": "VEEV : couverture initiée",
-   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "ts": "2026-10-30T22:47:35Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 123,87 $ → 120,95 $ (-2,4 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 278,22 $, potentiel -56,5 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -2.9175
+    }
+   ],
    "values": {
-    "price": 310.34,
-    "value_base": 148.61917438530372,
-    "value_weighted": 150.5970985459695
+    "from": 123.87226190945914,
+    "to": 120.95474521890496,
+    "change": -0.023552623045558455,
+    "price": 278.22
    }
   },
   {
@@ -49,7 +126,8 @@
    "values": {
     "change": -0.05541748572498362,
     "close": 201.8195
-   }
+   },
+   "ts": "2026-10-30T20:00:00Z"
   },
   {
    "id": "6f888034e744",
@@ -61,7 +139,21 @@
    "values": {
     "change": 0.05160469390640454,
     "close": 74.38
-   }
+   },
+   "ts": "2026-10-30T20:00:00Z"
+  },
+  {
+   "id": "692fa466d2aa",
+   "date": "2026-10-30",
+   "ticker": "REGN",
+   "type": "price",
+   "title": "REGN +12,6 % sur la séance",
+   "detail": "Clôture à 921,62 $.",
+   "values": {
+    "change": 0.1256152521465126,
+    "close": 921.62
+   },
+   "ts": "2026-10-30T20:00:00Z"
   },
   {
    "id": "ba276ef8aacb",
@@ -74,7 +166,8 @@
    "values": {
     "form": "10-Q",
     "accession": "0000872589-26-000034"
-   }
+   },
+   "ts": "2026-10-30T14:55:31Z"
   },
   {
    "id": "8b952730f745",
@@ -87,102 +180,34 @@
    "values": {
     "form": "8-K",
     "accession": "0000872589-26-000032"
-   }
+   },
+   "ts": "2026-10-30T14:50:20Z"
   },
   {
-   "id": "692fa466d2aa",
+   "id": "6c4b3fa499d5",
    "date": "2026-10-30",
-   "ticker": "REGN",
-   "type": "price",
-   "title": "REGN +12,6 % sur la séance",
-   "detail": "Clôture à 921,62 $.",
+   "ticker": "XOM",
+   "type": "filing",
+   "title": "XOM a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-10-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/2115436/000211543626000018/xom-20261030.htm",
    "values": {
-    "change": 0.1256152521465126,
-    "close": 921.62
-   }
+    "form": "8-K",
+    "accession": "0002115436-26-000018"
+   },
+   "ts": "2026-10-30T14:32:50Z"
   },
   {
-   "id": "bef6729efc7b",
+   "id": "60cde0d9de13",
    "date": "2026-10-30",
-   "ticker": "GOOG",
-   "type": "valuation",
-   "title": "GOOG : valeur DCF 123,87 $ → 120,52 $ (-2,7 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 321,89 $, potentiel -62,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -3.3481
-    }
-   ],
+   "ticker": "VEEV",
+   "type": "coverage",
+   "title": "VEEV : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
    "values": {
-    "from": 123.87226190945914,
-    "to": 120.52418416881292,
-    "change": -0.027028470208232735,
-    "price": 321.89
-   }
-  },
-  {
-   "id": "0dcf3fb9802f",
-   "date": "2026-10-30",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 44,05 $ → 43,17 $ (-2,0 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 254,60 $, potentiel -83,0 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -0.8754
-    }
-   ],
-   "values": {
-    "from": 44.04532691900977,
-    "to": 43.169883324184354,
-    "change": -0.01987596996237928,
-    "price": 254.6
-   }
-  },
-  {
-   "id": "862afb48f6b7",
-   "date": "2026-10-30",
-   "ticker": "BBIO",
-   "type": "valuation",
-   "title": "BBIO : valeur DCF -116,06 $ → -141,83 $ (+22,2 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 70,82 $, potentiel -300,3 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -27.1682
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 1.4011
-    }
-   ],
-   "values": {
-    "from": -116.06054859510563,
-    "to": -141.82764844563286,
-    "change": 0.22201428618452912,
-    "price": 70.82
+    "price": 310.34,
+    "value_base": 148.61917438530372,
+    "value_weighted": 150.5970985459695
    }
   },
   {
@@ -214,172 +239,73 @@
    }
   },
   {
-   "id": "639a0825ffec",
+   "id": "5f4796f95cdc",
    "date": "2026-10-30",
    "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 44,05 $ → 14,08 $ (-68,0 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 243,79 $, potentiel -94,2 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -29.5247
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -0.4392
-    }
-   ],
+   "type": "filing",
+   "title": "AMZN a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000040/amzn-20260930.htm",
    "values": {
-    "from": 44.04532691900977,
-    "to": 14.081469543541282,
-    "change": -0.6802959467315526,
-    "price": 243.79
-   }
+    "form": "10-Q",
+    "accession": "0001018724-26-000040"
+   },
+   "ts": "2026-10-30T02:20:46Z"
   },
   {
-   "id": "c786af9ea7e6",
-   "date": "2026-10-30",
+   "id": "cf520e3de888",
+   "date": "2026-10-29",
    "ticker": "BBIO",
-   "type": "valuation",
-   "title": "BBIO : valeur DCF -116,06 $ → -141,85 $ (+22,2 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 70,73 $, potentiel -300,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -27.1682
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 1.3761
-    }
-   ],
+   "type": "filing",
+   "title": "BBIO a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1743881/000174388126000034/bbio-20260930.htm",
    "values": {
-    "from": -116.06054859510563,
-    "to": -141.85260330164897,
-    "change": 0.22222930202167768,
-    "price": 70.73
-   }
+    "form": "10-Q",
+    "accession": "0001743881-26-000034"
+   },
+   "ts": "2026-10-30T00:52:05Z"
   },
   {
-   "id": "b97a1ef0bb6d",
-   "date": "2026-10-30",
+   "id": "c00552797357",
+   "date": "2026-10-29",
+   "ticker": "AMZN",
+   "type": "filing",
+   "title": "AMZN a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-10-29.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20261029.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001018724-26-000038"
+   },
+   "ts": "2026-10-30T00:05:27Z"
+  },
+  {
+   "id": "5879c0e75482",
+   "date": "2026-10-29",
+   "ticker": "BBIO",
+   "type": "filing",
+   "title": "BBIO a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-10-29.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1743881/000174388126000033/bbio-20261029.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001743881-26-000033"
+   },
+   "ts": "2026-10-30T00:03:01Z"
+  },
+  {
+   "id": "cc6aee05324c",
+   "date": "2026-10-29",
    "ticker": "GOOG",
-   "type": "valuation",
-   "title": "GOOG : valeur DCF 123,87 $ → 118,85 $ (-4,1 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 276,12 $, potentiel -57,0 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -5.0252
-    }
-   ],
+   "type": "price",
+   "title": "GOOG -12,2 % sur la séance",
+   "detail": "Clôture à 282,78 $.",
    "values": {
-    "from": 123.87226190945914,
-    "to": 118.84705595959696,
-    "change": -0.04056764502722343,
-    "price": 276.12
-   }
-  },
-  {
-   "id": "b871eb0596eb",
-   "date": "2026-10-30",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 44,05 $ → 13,80 $ (-68,7 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 237,61 $, potentiel -94,2 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -29.5247
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -0.7206
-    }
-   ],
-   "values": {
-    "from": 44.04532691900977,
-    "to": 13.8001005058296,
-    "change": -0.6866841167689566,
-    "price": 237.61
-   }
-  },
-  {
-   "id": "de4b9d2e6ea2",
-   "date": "2026-10-30",
-   "ticker": "BBIO",
-   "type": "valuation",
-   "title": "BBIO : valeur DCF -116,06 $ → -142,62 $ (+22,9 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 74,38 $, potentiel -291,7 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -27.1682
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.6092
-    }
-   ],
-   "values": {
-    "from": -116.06054859510563,
-    "to": -142.6195238817753,
-    "change": 0.2288372371849161,
-    "price": 74.38
-   }
-  },
-  {
-   "id": "29b58713216b",
-   "date": "2026-10-30",
-   "ticker": "REGN",
-   "type": "valuation",
-   "title": "REGN : valeur DCF 562,00 $ → 618,14 $ (+10,0 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 921,62 $, potentiel -32,9 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 62.5114
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -6.3751
-    }
-   ],
-   "values": {
-    "from": 561.9989967692206,
-    "to": 618.1352981883726,
-    "change": 0.09988683563825607,
-    "price": 921.62
-   }
+    "change": -0.12150113392773931,
+    "close": 282.78
+   },
+   "ts": "2026-10-29T20:00:00Z"
   },
   {
    "id": "d6baee104533",
@@ -395,19 +321,6 @@
    }
   },
   {
-   "id": "d339a689de7a",
-   "date": "2026-10-29",
-   "ticker": "GOOG",
-   "type": "filing",
-   "title": "GOOG a publié son rapport trimestriel (10-Q)",
-   "detail": "Période close le 2026-09-30.",
-   "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000084/goog-20260930.htm",
-   "values": {
-    "form": "10-Q",
-    "accession": "0001652044-26-000084"
-   }
-  },
-  {
    "id": "4e7b8d8c4303",
    "date": "2026-10-29",
    "ticker": "XOM",
@@ -418,18 +331,6 @@
     "price": 182.02,
     "value_base": 83.44387003575694,
     "value_weighted": 85.21208203172162
-   }
-  },
-  {
-   "id": "cc6aee05324c",
-   "date": "2026-10-29",
-   "ticker": "GOOG",
-   "type": "price",
-   "title": "GOOG -12,2 % sur la séance",
-   "detail": "Clôture à 282,78 $.",
-   "values": {
-    "change": -0.12150113392773931,
-    "close": 282.78
    }
   },
   {
@@ -469,101 +370,6 @@
     "price": 815.48,
     "value_base": 561.9570993706599,
     "value_weighted": 571.455757697687
-   }
-  },
-  {
-   "id": "c00552797357",
-   "date": "2026-10-29",
-   "ticker": "AMZN",
-   "type": "filing",
-   "title": "AMZN a publié son communiqué de résultats (8-K 2.02)",
-   "detail": "Période close le 2026-10-29.",
-   "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000038/amzn-20261029.htm",
-   "values": {
-    "form": "8-K",
-    "accession": "0001018724-26-000038"
-   }
-  },
-  {
-   "id": "cf520e3de888",
-   "date": "2026-10-29",
-   "ticker": "BBIO",
-   "type": "filing",
-   "title": "BBIO a publié son rapport trimestriel (10-Q)",
-   "detail": "Période close le 2026-09-30.",
-   "url": "https://www.sec.gov/Archives/edgar/data/1743881/000174388126000034/bbio-20260930.htm",
-   "values": {
-    "form": "10-Q",
-    "accession": "0001743881-26-000034"
-   }
-  },
-  {
-   "id": "5879c0e75482",
-   "date": "2026-10-29",
-   "ticker": "BBIO",
-   "type": "filing",
-   "title": "BBIO a publié son communiqué de résultats (8-K 2.02)",
-   "detail": "Période close le 2026-10-29.",
-   "url": "https://www.sec.gov/Archives/edgar/data/1743881/000174388126000033/bbio-20261029.htm",
-   "values": {
-    "form": "8-K",
-    "accession": "0001743881-26-000033"
-   }
-  },
-  {
-   "id": "e6a5c996d85e",
-   "date": "2026-10-29",
-   "ticker": "GOOG",
-   "type": "valuation",
-   "title": "GOOG : valeur DCF 45,14 $ → 129,60 $ (+187,1 %)",
-   "detail": "Moteur principal : Hypothèses modifiées. Cours 321,89 $, potentiel -59,7 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 84.4629
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 45.135008674039064,
-    "to": 129.59788655238486,
-    "change": 1.871338465631613,
-    "price": 321.89
-   }
-  },
-  {
-   "id": "d1b2f4ff3d2d",
-   "date": "2026-10-29",
-   "ticker": "GOOG",
-   "type": "valuation",
-   "title": "GOOG : valeur DCF 129,60 $ → 121,88 $ (-6,0 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 321,89 $, potentiel -62,1 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -7.6945
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -0.0209
-    }
-   ],
-   "values": {
-    "from": 129.59788655238486,
-    "to": 121.88248822594133,
-    "change": -0.059533365332503974,
-    "price": 321.89
    }
   },
   {
@@ -621,6 +427,20 @@
     "change": 0.016922918238274187,
     "price": 282.78
    }
+  },
+  {
+   "id": "d339a689de7a",
+   "date": "2026-10-29",
+   "ticker": "GOOG",
+   "type": "filing",
+   "title": "GOOG a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000084/goog-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001652044-26-000084"
+   },
+   "ts": "2026-10-29T04:29:06Z"
   },
   {
    "id": "25fe6125c2c2",
