@@ -526,3 +526,14 @@ table.legs .sel { padding: 3px 6px; font-size: 12px; }
 .tabs.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
 .tabs.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%); mask-image: linear-gradient(90deg, transparent, #000 15%); }
 .tabs.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); }
+
+/* ---------------------------------------------------------------- portfolio analytics */
+.alloc-row { display: grid; grid-template-columns: minmax(110px, 38%) 1fr 64px; gap: 10px; align-items: center; padding: 5px 0; font-size: 12.5px; }
+.alloc-row > span:first-child { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alloc-row .bar { position: relative; height: 8px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.alloc-row .bar > span { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
+.alloc-row .bar.mid::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-2); }
+.alloc-row .num { text-align: right; font-family: var(--mono); }
+.kpis.kpis-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kpis.kpis-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 900px) { .kpis.kpis-4, .kpis.kpis-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

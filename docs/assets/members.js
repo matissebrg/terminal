@@ -415,6 +415,7 @@
         <div class="kpi"><div class="l">Investi</div><div class="v">${F.n(invested, 0)} $</div><div class="s">${rows.length} ligne(s)${orows.length ? ` + ${orows.length} option(s)` : ""}</div></div>
         <div class="kpi"><div class="l">Plus-value latente</div><div class="v ${T.cls(rows.concat(orows).reduce((a, r) => a + (r.pnl || 0), 0))}">${F.n(rows.concat(orows).reduce((a, r) => a + (r.pnl || 0), 0), 0)} $</div><div class="s">actions et options, dernière clôture</div></div>
         <div class="kpi"><div class="l">Départ</div><div class="v">${F.n(+pf.initial_cash, 0)} $</div><div class="s">capital fictif</div></div></div>
+      <div id="pfanalytics" style="margin:14px 0"></div>
       <div class="grid g-main">
         <div class="stack">
           <div class="panel"><h3>Positions</h3><div class="tbl-wrap"><table class="t"><thead><tr><th>Valeur</th><th class="n">Quantité</th><th class="n">Prix moyen</th><th class="n">Dernier cours</th><th class="n">Valeur</th><th class="n">+/- value</th><th class="n">Poids</th></tr></thead><tbody>
@@ -428,10 +429,9 @@
               ${own ? `<td><button class="btn btn-xs" data-osell="${T.esc(okey(r))}" data-max="${r.qty}">Vendre</button></td>` : ""}</tr>`).join("") || `<tr><td colspan="${own ? 8 : 7}" class="muted">Aucune position ouverte.</td></tr>`}
             </tbody></table></div>
             ${otr.length ? `<details style="margin-top:8px"><summary class="sec" style="cursor:pointer">Historique des contrats (${otr.length})</summary><div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Opération</th><th>Contrat</th><th class="n">Qté</th><th class="n">Prix</th><th class="n">Montant</th></tr></thead><tbody>
-              ${otr.slice().reverse().map((t) => `<tr><td>${F.date(t.trade_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${{ buy: "Achat", sell: "Vente", expire: "Échéance" }[t.side]}</td><td>${t.ticker} ${F.n(+t.strike, 0)} ${t.type} ${F.date(t.expiry)}</td><td class="n">${t.qty}</td><td class="n">${F.n(+t.price, 2)}</td><td class="n">${F.n(t.qty * +t.price * 100, 0)} $</td></tr>`).join("")}</tbody></table></div></details>` : ""}</div>` : ""}
-          <div class="panel"><h3>Évolution de la valeur</h3><div class="chart" id="pfchart" style="height:240px"></div></div>
+              ${otr.slice().sort((a, b) => (b.trade_date || "").localeCompare(a.trade_date || "") || b.id - a.id).map((t) => `<tr><td>${F.date(t.trade_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${{ buy: "Achat", sell: "Vente", expire: "Échéance" }[t.side]}</td><td>${t.ticker} ${F.n(+t.strike, 0)} ${t.type} ${F.date(t.expiry)}</td><td class="n">${t.qty}</td><td class="n">${F.n(+t.price, 2)}</td><td class="n">${F.n(t.qty * +t.price * 100, 0)} $</td></tr>`).join("")}</tbody></table></div></details>` : ""}</div>` : ""}
           <div class="panel"><h3>Historique des transactions</h3><div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Sens</th><th>Valeur</th><th class="n">Quantité</th><th class="n">Cours</th><th class="n">Montant</th></tr></thead><tbody>
-            ${trades.slice().reverse().map((t) => `<tr><td>${F.date(t.price_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${t.side === "buy" ? "Achat" : "Vente"}</td><td><b>${t.ticker}</b></td><td class="n">${F.n(+t.qty, +t.qty % 1 ? 2 : 0)}</td><td class="n">${F.px(+t.price)}</td><td class="n">${F.n(+t.qty * +t.price, 0)} $</td></tr>`).join("") || '<tr><td colspan="6" class="muted">Aucune transaction.</td></tr>'}
+            ${trades.slice().sort((a, b) => (b.price_date || "").localeCompare(a.price_date || "") || b.id - a.id).map((t) => `<tr><td>${F.date(t.price_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${t.side === "buy" ? "Achat" : "Vente"}</td><td><b>${t.ticker}</b></td><td class="n">${F.n(+t.qty, +t.qty % 1 ? 2 : 0)}</td><td class="n">${F.px(+t.price)}</td><td class="n">${F.n(+t.qty * +t.price, 0)} $</td></tr>`).join("") || '<tr><td colspan="6" class="muted">Aucune transaction.</td></tr>'}
             </tbody></table></div></div>
         </div>
         ${own ? `<div class="stack"><div class="panel sticky-panel"><h3>Passer un ordre</h3>
@@ -461,13 +461,11 @@
             <button class="btn danger" id="pfdel" style="margin-top:10px">Supprimer ce portefeuille</button></div></div>` : ""}
       </div>`;
     if (!own && T.badges && T.badges.decorate) T.badges.decorate(view);
-    // chart
-    if (values.length >= 2) {
-      T.ec(T.$("#pfchart"), { tooltip: { trigger: "axis", valueFormatter: (v) => F.n(v, 0) + " $" },
-        xAxis: T.axis({ type: "category", data: values.map((v) => v.date), splitLine: { show: false } }),
-        yAxis: T.axis({ type: "value", scale: true, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
-        series: [{ type: "line", data: values.map((v) => +v.value), showSymbol: false, lineStyle: { width: 2, color: C().series[0] }, areaStyle: { color: "rgba(57,135,229,.12)" } }] });
-    } else T.$("#pfchart").innerHTML = '<div class="empty" style="margin-top:40px">La courbe se construit à chaque mise à jour quotidienne.</div>';
+    // analytics (risk / return, allocation, contribution, trading record)
+    if (T.PA) {
+      const uni = await T.get("universe.json").catch(() => null);
+      T.PA.render(T.$("#pfanalytics"), { values, trades, rows, orows, px, total, cash: +pf.cash, universe: uni });
+    }
     if (!own) return;
     let side = "buy";
     const est = () => { const f = new FormData(T.$("#oform")); const q = parseFloat(String(f.get("qty") || "").replace(",", ".")); const p = px[f.get("ticker")];
