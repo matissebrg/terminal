@@ -158,7 +158,7 @@
         ["Prochain catalyseur", next ? days(next.days) : "-", next ? `${T.esc(next.kind_label)} · ${T.esc(next.asset || "")}` : "aucun saisi"],
       ].map(([l, v, s, c]) => `<div class="kpi ${c || ""}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
       T.$("#btbl").innerHTML = `<table class="t"><thead><tr><th class="lbl">Programme</th><th>Stade</th><th class="n">PoS (base)</th><th class="n">PoS</th><th class="n">Pic M$</th><th class="n">Lancement</th><th class="n">Exclusivité</th><th class="n">rNPV $/action</th><th class="n">Si succès</th><th class="n">Part</th></tr></thead><tbody>
-        ${res.assets.map((a, i) => `<tr><td class="lbl"><b>${T.esc(a.name)}</b><br><span class="muted">${T.esc(a.indication || "")}</span></td>
+        ${res.assets.map((a, i) => `<tr><td class="lbl"><b>${T.esc(a.name)}</b><br><span class="muted">${T.esc(a.indication || "")}</span>${a.note ? `<br><span class="hint" style="color:var(--warn)">${T.esc(a.note)}</span>` : ""}</td>
           <td>${STAGES[a.stage] || a.stage}<br><span class="muted">${T.esc(((r.base_rates.areas[(a.area || "all").toLowerCase()] || {}).label) || a.area || "")}</span></td>
           <td class="n">${F.pct(a.pos_base, 1)}</td>
           <td class="n"><input class="sel num" data-i="${i}" data-k="pos" type="number" min="0" max="100" step="1" value="${+(a.pos * 100).toFixed(1)}" style="width:66px"${a.stage === "marketed" ? " disabled" : ""}> %</td>

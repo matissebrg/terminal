@@ -544,3 +544,6 @@ label.inl { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5
 input.num { text-align: right; font-family: var(--mono); padding: 3px 6px; }
 pre.yaml { margin-top: 10px; padding: 10px 12px; background: var(--panel-3); border: 1px solid var(--border); border-radius: 8px;
   font: 11.5px/1.5 var(--mono); color: var(--text-2); max-height: 320px; overflow: auto; white-space: pre; }
+.ev .ic.trial { background: rgba(144,133,233,.14); color: #b2a9f2; }
+.ev .ic.catalyst { background: var(--warn-soft); color: var(--warn); }
+a.order-row:hover { text-decoration: none; background: rgba(255,255,255,.02); }

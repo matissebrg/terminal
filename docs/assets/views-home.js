@@ -3,8 +3,8 @@
   "use strict";
   const T = window.T, F = T.fmt;
 
-  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎", results: "★" };
-  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction", results: "Résultats" };
+  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎", results: "★", trial: "⚗", catalyst: "⏱" };
+  const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction", results: "Résultats", trial: "Essai clinique", catalyst: "Catalyseur" };
 
   T.banner = (meta, status) => {
     let s = "";
@@ -51,7 +51,10 @@
 
   // ------------------------------------------------------------------ home
   T.route(/^\/$/, async (view) => {
-    const [u, feed, status] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null)]);
+    const [u, feed, status, bio] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null),
+      T.get("biotech.json").catch(() => null)]);
+    const today = new Date().toISOString().slice(0, 10);
+    const nextCats = ((bio || {}).calendar || []).filter((c) => c.kind !== "trial" && c.date >= today && !c.outcome).slice(0, 6);
     const rf = u.risk_free;
     const empty = !u.tickers.length ? `<tr><td colspan="9"><div class="empty">Aucune valeur calculée pour l'instant - voir le message ci-dessus.</div></td></tr>` : "";
     const rows = empty + u.tickers.map((t) => `<tr data-href="#/t/${t.ticker}" style="cursor:pointer">
@@ -59,7 +62,7 @@
         <td class="n">${F.px(t.price)}</td>
         <td class="n ${T.cls(t.chg_1d)}">${F.pct(t.chg_1d, 2, true)}</td>
         <td class="n">${F.usd(t.market_cap)}</td>
-        <td class="n">${F.px(t.value_base)}</td>
+        <td class="n">${F.px(t.value_base)}${t.method === "rnpv" ? ' <span class="tag" title="Valeur par la rNPV du portefeuille de médicaments">rNPV</span>' : ""}</td>
         <td class="n">${F.px(t.value_weighted)}</td>
         <td class="n ${T.cls(t.upside_weighted)}"><b>${F.pct(t.upside_weighted, 1, true)}</b></td>
         <td style="width:140px">${T.spark(t.spark, 140, 24)}</td>
@@ -76,9 +79,9 @@
           <div class="s">${T.esc(rf ? rf.source : "")}${rf && rf.as_of ? " · " + F.date(rf.as_of) : ""}</div></div></div>
       <div class="grid g-main">
         <div class="stack">
-          <div class="panel"><h3>Valeurs suivies <span class="hint">potentiel = valeur pondérée des scénarios vs cours</span></h3>
+          <div class="panel"><h3>Valeurs suivies <span class="hint">potentiel = valeur pondérée (scénarios DCF, ou rNPV pour les biotechs) vs cours</span></h3>
             <div class="tbl-wrap"><table class="t" id="wlTable"><thead><tr><th>Valeur</th><th class="n">Cours</th><th class="n">1 j</th>
-              <th class="n">Capi.</th><th class="n">DCF base</th><th class="n">DCF pondéré</th><th class="n">Potentiel</th><th>60 j</th><th>Dernier trim.</th></tr></thead>
+              <th class="n">Capi.</th><th class="n">Valeur base</th><th class="n">Valeur pondérée</th><th class="n">Potentiel</th><th>60 j</th><th>Dernier trim.</th></tr></thead>
               <tbody>${rows}</tbody></table></div></div>
           <div class="panel"><h3>Comment ça marche</h3>
             <div class="grid g3">
@@ -87,8 +90,12 @@
               <div><b>3 · Le feed</b><p class="sec" style="margin:6px 0 0">Nouvelle publication ou valeur qui bouge → un événement, avec la décomposition données / hypothèses / marché.</p></div>
             </div></div>
         </div>
+        <div class="stack">
+        ${nextCats.length ? `<div class="panel"><h3>Prochains catalyseurs <a class="hint" href="#/biotech">calendrier →</a></h3>
+          ${nextCats.map((c) => { const d = Math.round((new Date(c.date) - new Date(today)) / 864e5);
+            return `<a class="order-row" href="#/t/${c.ticker}/biotech" style="color:inherit"><span class="num">${d === 0 ? "auj." : "J-" + d}</span> <b>${c.ticker}</b> <span>${T.esc(c.kind_label)}</span> <span class="muted">${T.esc(c.asset || "")}${T.isNum(c.p_base) ? ` · base ${F.pct(c.p_base, 0)}` : ""}${c.options && T.isNum(c.options.event_move) ? ` · options ±${F.pct(c.options.event_move, 1)}` : ""}</span></a>`; }).join("")}</div>` : ""}
         <div class="panel"><h3>Feed <a class="hint" href="#/feed">tout voir →</a></h3>
-          <div class="feed">${T.sortEvents(feed.events || []).slice(0, 12).map((e) => T.renderEvent(e)).join("") || '<div class="empty">Aucun événement pour l’instant.</div>'}</div></div>
+          <div class="feed">${T.sortEvents(feed.events || []).slice(0, 12).map((e) => T.renderEvent(e)).join("") || '<div class="empty">Aucun événement pour l’instant.</div>'}</div></div></div>
       </div>`;
     T.$$("#wlTable tbody tr").forEach((tr) => tr.addEventListener("click", () => T.go(tr.dataset.href)));
   });
