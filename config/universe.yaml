@@ -89,6 +89,12 @@ tickers:
     industry: Maladies respiratoires rares (molgramostim inhalé)
     peers: [INSM]
     benchmarks: [SPY, IBB]
+  COGT:
+    name: Cogent Biosciences, Inc.
+    sector: Biotechnologie
+    industry: 'Oncologie de précision (bezuclastinib : GIST, mastocytose)'
+    peers: [EXEL, IDYA]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -122,6 +128,8 @@ peer_names:
   SRPT: Sarepta Therapeutics, Inc.
   DYN: Dyne Therapeutics, Inc.
   INSM: INSMED Inc
+  EXEL: Exelixis, Inc.
+  IDYA: IDEAYA Biosciences, Inc.
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -169,6 +177,9 @@ families:
   DYN: sante
   SVRA: sante
   INSM: sante
+  COGT: sante
+  EXEL: sante
+  IDYA: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -212,3 +223,6 @@ ciks:
   DYN: 1818794
   SVRA: 1160308
   INSM: 1104506
+  COGT: 1622229
+  EXEL: 939767
+  IDYA: 1676725
