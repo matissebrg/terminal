@@ -222,9 +222,9 @@ def value(cfg: dict, *, net_cash: float, shares: float, price: float | None, val
 def catalyst_math(a: dict, *, equity: float, shares: float, price: float | None) -> dict:
     """What the next event of a programme means for the stock.
 
-    move_up / move_down   share-price jump on success / failure, from today's price, if the market holds
-                          your probability (success: the event's risk disappears; failure: the
-                          programme is worth 0)
+    move_up / move_down   jump of the value on success / failure, in % of the model's equity value (the
+                          price, if the market agrees with your model): success removes the event's
+                          risk, failure makes the programme worth 0
     expected_abs_move     p x up + (1 - p) x |down| : the size of move the event should cause
     implied_pos / _step   probability that makes the WHOLE model equal to the price, holding every other
                           input: above 100 % means the price needs more than this programme succeeding
@@ -235,8 +235,11 @@ def catalyst_math(a: dict, *, equity: float, shares: float, price: float | None)
     if not (a["step_p"] and price and shares):
         return out
     v_succ = a["value_if_success"] if a.get("value_if_success") is not None else a["rnpv"]
-    up = (v_succ - a["rnpv"]) / shares / price
-    down = (0.0 - a["rnpv"]) / shares / price
+    # jumps as a % of the MODEL's equity value (bounded at -100 %); equal to % of the price when the
+    # model agrees with the market. Falls back on the price when the model equity is not positive.
+    base = equity if equity > 0 else price * shares
+    up = (v_succ - a["rnpv"]) / base
+    down = max(-1.0, (0.0 - a["rnpv"]) / base)
     p = a["step_p"]
     out.update({"move_up": up, "move_down": down, "expected_abs_move": p * up + (1 - p) * abs(down)})
     if a["revenue_pv"] > 0:

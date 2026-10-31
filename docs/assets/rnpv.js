@@ -61,7 +61,8 @@
     const out = { implied_pos: null, implied_step: null, move_up: null, move_down: null, expected_abs_move: null };
     if (!(a.step_p && price && shares)) return out;
     const vSucc = a.value_if_success != null ? a.value_if_success : a.rnpv;
-    const up = (vSucc - a.rnpv) / shares / price, down = (0 - a.rnpv) / shares / price, p = a.step_p;
+    const base = equity > 0 ? equity : price * shares;
+    const up = (vSucc - a.rnpv) / base, down = Math.max(-1, (0 - a.rnpv) / base), p = a.step_p;
     Object.assign(out, { move_up: up, move_down: down, expected_abs_move: p * up + (1 - p) * Math.abs(down) });
     if (a.revenue_pv > 0) {
       const unrisked = a.revenue_pv / a.pos, pMkt = (price * shares - (equity - a.rnpv) - a.dev_pv) / unrisked;
