@@ -107,6 +107,12 @@ tickers:
     industry: 'Neurologie (relutrigine : épilepsies génétiques ; ulixacaltamide : tremblement essentiel)'
     peers: [XENE, NBIX]
     benchmarks: [SPY, IBB]
+  AGIO:
+    name: Agios Pharmaceuticals, Inc.
+    sector: Biotechnologie
+    industry: 'Maladies rares du sang (mitapivat : déficit en PK, thalassémies, drépanocytose)'
+    peers: [VRTX, PTCT]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -144,6 +150,8 @@ peer_names:
   IDYA: IDEAYA Biosciences, Inc.
   XENE: Xenon Pharmaceuticals Inc.
   NBIX: Neurocrine Biosciences Inc
+  VRTX: Vertex Pharmaceuticals Inc / Ma
+  PTCT: Ptc Therapeutics, Inc.
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -198,6 +206,9 @@ families:
   PRAX: sante
   XENE: sante
   NBIX: sante
+  AGIO: sante
+  VRTX: sante
+  PTCT: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -248,3 +259,6 @@ ciks:
   PRAX: 1689548
   XENE: 1582313
   NBIX: 914475
+  AGIO: 1439222
+  VRTX: 875320
+  PTCT: 1070081
