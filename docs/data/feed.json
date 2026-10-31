@@ -127,6 +127,164 @@
    }
   },
   {
+   "id": "064db7048aac",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:21:22Z",
+   "ticker": "CAPR",
+   "type": "valuation",
+   "title": "CAPR : valeur DCF 4,09 $ → 4,14 $ (+1,1 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 6,63 $, potentiel -37,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0449
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 4.092516675857573,
+    "to": 4.137406555261918,
+    "change": 0.010968771286665041,
+    "price": 6.63
+   }
+  },
+  {
+   "id": "452869e9c571",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:21:19Z",
+   "ticker": "SMMT",
+   "type": "valuation",
+   "title": "SMMT : valeur DCF 0,87 $ → 8,11 $ (+836,7 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 16,20 $, potentiel -49,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 7.2442
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 0.8657829452605605,
+    "to": 8.10996237163646,
+    "change": 8.367200423653225,
+    "price": 16.2
+   }
+  },
+  {
+   "id": "1827970a99ff",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:21:11Z",
+   "ticker": "REGN",
+   "type": "valuation",
+   "title": "REGN : valeur DCF 623,52 $ → 625,20 $ (+0,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 818,77 $, potentiel -23,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.6761
+    }
+   ],
+   "values": {
+    "from": 623.5221744159485,
+    "to": 625.1982475180245,
+    "change": 0.002688072968128115,
+    "price": 818.77
+   }
+  },
+  {
+   "id": "2685f689b2fd",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:20:59Z",
+   "ticker": "BBIO",
+   "type": "cross",
+   "title": "BBIO : le cours passe en dessous de la valeur DCF",
+   "detail": "Cours 70,73 $ vs valeur DCF 71,34 $.",
+   "values": {
+    "price": 70.73,
+    "value": 71.34472398786822
+   }
+  },
+  {
+   "id": "10e2ca95c364",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:20:50Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 243,79 $, potentiel -94,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.26
+    }
+   ],
+   "values": {
+    "from": 14.445885392857356,
+    "to": 14.70593203767256,
+    "change": 0.01800143347003034,
+    "price": 243.79
+   }
+  },
+  {
+   "id": "cca1b3027604",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:20:38Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 282,32 $, potentiel -55,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 3.5506
+    }
+   ],
+   "values": {
+    "from": 120.95474521890496,
+    "to": 124.50533779827809,
+    "change": 0.02935471917986547,
+    "price": 282.32
+   }
+  },
+  {
    "id": "9572a6e8c702",
    "date": "2026-10-31",
    "ts": "2026-10-31T00:17:49Z",
@@ -209,164 +367,6 @@
    "values": {
     "price": 21.24,
     "value": 43.182379179322254
-   }
-  },
-  {
-   "id": "064db7048aac",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:17:34Z",
-   "ticker": "CAPR",
-   "type": "valuation",
-   "title": "CAPR : valeur DCF 4,09 $ → 4,14 $ (+1,1 %)",
-   "detail": "Moteur principal : Hypothèses modifiées. Cours 6,63 $, potentiel -37,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0449
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 4.092516675857573,
-    "to": 4.137406555261918,
-    "change": 0.010968771286665041,
-    "price": 6.63
-   }
-  },
-  {
-   "id": "452869e9c571",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:17:31Z",
-   "ticker": "SMMT",
-   "type": "valuation",
-   "title": "SMMT : valeur DCF 0,87 $ → 8,11 $ (+836,7 %)",
-   "detail": "Moteur principal : Hypothèses modifiées. Cours 16,20 $, potentiel -49,9 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 7.2442
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 0.8657829452605605,
-    "to": 8.10996237163646,
-    "change": 8.367200423653225,
-    "price": 16.2
-   }
-  },
-  {
-   "id": "1827970a99ff",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:17:21Z",
-   "ticker": "REGN",
-   "type": "valuation",
-   "title": "REGN : valeur DCF 623,52 $ → 625,20 $ (+0,3 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 818,77 $, potentiel -23,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 1.6761
-    }
-   ],
-   "values": {
-    "from": 623.5221744159485,
-    "to": 625.1982475180245,
-    "change": 0.002688072968128115,
-    "price": 818.77
-   }
-  },
-  {
-   "id": "2685f689b2fd",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:17:10Z",
-   "ticker": "BBIO",
-   "type": "cross",
-   "title": "BBIO : le cours passe en dessous de la valeur DCF",
-   "detail": "Cours 70,73 $ vs valeur DCF 71,34 $.",
-   "values": {
-    "price": 70.73,
-    "value": 71.34472398786822
-   }
-  },
-  {
-   "id": "10e2ca95c364",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:17:03Z",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 243,79 $, potentiel -94,0 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.26
-    }
-   ],
-   "values": {
-    "from": 14.445885392857356,
-    "to": 14.70593203767256,
-    "change": 0.01800143347003034,
-    "price": 243.79
-   }
-  },
-  {
-   "id": "cca1b3027604",
-   "date": "2026-10-31",
-   "ts": "2026-10-31T00:16:48Z",
-   "ticker": "GOOG",
-   "type": "valuation",
-   "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 282,32 $, potentiel -55,9 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 3.5506
-    }
-   ],
-   "values": {
-    "from": 120.95474521890496,
-    "to": 124.50533779827809,
-    "change": 0.02935471917986547,
-    "price": 282.32
    }
   },
   {
