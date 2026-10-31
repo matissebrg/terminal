@@ -3,52 +3,41 @@
   {
    "id": "064db7048aac",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:27:24Z",
+   "ts": "2026-10-31T00:30:35Z",
    "ticker": "CAPR",
    "type": "valuation",
-   "title": "CAPR : valeur rNPV 4,09 $ → 4,14 $ (+1,1 %)",
-   "detail": "Moteur principal : Hypothèses modifiées. Cours 6,63 $, potentiel -37,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0449
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
+   "title": "CAPR : valorisation passée en rNPV (4,14 $ par action)",
+   "detail": "Changement de méthode (avant : 4,09 $). Cours 6,63 $, potentiel -37,6 %.",
+   "bridge": [],
    "values": {
     "from": 4.092516675857573,
     "to": 4.137406555261918,
     "change": 0.010968771286665041,
-    "price": 6.63
+    "price": 6.63,
+    "method": "rNPV"
    }
   },
   {
    "id": "452869e9c571",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:27:21Z",
+   "ts": "2026-10-31T00:30:32Z",
    "ticker": "SMMT",
    "type": "valuation",
    "title": "SMMT : valorisation passée en rNPV (8,11 $ par action)",
-   "detail": "Moteur principal : Hypothèses modifiées. Cours 16,20 $, potentiel -49,9 %.",
+   "detail": "Changement de méthode (avant : 0,87 $). Cours 16,20 $, potentiel -49,9 %.",
    "bridge": [],
    "values": {
     "from": 0.8657829452605605,
     "to": 8.10996237163646,
     "change": 8.367200423653225,
-    "price": 16.2
+    "price": 16.2,
+    "method": "rNPV"
    }
   },
   {
    "id": "1827970a99ff",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:27:13Z",
+   "ts": "2026-10-31T00:30:26Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 623,52 $ → 625,20 $ (+0,3 %)",
@@ -77,11 +66,11 @@
   {
    "id": "2685f689b2fd",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:27:03Z",
+   "ts": "2026-10-31T00:30:16Z",
    "ticker": "BBIO",
    "type": "cross",
    "title": "BBIO : le cours passe en dessous de la valeur rNPV",
-   "detail": "Cours 70,73 $ vs valeur DCF 71,34 $.",
+   "detail": "Cours 70,73 $ vs valeur rNPV 71,34 $.",
    "values": {
     "price": 70.73,
     "value": 71.34472398786822
@@ -90,7 +79,7 @@
   {
    "id": "10e2ca95c364",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:26:58Z",
+   "ts": "2026-10-31T00:30:11Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
@@ -119,7 +108,7 @@
   {
    "id": "cca1b3027604",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:26:45Z",
+   "ts": "2026-10-31T00:30:00Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
@@ -328,7 +317,7 @@
    "ts": "2026-10-30T23:58:38Z",
    "ticker": "BBIO",
    "type": "valuation",
-   "title": "BBIO : valeur rNPV -116,06 $ → 71,33 $ (+161,5 %)",
+   "title": "BBIO : valeur DCF -116,06 $ → 71,33 $ (+161,5 %)",
    "detail": "Moteur principal : Hypothèses modifiées. Cours 74,95 $, potentiel -4,8 %.",
    "bridge": [
     {
