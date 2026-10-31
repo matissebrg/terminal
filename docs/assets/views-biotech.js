@@ -272,7 +272,9 @@
       });
     }
     const draw = () => {
-      const list = cal.filter((c) => (st.past || c.date >= today || (!c.outcome && c.kind !== "trial")) && (!st.kind || c.kind === st.kind) && (!st.tk || c.ticker === st.tk));
+      // trial completions (ClinicalTrials.gov) are numerous: shown with their chip or for a chosen stock
+      const list = cal.filter((c) => (st.past || c.date >= today || (!c.outcome && c.kind !== "trial"))
+        && (st.kind ? c.kind === st.kind : (c.kind !== "trial" || !!st.tk)) && (!st.tk || c.ticker === st.tk));
       const t0 = new Date(today);
       T.$("#bcal").innerHTML = list.length ? `<table class="t"><thead><tr><th>Date</th><th>Valeur</th><th>Événement</th><th>Programme / essai</th><th class="n">Base</th><th class="n">Modèle</th><th class="n">Marché</th><th class="n">Si succès / échec</th><th class="n">Options</th><th class="n">Ta probabilité</th></tr></thead><tbody>
         ${list.map((c) => { const d = Math.round((new Date(c.date) - t0) / 864e5);
