@@ -83,3 +83,78 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : BLA ivonescimab + chimiothérapie (CPNPC EGFR muté après TKI) acceptée en janvier 2026, décision
+# FDA attendue le 14/11/2026 ; survie globale de HARMONi mise à jour en juillet 2026 : HR 0,76.
+# HARMONi-3 (1re ligne vs pembrolizumab + chimio) : analyse de survie sans progression de la cohorte
+# épidermoïde au 2e semestre 2026, cohorte non épidermoïde au 1er semestre 2027. Summit détient les
+# droits hors Chine (licence Akeso) : les redevances dues à Akeso sont incluses dans cogs_pct.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 150000000
+    years: 10
+  assets:
+    - name: Ivonescimab (CPNPC EGFR muté après TKI)
+      indication: Cancer du poumon non à petites cellules EGFR muté, après inhibiteur de tyrosine kinase
+      stage: filed
+      area: oncology
+      launch_year: 2027
+      peak_sales: 1000000000
+      years_to_peak: 5
+      loe_year: 2039
+      cogs_pct: 0.20
+      opex_pct: 0.30
+      note: Le taux historique (92 %) ignore le débat sur la survie globale ; à ajuster.
+    - name: Ivonescimab (1re ligne, CPNPC épidermoïde)
+      indication: CPNPC épidermoïde, 1re ligne (HARMONi-3)
+      stage: phase3
+      area: oncology
+      launch_year: 2028
+      peak_sales: 4000000000
+      years_to_peak: 6
+      loe_year: 2039
+      dev_cost: 300000000
+      cogs_pct: 0.20
+      opex_pct: 0.30
+    - name: Ivonescimab (1re ligne, CPNPC non épidermoïde)
+      indication: CPNPC non épidermoïde, 1re ligne (HARMONi-3)
+      stage: phase3
+      area: oncology
+      launch_year: 2029
+      peak_sales: 3000000000
+      years_to_peak: 6
+      loe_year: 2039
+      dev_cost: 300000000
+      cogs_pct: 0.20
+      opex_pct: 0.30
+
+catalysts:
+  - id: ivonescimab-egfrm-pdufa
+    date: 2026-11-14
+    kind: pdufa
+    asset: Ivonescimab (CPNPC EGFR muté après TKI)
+    title: Décision de la FDA sur ivonescimab + chimiothérapie (HARMONi, CPNPC EGFR muté)
+    confirmed: true
+    source: https://www.biospace.com/press-releases/summit-therapeutics-reports-financial-results-and-operational-progress-for-the-second-quarter-and-six-months-ended-june-30-2026
+  - id: harmoni3-squamous-pfs
+    date: 2026-12-15
+    kind: readout
+    asset: Ivonescimab (1re ligne, CPNPC épidermoïde)
+    title: Analyse principale de survie sans progression de HARMONi-3, cohorte épidermoïde (« 2e semestre 2026 », date approximative)
+    confirmed: false
+    source: https://www.biospace.com/press-releases/summit-therapeutics-reports-financial-results-and-operational-progress-for-the-second-quarter-and-six-months-ended-june-30-2026
+
+trials:
+  sponsors: [Summit Therapeutics]

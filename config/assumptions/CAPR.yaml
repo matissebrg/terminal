@@ -83,3 +83,51 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : lettre de refus (CRL) en juillet 2025 ; nouveau dossier avec l'essai HOPE-3 (106 patients,
+# -54 % de déclin sur le PUL v2.0, p = 0,029) ; comité consultatif du 29/07/2026 : 9 voix contre 3
+# CONTRE l'approbation ; décision repoussée au 22/11/2026 après un amendement majeur.
+# Distribution aux États-Unis par Nippon Shinyaku : Capricor touche une part des ventes (30 à 50 %
+# selon l'annonce de 2022, à vérifier dans le 10-K) -> share: 0.4.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 60000000
+    years: 10
+  assets:
+    - name: Deramiocel (Duchenne)
+      indication: Myopathie de Duchenne (fonction des membres supérieurs)
+      stage: filed
+      area: rare
+      pos: 0.35
+      launch_year: 2027
+      peak_sales: 600000000
+      years_to_peak: 5
+      loe_year: 2039
+      share: 0.4
+      cogs_pct: 0.15
+      opex_pct: 0.05
+      note: Probabilité abaissée de 94 % (base) à 35 % à cause du vote défavorable du comité consultatif ; hypothèse à discuter.
+
+catalysts:
+  - id: deramiocel-pdufa
+    date: 2026-11-22
+    kind: pdufa
+    asset: Deramiocel (Duchenne)
+    title: Décision de la FDA sur le deramiocel (après un comité consultatif défavorable 9-3)
+    confirmed: true
+    source: https://www.cgtlive.com/view/fda-extends-deramiocel-review-dmd
+
+trials:
+  sponsors: [Capricor]

@@ -83,3 +83,74 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits (résultats T2 2026, 10/08/2026) : bezuclastinib + sunitinib dans le GIST (essai PEAK), NDA en
+# examen prioritaire, décision le 30/11/2026 ; mastocytose systémique non avancée (APEX), décision le
+# 30/12/2026 ; mastocytose avancée, NDA déposée le 30/06/2026 (date de décision non publiée).
+# Trésorerie : 792 M$ au 30/06/2026 (866 M$ pro forma), financement jusqu'à fin 2028.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 120000000
+    years: 10
+  assets:
+    - name: Bezuclastinib (GIST, avec sunitinib)
+      indication: Tumeur stromale gastro-intestinale après imatinib
+      stage: filed
+      area: oncology
+      launch_year: 2027
+      peak_sales: 600000000
+      years_to_peak: 5
+      loe_year: 2040
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: Bezuclastinib (mastocytose non avancée)
+      indication: Mastocytose systémique non avancée
+      stage: filed
+      area: hematology
+      launch_year: 2027
+      peak_sales: 1200000000
+      years_to_peak: 6
+      loe_year: 2040
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: Bezuclastinib (mastocytose avancée)
+      indication: Mastocytose systémique avancée
+      stage: filed
+      area: hematology
+      launch_year: 2027
+      peak_sales: 300000000
+      years_to_peak: 5
+      loe_year: 2040
+      cogs_pct: 0.05
+      opex_pct: 0.20
+
+catalysts:
+  - id: bezuclastinib-gist-pdufa
+    date: 2026-11-30
+    kind: pdufa
+    asset: Bezuclastinib (GIST, avec sunitinib)
+    title: Décision de la FDA sur bezuclastinib + sunitinib dans le GIST (examen prioritaire)
+    confirmed: true
+    source: https://www.sec.gov/Archives/edgar/data/0001622229/000119312526341315/cogt-ex99_1.htm
+  - id: bezuclastinib-nonadvsm-pdufa
+    date: 2026-12-30
+    kind: pdufa
+    asset: Bezuclastinib (mastocytose non avancée)
+    title: Décision de la FDA sur le bezuclastinib dans la mastocytose systémique non avancée
+    confirmed: true
+    source: https://www.sec.gov/Archives/edgar/data/0001622229/000119312526341315/cogt-ex99_1.htm
+
+trials:
+  sponsors: [Cogent Biosciences]

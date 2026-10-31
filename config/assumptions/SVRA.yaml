@@ -83,3 +83,46 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : BLA du molgramostim inhalé (protéinose alvéolaire pulmonaire auto-immune) ; examen prolongé de
+# trois mois après un « amendement majeur », sans problème de sécurité, d'efficacité ou de fabrication
+# cité par la FDA ; décision attendue le 22/11/2026. Essai pivot IMPALA-2 positif sur son critère principal.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 50000000
+    years: 10
+  assets:
+    - name: Molgramostim (PAP auto-immune)
+      indication: Protéinose alvéolaire pulmonaire auto-immune
+      stage: filed
+      area: rare
+      launch_year: 2027
+      peak_sales: 500000000
+      years_to_peak: 6
+      loe_year: 2039
+      cogs_pct: 0.12
+      opex_pct: 0.35
+
+catalysts:
+  - id: molgramostim-pdufa
+    date: 2026-11-22
+    kind: pdufa
+    asset: Molgramostim (PAP auto-immune)
+    title: Décision de la FDA sur le molgramostim inhalé (PAP auto-immune)
+    confirmed: true
+    source: https://www.businesswire.com/news/home/20260415775650/en
+
+trials:
+  sponsors: [Savara]
