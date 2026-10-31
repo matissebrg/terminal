@@ -1,23 +1,23 @@
 {
  "events": [
   {
-   "id": "1c4969591dd1",
+   "id": "b62c283ef4d8",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:01:43Z",
-   "ticker": "SVRA",
+   "ts": "2026-10-31T00:05:52Z",
+   "ticker": "COGT",
    "type": "coverage",
-   "title": "SVRA : couverture initiée",
+   "title": "COGT : couverture initiée",
    "detail": "Premier calcul de valorisation à partir des données SEC.",
    "values": {
-    "price": 4.95,
-    "value_base": 0.6956341359169083,
-    "value_weighted": 0.6956341359169083
+    "price": 31.96,
+    "value_base": 3.278161988225995,
+    "value_weighted": 3.278161988225995
    }
   },
   {
    "id": "2685f689b2fd",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:01:18Z",
+   "ts": "2026-10-31T00:05:28Z",
    "ticker": "BBIO",
    "type": "cross",
    "title": "BBIO : le cours passe en dessous de la valeur DCF",
@@ -30,7 +30,7 @@
   {
    "id": "10e2ca95c364",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:01:15Z",
+   "ts": "2026-10-31T00:05:25Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
@@ -59,7 +59,7 @@
   {
    "id": "cca1b3027604",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:01:04Z",
+   "ts": "2026-10-31T00:05:13Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
@@ -83,6 +83,20 @@
     "to": 124.50533779827809,
     "change": 0.02935471917986547,
     "price": 282.32
+   }
+  },
+  {
+   "id": "1c4969591dd1",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:01:43Z",
+   "ticker": "SVRA",
+   "type": "coverage",
+   "title": "SVRA : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 4.95,
+    "value_base": 0.6956341359169083,
+    "value_weighted": 0.6956341359169083
    }
   },
   {
