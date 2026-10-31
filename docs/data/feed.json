@@ -1,6 +1,91 @@
 {
  "events": [
   {
+   "id": "1c4969591dd1",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:01:43Z",
+   "ticker": "SVRA",
+   "type": "coverage",
+   "title": "SVRA : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 4.95,
+    "value_base": 0.6956341359169083,
+    "value_weighted": 0.6956341359169083
+   }
+  },
+  {
+   "id": "2685f689b2fd",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:01:18Z",
+   "ticker": "BBIO",
+   "type": "cross",
+   "title": "BBIO : le cours passe en dessous de la valeur DCF",
+   "detail": "Cours 70,73 $ vs valeur DCF 71,34 $.",
+   "values": {
+    "price": 70.73,
+    "value": 71.34472398786822
+   }
+  },
+  {
+   "id": "10e2ca95c364",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:01:15Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 243,79 $, potentiel -94,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.26
+    }
+   ],
+   "values": {
+    "from": 14.445885392857356,
+    "to": 14.70593203767256,
+    "change": 0.01800143347003034,
+    "price": 243.79
+   }
+  },
+  {
+   "id": "cca1b3027604",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:01:04Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 282,32 $, potentiel -55,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 3.5506
+    }
+   ],
+   "values": {
+    "from": 120.95474521890496,
+    "to": 124.50533779827809,
+    "change": 0.02935471917986547,
+    "price": 282.32
+   }
+  },
+  {
    "id": "18d8b514a0db",
    "date": "2026-10-30",
    "ts": "2026-10-30T23:58:57Z",
@@ -336,6 +421,19 @@
    "ts": "2026-10-29T20:00:00Z"
   },
   {
+   "id": "3067cb6be4c8",
+   "date": "2026-10-29",
+   "ts": "2026-10-29T20:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +6,4 % sur la séance",
+   "detail": "Clôture à 6,63 $.",
+   "values": {
+    "change": 0.0642054574638844,
+    "close": 6.63
+   }
+  },
+  {
    "id": "d6baee104533",
    "date": "2026-10-29",
    "ticker": "GOOG",
@@ -525,5 +623,5 @@
    }
   }
  ],
- "updated": "2026-10-30"
+ "updated": "2026-10-31"
 }
