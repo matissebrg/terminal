@@ -38,7 +38,8 @@
           <span class="num ${T.cls(b.delta)}" style="text-align:right">${b.delta >= 0 ? "+" : ""}${F.n(b.delta, 2)} $</span>`;
       }).join("")}</div>`;
     }
-    const link = e.url ? ` <a href="${T.esc(e.url)}" target="_blank" rel="noopener">Ouvrir sur EDGAR ↗</a>` : "";
+    const host = e.url ? (/clinicaltrials\.gov/.test(e.url) ? "ClinicalTrials.gov" : /sec\.gov/.test(e.url) ? "EDGAR" : "la source") : "";
+    const link = e.url ? ` <a href="${T.esc(e.url)}" target="_blank" rel="noopener">Ouvrir sur ${host} ↗</a>` : "";
     const tk = opts.hideTicker ? "" : `<a href="#/t/${e.ticker}">${e.ticker}</a> · `;
     return `<div class="ev">
       <div class="ic ${e.type}" title="${TYPE_LABEL[e.type] || e.type}">${ICON[e.type] || "•"}</div>
@@ -74,7 +75,7 @@
     view.innerHTML = `${T.banner(u.meta, status)}
       <div class="thead"><div class="id"><h1>Tableau de bord</h1>
         <div class="sub">Mis à jour ${F.dateTime(u.meta.generated_at)} · ${u.tickers.length} valeur(s) suivie(s)</div></div></div>
-      <div class="kpis">${benches}
+      <div class="kpis kpis-flex">${benches}
         <div class="kpi"><div class="l">Taux sans risque 10 ans US</div><div class="v">${F.pct(rf && rf.value, 2)}</div>
           <div class="s">${T.esc(rf ? rf.source : "")}${rf && rf.as_of ? " · " + F.date(rf.as_of) : ""}</div></div></div>
       <div class="grid g-main">

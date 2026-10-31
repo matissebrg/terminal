@@ -66,6 +66,7 @@ def slim(study: dict) -> dict:
         "primary_completion_type": _g(st, "primaryCompletionDateStruct", "type"),
         "completion": _g(st, "completionDateStruct", "date"),
         "last_update": _g(st, "lastUpdatePostDateStruct", "date"),
+        "first_posted": _g(st, "studyFirstPostDateStruct", "date"),
         "has_results": bool(study.get("hasResults")),
     }
 
@@ -119,9 +120,12 @@ def expected_readouts(studies: list[dict], today: date, months: int = 18) -> lis
 
 
 def diff_events(ticker: str, old: list[dict] | None, new: list[dict], today: str, eid) -> list[dict]:
-    """Feed events between two runs (nothing on the very first run: everything would be 'new')."""
+    """Feed events between two runs (nothing on the very first run: everything would be 'new').
+    A study only counts as new if ClinicalTrials.gov posted it in the last 60 days: a study that merely
+    appears because the sponsor list was widened is not news."""
     if old is None:
         return []
+    t0 = _d(today)
     prev = {s["nct"]: s for s in old}
     ev = []
 
@@ -135,7 +139,9 @@ def diff_events(ticker: str, old: list[dict] | None, new: list[dict], today: str
         name = s.get("acronym") or s["nct"]
         p = prev.get(s["nct"])
         if p is None:
-            if s.get("phases") and set(s["phases"]) & {"PHASE2", "PHASE3"}:
+            fp = _d(s.get("first_posted"))
+            recent = fp is not None and t0 is not None and (t0 - fp).days <= 60
+            if recent and s.get("phases") and set(s["phases"]) & {"PHASE2", "PHASE3"}:
                 push("new", s, f"{ticker} : nouvel essai {s['phase']} enregistré ({name})", s["title"])
             continue
         if p.get("status") != s.get("status"):

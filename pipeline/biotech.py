@@ -145,7 +145,9 @@ def build(*, ticker: str, assump: dict, fin: dict, price: float | None, shares: 
         try:
             studies = src.trials(sponsors)
             tr_src = "ClinicalTrials.gov"
-            tr_events = trials.diff_events(ticker, (prev or {}).get("studies"), studies, today, feed._eid)
+            same_scope = (prev or {}).get("sponsors") == sponsors      # widened sponsor list: no diff events
+            tr_events = trials.diff_events(ticker, (prev or {}).get("studies") if same_scope else None, studies,
+                                           today, feed._eid)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(__import__("json").dumps({"asof": today, "sponsors": sponsors, "studies": studies},
                                                      ensure_ascii=False, separators=(",", ":")))

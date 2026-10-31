@@ -5,10 +5,10 @@ from pipeline import feed, trials
 
 
 def rec(nct, status="RECRUITING", phases=("PHASE3",), pc="2027-03", pc_type="ESTIMATED", results=False,
-        sponsor="QED Therapeutics, Inc.", cls="INDUSTRY", why=None):
+        sponsor="QED Therapeutics, Inc.", cls="INDUSTRY", why=None, first="2026-10-01"):
     return {"protocolSection": {
         "identificationModule": {"nctId": nct, "briefTitle": f"Study {nct}", "acronym": nct[-3:]},
-        "statusModule": {"overallStatus": status, "whyStopped": why,
+        "statusModule": {"overallStatus": status, "whyStopped": why, "studyFirstPostDateStruct": {"date": first},
                          "primaryCompletionDateStruct": {"date": pc, "type": pc_type},
                          "lastUpdatePostDateStruct": {"date": "2026-10-01"}},
         "sponsorCollaboratorsModule": {"leadSponsor": {"name": sponsor, "class": cls}},
@@ -30,7 +30,8 @@ def test_slim_and_readouts():
 def test_diff_events():
     old = [trials.slim(rec("NCT1")), trials.slim(rec("NCT2", pc="2027-01"))]
     new = [trials.slim(rec("NCT1", status="TERMINATED", why="Business decision")),
-           trials.slim(rec("NCT2", pc="2027-06", results=True)), trials.slim(rec("NCT9", phases=("PHASE2",)))]
+           trials.slim(rec("NCT2", pc="2027-06", results=True)), trials.slim(rec("NCT9", phases=("PHASE2",))),
+           trials.slim(rec("NCT8", phases=("PHASE2",), first="2015-11-04"))]       # old study, newly matched: silent
     assert trials.diff_events("BBIO", None, new, "2026-10-31", feed._eid) == []      # first run: silent
     ev = trials.diff_events("BBIO", old, new, "2026-10-31", feed._eid)
     kinds = sorted(e["values"]["kind"] for e in ev)
