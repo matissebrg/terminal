@@ -127,23 +127,23 @@
    }
   },
   {
-   "id": "0e656862ac8e",
+   "id": "9572a6e8c702",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:46Z",
-   "ticker": "PRAX",
+   "ts": "2026-10-31T00:14:59Z",
+   "ticker": "AGIO",
    "type": "coverage",
-   "title": "PRAX : couverture initiée",
+   "title": "AGIO : couverture initiée",
    "detail": "Premier calcul de valorisation à partir des données SEC.",
    "values": {
-    "price": 288.62,
-    "value_base": 27.168743768801047,
-    "value_weighted": 27.168743768801047
+    "price": 37.23,
+    "value_base": -135.02571773747235,
+    "value_weighted": -134.26437036992192
    }
   },
   {
    "id": "064db7048aac",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:36Z",
+   "ts": "2026-10-31T00:14:47Z",
    "ticker": "CAPR",
    "type": "valuation",
    "title": "CAPR : valeur DCF 4,09 $ → 4,14 $ (+1,1 %)",
@@ -172,7 +172,7 @@
   {
    "id": "452869e9c571",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:33Z",
+   "ts": "2026-10-31T00:14:44Z",
    "ticker": "SMMT",
    "type": "valuation",
    "title": "SMMT : valeur DCF 0,87 $ → 8,11 $ (+836,7 %)",
@@ -201,7 +201,7 @@
   {
    "id": "2685f689b2fd",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:16Z",
+   "ts": "2026-10-31T00:14:27Z",
    "ticker": "BBIO",
    "type": "cross",
    "title": "BBIO : le cours passe en dessous de la valeur DCF",
@@ -214,7 +214,7 @@
   {
    "id": "10e2ca95c364",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:13Z",
+   "ts": "2026-10-31T00:14:24Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
@@ -243,7 +243,7 @@
   {
    "id": "cca1b3027604",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:11:02Z",
+   "ts": "2026-10-31T00:14:13Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
@@ -267,6 +267,20 @@
     "to": 124.50533779827809,
     "change": 0.02935471917986547,
     "price": 282.32
+   }
+  },
+  {
+   "id": "0e656862ac8e",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:11:46Z",
+   "ticker": "PRAX",
+   "type": "coverage",
+   "title": "PRAX : couverture initiée",
+   "detail": "Premier calcul de valorisation à partir des données SEC.",
+   "values": {
+    "price": 288.62,
+    "value_base": 27.168743768801047,
+    "value_weighted": 27.168743768801047
    }
   },
   {
