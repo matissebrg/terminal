@@ -129,21 +129,92 @@
   {
    "id": "9572a6e8c702",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:59Z",
+   "ts": "2026-10-31T00:17:49Z",
    "ticker": "AGIO",
    "type": "coverage",
    "title": "AGIO : couverture initiée",
    "detail": "Premier calcul de valorisation à partir des données SEC.",
    "values": {
     "price": 37.23,
-    "value_base": -135.02571773747235,
-    "value_weighted": -134.26437036992192
+    "value_base": 51.681736723739505,
+    "value_weighted": 51.681736723739505
+   }
+  },
+  {
+   "id": "13261be6410a",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:17:46Z",
+   "ticker": "PRAX",
+   "type": "valuation",
+   "title": "PRAX : valeur DCF 27,17 $ → 198,62 $ (+631,1 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 288,62 $, potentiel -31,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 171.4544
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 27.168743768801047,
+    "to": 198.62315583180032,
+    "change": 6.310722848359563,
+    "price": 288.62
+   }
+  },
+  {
+   "id": "811e6166bf6e",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:17:43Z",
+   "ticker": "MLYS",
+   "type": "valuation",
+   "title": "MLYS : valeur DCF 7,48 $ → 43,18 $ (+477,3 %)",
+   "detail": "Moteur principal : Hypothèses modifiées. Cours 21,24 $, potentiel +103,3 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 35.7021
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 7.480322375344409,
+    "to": 43.182379179322254,
+    "change": 4.772796547065132,
+    "price": 21.24
+   }
+  },
+  {
+   "id": "68212f588332",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:17:43Z",
+   "ticker": "MLYS",
+   "type": "cross",
+   "title": "MLYS : le cours passe en dessous de la valeur DCF",
+   "detail": "Cours 21,24 $ vs valeur DCF 43,18 $.",
+   "values": {
+    "price": 21.24,
+    "value": 43.182379179322254
    }
   },
   {
    "id": "064db7048aac",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:47Z",
+   "ts": "2026-10-31T00:17:34Z",
    "ticker": "CAPR",
    "type": "valuation",
    "title": "CAPR : valeur DCF 4,09 $ → 4,14 $ (+1,1 %)",
@@ -172,7 +243,7 @@
   {
    "id": "452869e9c571",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:44Z",
+   "ts": "2026-10-31T00:17:31Z",
    "ticker": "SMMT",
    "type": "valuation",
    "title": "SMMT : valeur DCF 0,87 $ → 8,11 $ (+836,7 %)",
@@ -199,9 +270,38 @@
    }
   },
   {
+   "id": "1827970a99ff",
+   "date": "2026-10-31",
+   "ts": "2026-10-31T00:17:21Z",
+   "ticker": "REGN",
+   "type": "valuation",
+   "title": "REGN : valeur DCF 623,52 $ → 625,20 $ (+0,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 818,77 $, potentiel -23,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.6761
+    }
+   ],
+   "values": {
+    "from": 623.5221744159485,
+    "to": 625.1982475180245,
+    "change": 0.002688072968128115,
+    "price": 818.77
+   }
+  },
+  {
    "id": "2685f689b2fd",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:27Z",
+   "ts": "2026-10-31T00:17:10Z",
    "ticker": "BBIO",
    "type": "cross",
    "title": "BBIO : le cours passe en dessous de la valeur DCF",
@@ -214,7 +314,7 @@
   {
    "id": "10e2ca95c364",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:24Z",
+   "ts": "2026-10-31T00:17:03Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
@@ -243,7 +343,7 @@
   {
    "id": "cca1b3027604",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:14:13Z",
+   "ts": "2026-10-31T00:16:48Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
