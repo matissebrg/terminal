@@ -97,53 +97,7 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   par 10 minutes, signalement (seul le message signalé est transmis aux administrateurs). Pas de chiffrement de bout en
   bout : les messages sont stockés dans la base Supabase. Rafraîchissement toutes les 8 secondes dans une conversation.
 
-**Activation (une fois) :**
 
-1. Créer un projet Supabase (région UE). *Authentication → Sign In / Providers → Email* : décocher **Confirm email**
-   (l'envoi d'e-mails par défaut de Supabase est limité à l'équipe du projet).
-2. Copier l'**URL du projet** et la **clé publishable** (`sb_publishable_…`) dans `docs/assets/config.js`. Elles sont publiques
-   par conception (la sécurité vient des règles de la base). **Jamais la clé secrète ici.**
-3. Secrets GitHub (*Settings → Secrets and variables → Actions*), qui ne quittent jamais GitHub :
-   - `SUPABASE_DB_URL` : *Connect → Session pooler* (URI avec le mot de passe de la base ; la connexion directe est IPv6
-     uniquement, inaccessible depuis GitHub Actions) ;
-   - `SUPABASE_SERVICE_KEY` : clé secrète (`sb_secret_…`) ;
-   - `ARCHER_ADMIN_EMAIL` : ton e-mail, pour rejoindre en fondateur sans code.
-4. Lancer le workflow : il applique les migrations (`python -m pipeline.dbadmin migrate`), puis synchronise.
-5. Sur le site : *Connexion → Créer un compte* avec cet e-mail, code vide → tu es administrateur et peux créer des codes
-   d'invitation depuis *Mon compte*.
-
-**Limites :** cours Yahoo Finance, dont les conditions interdisent la redistribution et l'usage commercial : acceptable pour
-une bêta privée non commerciale, à remplacer par un fournisseur sous licence avant toute ouverture publique (la source est
-isolée dans `pipeline/market.py`). Les divisions d'actions ne sont pas encore appliquées aux portefeuilles fictifs. Données
-personnelles (RGPD) : e-mail et pseudo seulement, suppression du compte en un clic dans *Mon compte*.
-
-## Mise en route (une seule fois)
-
-1. **Settings → Pages → Build and deployment → Source : `GitHub Actions`.**
-2. **Settings → Actions → General → Workflow permissions : `Read and write permissions`** (le workflow enregistre l'historique dans le repo).
-3. *(Recommandé)* **Settings → Secrets and variables → Actions → New repository secret** :
-   `SEC_USER_AGENT` = `Matisse Bourgeois ton.email@exemple.com`. La SEC demande un User-Agent identifiant un contact ; le secret évite de mettre ton e-mail en clair dans un repo public.
-4. **Actions → update-data → Run workflow.** Le site est en ligne ~2 minutes après.
-
-> ⚠ GitHub désactive les workflows planifiés d'un repo public après 60 jours sans activité. Les commits automatiques de données devraient suffire à le maintenir actif ; si jamais il s'arrête, un clic sur *Enable workflow* dans l'onglet Actions le relance.
-
-## Ajouter une valeur (sans passer par Claude)
-
-1. **Actions → « Ajouter une valeur » → Run workflow.** Renseigner le ticker (ex. `WMT`), les pairs
-   (`COST,TGT,KR`), et si besoin le secteur, l'activité et un ETF sectoriel de comparaison (`XLP`, `XLK`, `XLF`…).
-2. Le workflow trouve la société à la SEC, reconstruit son historique, écrit `config/assumptions/<TICKER>.yaml`
-   et complète `config/universe.yaml`, puis relance la mise à jour du site (~3 minutes au total).
-   Le résumé du run affiche le chiffre d'affaires, la valeur indicative et les éventuels problèmes de données.
-3. **Le fichier d'hypothèses généré est mécanique** (croissance passée qui converge vers 3 %, marge actuelle
-   maintenue, taux d'impôt effectif, BFR observé, bull / bear à ±3 points de croissance et ±15 % de marge, modèle
-   naïf le plus précis sur l'historique). Il décrit le passé : écrire la thèse, la vraie croissance, la marge
-   cible, les scénarios et la guidance, c'est le travail d'analyste. Modifier le fichier sur GitHub (crayon →
-   *Commit*) ou passer par le simulateur de l'onglet *Valorisation* (*Copier en YAML*).
-
-En local : `python -m pipeline.scaffold WMT --peers COST,TGT,KR --etf XLP --etf-name "Consommation de base (ETF XLP)"`.
-Limites : sociétés déposant à la SEC uniquement (US et quelques étrangères en 20-F) ; banques et assureurs ont
-des états financiers que le DCF « FCFF » ne modélise pas correctement. Retirer une valeur : supprimer son entrée
-dans `config/universe.yaml`.
 
 ## Biotech : rNPV, catalyseurs, essais cliniques
 
