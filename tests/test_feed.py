@@ -108,3 +108,12 @@ def test_rel_change_signed_base():
     from pipeline import feed
     assert round(feed.rel_change(-100, -120), 3) == -0.2
     assert round(feed.rel_change(100, 120), 3) == 0.2
+
+
+def test_method_switch_is_one_clear_event(tmp_path):
+    hist = tmp_path / "h.json"
+    feed.update(ticker="X", today="2026-10-30", hist_path=hist, snapshot={**snap(1.0, price=20.0), "method": "dcf"},
+                filings=[], perf={}, recompute=lambda a, m: 1.0)
+    ev = feed.update(ticker="X", today="2026-10-31", hist_path=hist, snapshot={**snap(40.0, price=20.0), "method": "rnpv"},
+                     filings=[], perf={}, recompute=lambda a, m: 40.0)
+    assert [e["type"] for e in ev] == ["valuation"] and "passée en rNPV" in ev[0]["title"] and ev[0]["bridge"] == []

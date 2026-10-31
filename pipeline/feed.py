@@ -110,7 +110,17 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
         chg = rel_change(v0, v3)
         assump_changed = prev.get("assumptions_hash") != snapshot["assumptions_hash"]
         threshold = VALUE_EVENT_THRESHOLD_CAUSED if (filing_caused or assump_changed) else VALUE_EVENT_THRESHOLD
-        if abs(chg) >= threshold:
+        label = "rNPV" if snapshot.get("method") == "rnpv" else "DCF"
+        switched = (prev.get("method") or "dcf") != (snapshot.get("method") or "dcf")
+        if switched:
+            events.append({
+                "id": _eid(ticker, "valuation", today), "date": today, "ts": ts, "ticker": ticker, "type": "valuation",
+                "title": f"{ticker} : valorisation passée en {label} ({fr(v3)} $ par action)",
+                "detail": (f"Changement de méthode (avant : {fr(v0)} $). Cours {fr(snapshot['price'])} $, potentiel "
+                           f"{frp(v3 / snapshot['price'] - 1)}.") if snapshot.get("price") else "Changement de méthode.",
+                "bridge": [], "values": {"from": v0, "to": v3, "change": chg, "price": snapshot.get("price"), "method": label},
+            })
+        elif abs(chg) >= threshold:
             prev_market = {**prev["market"], "shares": snapshot["market"]["shares"]}
             v1 = recompute(prev["assumptions"], prev_market)          # new data only
             v2 = recompute(snapshot["assumptions"], prev_market)      # + new assumptions
@@ -126,24 +136,24 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
                 # one valuation event per ticker and day: a later run the same day replaces it
                 "id": _eid(ticker, "valuation", today), "date": today, "ts": ts, "ticker": ticker,
                 "type": "valuation",
-                "title": f"{ticker} : valeur DCF {fr(v0)} $ → {fr(v3)} $ ({frp(chg)})",
+                "title": f"{ticker} : valeur {label} {fr(v0)} $ → {fr(v3)} $ ({frp(chg)})",
                 "detail": (f"Moteur principal : {main}. Cours {fr(snapshot['price'])} $, potentiel "
                            f"{frp(v3 / snapshot['price'] - 1)}.") if snapshot.get("price") and v3 > 0 else
-                (f"Valeur DCF négative : le modèle ne capte pas cette société (pré-rentable ?)." if v3 <= 0 else ""),
+                (f"Valeur {label} négative : le modèle ne capte pas cette société (pré-rentable ?)." if v3 <= 0 else ""),
                 "bridge": [{**b, "delta": round(b["delta"], 4)} for b in bridge],
                 "values": {"from": v0, "to": v3, "change": chg, "price": snapshot.get("price")},
             })
 
         # price crossing the value
-        if prev.get("price") and snapshot.get("price"):
+        if prev.get("price") and snapshot.get("price") and not switched:
             up_prev = prev["value_base"] - prev["price"]
             up_now = snapshot["value_base"] - snapshot["price"]
             if up_prev * up_now < 0:
                 above = up_now < 0
                 events.append({
                     "id": _eid(ticker, "cross", today), "date": today, "ts": ts, "ticker": ticker, "type": "cross",
-                    "title": f"{ticker} : le cours passe {'au-dessus' if above else 'en dessous'} de la valeur DCF",
-                    "detail": f"Cours {fr(snapshot['price'])} $ vs valeur DCF {fr(snapshot['value_base'])} $.",
+                    "title": f"{ticker} : le cours passe {'au-dessus' if above else 'en dessous'} de la valeur {label}",
+                    "detail": f"Cours {fr(snapshot['price'])} $ vs valeur {label} {fr(snapshot['value_base'])} $.",
                     "values": {"price": snapshot["price"], "value": snapshot["value_base"]},
                 })
 
