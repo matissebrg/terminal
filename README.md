@@ -166,6 +166,13 @@ un bloc `rnpv:`, `catalysts:` ou `trials:`) et page **Biotech** du menu (calendr
 
 Modèle de bloc : `config/assumptions/BBIO.yaml`. Les pics de ventes y sont des hypothèses de départ à retravailler.
 
+- **Biotechs sans chiffre d'affaires** (stade clinique) : acceptées par « Ajouter une valeur ». Le DCF vaut alors la
+  trésorerie nette et la valeur affichée vient du bloc `rnpv:` à ajouter (le workflow le rappelle en avertissement).
+- **Autonomie financière** : trésorerie / consommation moyenne des 4 derniers trimestres.
+- **Bilan des catalyseurs passés** : la veille de chaque événement, probabilités, sauts attendus et mouvement des
+  options sont figés (`docs/data/<T>/catalyst_history.json`) ; après, le site affiche la réaction réelle du cours.
+- Un catalyseur peut exister sans programme rNPV (grande pharma) : donner `stage` et `area` pour la probabilité de base.
+
 ## Méthode
 
 **Reconstruction des états financiers** (`pipeline/normalize.py`) - le XBRL de la SEC n'est pas utilisable tel quel :
