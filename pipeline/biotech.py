@@ -65,7 +65,7 @@ def enrich_catalysts(items: list[dict], res: dict | None, opt: dict | None, pric
         if im:
             x["options"] = im
             ref = im["event_move"] if im.get("event_move") is not None else im["straddle_move"]
-            if x.get("expected_abs_move") is not None and ref is not None:
+            if x.get("expected_abs_move") is not None and ref is not None and im.get("reliable"):
                 x["vol_edge"] = x["expected_abs_move"] - ref
         out.append(x)
     return sorted(out, key=lambda x: x["date"])

@@ -83,15 +83,23 @@ process.stdout.write(JSON.stringify(R.value({json.dumps(CFG)}, {json.dumps(CTX)}
 
 
 def test_options_event_move_strips_ordinary_volatility():
+    q = lambda m: {"bid": m * 0.95, "ask": m * 1.05}  # noqa: E731
+    row = lambda k, m, iv: {"strike": k, "c_mid": m, "p_mid": m, "c_iv": iv, "p_iv": iv, "c_bid": q(m)["bid"],  # noqa: E731
+                             "c_ask": q(m)["ask"], "p_bid": q(m)["bid"], "p_ask": q(m)["ask"]}
     opt = {"expiries": [{"date": "2026-11-20", "dte": 20}, {"date": "2026-12-18", "dte": 48}],
-           "chains": {"2026-11-20": [{"strike": 75, "c_mid": 3.0, "p_mid": 3.0, "c_iv": 0.40, "p_iv": 0.40}],
-                      "2026-12-18": [{"strike": 75, "c_mid": 7.0, "p_mid": 7.0, "c_iv": 0.70, "p_iv": 0.70}]}}
+           "chains": {"2026-11-20": [row(75, 3.0, 0.40)], "2026-12-18": [row(75, 7.0, 0.70)]}}
     m = rnpv.implied_move(opt, "2026-11-27", 75.0)
     assert m["expiry"] == "2026-12-18" and m["front_expiry"] == "2026-11-20"
     assert m["straddle_move"] == pytest.approx(14 / 75)
     import math
     assert m["event_move"] == pytest.approx(math.sqrt((0.49 - 0.16) * 48 / 365) * math.sqrt(2 / math.pi))
+    assert m["reliable"] is True
     assert rnpv.implied_move(opt, "2027-01-15", 75.0) is None
+    # an expiry 2 days before a weekend decision is not "clearly before": no event isolation
+    assert rnpv.implied_move(opt, "2026-11-22", 75.0)["front_expiry"] is None
+    # junk quotes (bid 0.6 / ask 4.9) are flagged
+    opt["chains"]["2026-12-18"][0].update({"c_bid": 0.6, "c_ask": 4.9})
+    assert rnpv.implied_move(opt, "2026-11-27", 75.0)["reliable"] is False
 
 
 def test_runway_reaction_and_frozen_snapshot(tmp_path):

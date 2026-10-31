@@ -20,11 +20,12 @@
   }
   function optMove(c) {
     const o = c.options; if (!o) return '<span class="muted">-</span>';
+    if (o.reliable === false) return `<span class="muted" title="Écarts acheteur-vendeur trop larges sur les options à la monnaie : le prix des options ne dit rien de fiable.">cotations trop larges</span>`;
     const ev = T.isNum(o.event_move) ? `±${F.pct(o.event_move, 1)}` : null;
     return `${ev ? `<b>${ev}</b> <span class="muted">événement</span><br>` : ""}<span class="muted">straddle ${F.date(o.expiry)} ±${F.pct(o.straddle_move, 1)}</span>`;
   }
   function volVerdict(c) {
-    if (!T.isNum(c.vol_edge)) return "";
+    if (!T.isNum(c.vol_edge) || (c.options && c.options.reliable === false)) return "";
     const ref = c.options && T.isNum(c.options.event_move) ? c.options.event_move : c.options && c.options.straddle_move;
     if (!T.isNum(ref) || !ref) return "";
     const r = c.expected_abs_move / ref;

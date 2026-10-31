@@ -247,41 +247,61 @@ def catalyst_math(a: dict, *, equity: float, shares: float, price: float | None)
     return out
 
 
+SPREAD_MAX = 0.5   # (ask - bid) / mid above this: the quote says little (illiquid small caps)
+
+
+def _spread(bid, ask):
+    if bid is None or ask is None or ask <= 0 or bid < 0 or ask < bid:
+        return None
+    mid = (bid + ask) / 2
+    return (ask - bid) / mid if mid > 0 else None
+
+
 def implied_move(options: dict | None, event_date: str, spot: float | None) -> dict | None:
     """Options-implied move for an event.
 
     straddle_move  ATM straddle (mid) of the first expiry after the event / spot: expected absolute move
                    until that expiry, ordinary volatility included
-    event_move     the event alone, when an expiry exists before it: the earlier expiry's ATM volatility
-                   is taken as the ordinary one, the extra variance of the later expiry is the event's,
+    event_move     the event alone, when an expiry exists clearly before it (3 days of margin: FDA decisions
+                   due on a weekend often come on the Friday): the earlier expiry's ATM volatility is taken
+                   as the ordinary one, the extra variance of the later expiry is the event's,
                    sigma_event^2 = (iv_after^2 - iv_before^2) x T_after, expressed as an expected absolute
                    move (x sqrt(2/pi)) to be comparable with the straddle
+    reliable       False when the bid-ask spreads of the at-the-money options are too wide to trust
     """
     import math
+    from datetime import date as _date, timedelta as _td
     if not options or not spot:
         return None
     chains = options.get("chains", {})
     exps = sorted((e["date"], e.get("dte")) for e in options.get("expiries", []) if chains.get(e["date"]))
+    cutoff = (_date.fromisoformat(event_date) - _td(days=3)).isoformat()
     after = [e for e in exps if e[0] >= event_date]
-    before = [e for e in exps if e[0] < event_date and (e[1] or 0) >= 3]
+    before = [e for e in exps if e[0] < cutoff and (e[1] or 0) >= 3]
     if not after:
         return None
 
     def atm(exp):
-        rows = chains[exp]
-        r = min(rows, key=lambda x: abs(x["strike"] - spot))
-        ivs = [v for v in (r.get("c_iv"), r.get("p_iv")) if v]
-        return r, (sum(ivs) / len(ivs) if ivs else None)
+        """Among the 3 strikes nearest the spot, the one whose call and put quotes are tightest."""
+        rows = sorted(chains[exp], key=lambda x: abs(x["strike"] - spot))[:3]
+        rows = [r for r in rows if r.get("c_mid") is not None and r.get("p_mid") is not None] or rows
 
-    r2, iv2 = atm(after[0][0])
+        def worst(r):
+            sp = [_spread(r.get("c_bid"), r.get("c_ask")), _spread(r.get("p_bid"), r.get("p_ask"))]
+            return max((x if x is not None else 9.0) for x in sp)
+        r = min(rows, key=lambda x: (worst(x) > SPREAD_MAX, abs(x["strike"] - spot)))
+        ivs = [v for v in (r.get("c_iv"), r.get("p_iv")) if v]
+        return r, (sum(ivs) / len(ivs) if ivs else None), worst(r) <= SPREAD_MAX
+
+    r2, iv2, ok2 = atm(after[0][0])
     c, p = r2.get("c_mid"), r2.get("p_mid")
     if c is None or p is None:
         return None
     out = {"expiry": after[0][0], "strike": r2["strike"], "straddle": c + p, "straddle_move": (c + p) / spot,
-           "iv_after": iv2, "event_move": None, "front_expiry": None, "iv_before": None}
-    if before and iv2 and after[0][1]:
-        r1, iv1 = atm(before[-1][0])
-        if iv1:
+           "iv_after": iv2, "event_move": None, "front_expiry": None, "iv_before": None, "reliable": ok2}
+    if before and iv2 and after[0][1] and ok2:
+        r1, iv1, ok1 = atm(before[-1][0])
+        if iv1 and ok1:
             var = (iv2 ** 2 - iv1 ** 2) * (after[0][1] / 365.0)
             out.update({"front_expiry": before[-1][0], "iv_before": iv1,
                         "event_move": math.sqrt(var) * math.sqrt(2 / math.pi) if var > 0 else 0.0})
