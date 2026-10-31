@@ -3,7 +3,7 @@
   {
    "id": "064db7048aac",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:24:38Z",
+   "ts": "2026-10-31T00:27:24Z",
    "ticker": "CAPR",
    "type": "valuation",
    "title": "CAPR : valeur DCF 4,09 $ → 4,14 $ (+1,1 %)",
@@ -32,7 +32,7 @@
   {
    "id": "452869e9c571",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:24:34Z",
+   "ts": "2026-10-31T00:27:21Z",
    "ticker": "SMMT",
    "type": "valuation",
    "title": "SMMT : valeur DCF 0,87 $ → 8,11 $ (+836,7 %)",
@@ -61,7 +61,7 @@
   {
    "id": "1827970a99ff",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:24:24Z",
+   "ts": "2026-10-31T00:27:13Z",
    "ticker": "REGN",
    "type": "valuation",
    "title": "REGN : valeur DCF 623,52 $ → 625,20 $ (+0,3 %)",
@@ -90,7 +90,7 @@
   {
    "id": "2685f689b2fd",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:24:14Z",
+   "ts": "2026-10-31T00:27:03Z",
    "ticker": "BBIO",
    "type": "cross",
    "title": "BBIO : le cours passe en dessous de la valeur DCF",
@@ -103,7 +103,7 @@
   {
    "id": "10e2ca95c364",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:24:08Z",
+   "ts": "2026-10-31T00:26:58Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 14,45 $ → 14,71 $ (+1,8 %)",
@@ -132,7 +132,7 @@
   {
    "id": "cca1b3027604",
    "date": "2026-10-31",
-   "ts": "2026-10-31T00:23:53Z",
+   "ts": "2026-10-31T00:26:45Z",
    "ticker": "GOOG",
    "type": "valuation",
    "title": "GOOG : valeur DCF 120,95 $ → 124,51 $ (+2,9 %)",
