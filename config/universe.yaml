@@ -95,6 +95,12 @@ tickers:
     industry: 'Oncologie de précision (bezuclastinib : GIST, mastocytose)'
     peers: [EXEL, IDYA]
     benchmarks: [SPY, IBB]
+  MLYS:
+    name: Mineralys Therapeutics, Inc.
+    sector: Biotechnologie
+    industry: Cardiologie (lorundrostat, inhibiteur de l'aldostérone synthase)
+    peers: [AZN, MRK]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -180,6 +186,7 @@ families:
   COGT: sante
   EXEL: sante
   IDYA: sante
+  MLYS: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -226,3 +233,4 @@ ciks:
   COGT: 1622229
   EXEL: 939767
   IDYA: 1676725
+  MLYS: 1933414
