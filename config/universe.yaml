@@ -16,9 +16,9 @@ benchmarks:
   XLP: Consommation de base (ETF XLP)
   XLK: Technologie (ETF XLK)
   XLE: Énergie (ETF XLE)
-  IBB: IBB
-  XLV: XLV
-  XSW: XSW
+  IBB: Biotechnologie (ETF IBB)
+  XLV: Santé (ETF XLV)
+  XSW: Logiciels (ETF XSW)
 
 beta_benchmark: SPY
 
@@ -55,20 +55,23 @@ tickers:
     benchmarks: [SPY, XLP]
   BBIO:
     name: BridgeBio Pharma, Inc.
-    sector: Pharmaceutical preparations
-    industry: Pharmaceutical preparations
-    peers: []
+    sector: Biotechnologie
+    industry: Maladies génétiques rares (cardiologie, neuromusculaire, croissance osseuse)
+    peers:
+    - ALNY
+    - BMRN
+    - SRPT
     benchmarks: [SPY, IBB]
   REGN:
     name: Regeneron Pharmaceuticals, Inc.
-    sector: Pharmaceutical preparations
-    industry: Pharmaceutical preparations
+    sector: Biotechnologie
+    industry: Anticorps (Dupixent, Eylea), oncologie, ophtalmologie, maladies rares
     peers: [MRK, BMY, AMGN, UL, AZN]
     benchmarks: [SPY, XLV]
   VEEV:
     name: Veeva Systems Inc
-    sector: Services-prepackaged software
-    industry: Services-prepackaged software
+    sector: Logiciels
+    industry: Logiciels cloud pour l'industrie pharmaceutique
     peers: [CRM, ORCL, CERT]
     benchmarks: [SPY, XSW]
   SMMT:
@@ -155,6 +158,8 @@ peer_names:
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
+  ALNY: Alnylam Pharmaceuticals
+  BMRN: BioMarin Pharmaceutical
 families:
   NVDA: tech
   AMD: tech
@@ -211,6 +216,8 @@ families:
   PTCT: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
+  ALNY: sante
+  BMRN: sante
 ciks:
   NVDA: 1045810
   AMD: 2488

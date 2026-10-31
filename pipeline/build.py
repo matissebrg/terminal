@@ -435,7 +435,7 @@ def run(src, only: list[str] | None = None) -> int:
             try:
                 bio = biotech.build(ticker=t, assump=assump, fin=fin, price=price, shares=shares, opt=opt_all.get(t),
                                     today=today, src=src, out_dir=OUT, family=(universe.get("families") or {}).get(t),
-                                    company_name=cfg["name"], status=status)
+                                    company_name=cfg["name"], status=status, bars=bars)
             except Exception as exc:  # noqa: BLE001
                 traceback.print_exc()
                 status["errors"].append(f"{t}: module biotech ({str(exc)[:100]})")

@@ -83,3 +83,82 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : relutrigine (encéphalopathies épileptiques SCN2A / SCN8A) : EMBOLD -53 % de crises motrices vs
+# placebo (n = 51), thérapie innovante (breakthrough), décision repoussée au 27/12/2026 (analyses
+# complémentaires), pas de comité consultatif. EMERALD (plus de 50 causes génétiques, ~200 patients) :
+# résultats au 4e trimestre 2026. Ulixacaltamide (tremblement essentiel) : décision le 29/01/2027.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 120000000
+    years: 10
+  assets:
+    - name: Relutrigine (SCN2A / SCN8A)
+      indication: Encéphalopathies épileptiques SCN2A et SCN8A
+      stage: filed
+      area: rare
+      launch_year: 2027
+      peak_sales: 400000000
+      years_to_peak: 5
+      loe_year: 2041
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: Relutrigine (encéphalopathies épileptiques élargies)
+      indication: Encéphalopathies épileptiques développementales, plus de 50 causes (EMERALD)
+      stage: phase3
+      area: rare
+      launch_year: 2028
+      peak_sales: 800000000
+      years_to_peak: 6
+      loe_year: 2041
+      dev_cost: 80000000
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: Ulixacaltamide (tremblement essentiel)
+      indication: Tremblement essentiel
+      stage: filed
+      area: neurology
+      launch_year: 2027
+      peak_sales: 1500000000
+      years_to_peak: 7
+      loe_year: 2040
+      cogs_pct: 0.05
+      opex_pct: 0.35
+
+catalysts:
+  - id: emerald-topline
+    date: 2026-12-15
+    kind: readout
+    asset: Relutrigine (encéphalopathies épileptiques élargies)
+    title: Résultats principaux d'EMERALD (« 4e trimestre 2026 », date approximative)
+    confirmed: false
+    source: https://www.neurologylive.com/view/fda-extends-relutrigine-review-delays-pdufa-to-december
+  - id: relutrigine-pdufa
+    date: 2026-12-27
+    kind: pdufa
+    asset: Relutrigine (SCN2A / SCN8A)
+    title: Décision de la FDA sur la relutrigine (SCN2A / SCN8A), examen prolongé
+    confirmed: true
+    source: https://www.neurologylive.com/view/fda-extends-relutrigine-review-delays-pdufa-to-december
+  - id: ulixacaltamide-pdufa
+    date: 2027-01-29
+    kind: pdufa
+    asset: Ulixacaltamide (tremblement essentiel)
+    title: Décision de la FDA sur l'ulixacaltamide dans le tremblement essentiel
+    confirmed: true
+    source: https://www.biospace.com/press-releases/praxis-precision-medicines-announces-fda-acceptance-of-new-drug-application-for-ulixacaltamide-hcl-in-patients-with-essential-tremor
+
+trials:
+  sponsors: [Praxis Precision Medicines]

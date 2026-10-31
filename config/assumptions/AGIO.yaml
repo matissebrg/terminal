@@ -83,3 +83,67 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : mitapivat déjà commercialisé (PYRUKYND, déficit en pyruvate kinase, 2022 ; AQVESME, anémie des
+# thalassémies, fin 2025, avertissement encadré pour atteinte hépatique et programme REMS). Drépanocytose :
+# sNDA en approbation accélérée, examen prioritaire ; le 30/10/2026 la FDA a repoussé la décision au
+# 01/02/2027 (amendement majeur sur la nécessité d'un REMS). Essai de confirmation REIGNITE démarré en juillet 2026.
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 150000000
+    years: 10
+  assets:
+    - name: PYRUKYND (déficit en pyruvate kinase)
+      indication: Anémie hémolytique du déficit en pyruvate kinase
+      stage: marketed
+      area: hematology
+      launch_year: 2022
+      peak_sales: 150000000
+      years_to_peak: 8
+      loe_year: 2035
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: AQVESME (thalassémies)
+      indication: Anémie des alpha et bêta-thalassémies
+      stage: marketed
+      area: hematology
+      launch_year: 2026
+      peak_sales: 600000000
+      years_to_peak: 6
+      loe_year: 2035
+      cogs_pct: 0.05
+      opex_pct: 0.30
+    - name: Mitapivat (drépanocytose)
+      indication: Drépanocytose (approbation accélérée)
+      stage: filed
+      area: hematology
+      launch_year: 2027
+      peak_sales: 800000000
+      years_to_peak: 6
+      loe_year: 2035
+      cogs_pct: 0.05
+      opex_pct: 0.30
+
+catalysts:
+  - id: mitapivat-scd-pdufa
+    date: 2027-02-01
+    kind: pdufa
+    asset: Mitapivat (drépanocytose)
+    title: Décision de la FDA sur le mitapivat dans la drépanocytose (repoussée du 01/11/2026, question du REMS)
+    confirmed: true
+    source: https://www.stocktitan.net/news/AGIO/agios-announces-new-pdufa-goal-date-of-february-1-2027-for-mitapivat-b8gxlfed3y4l.html
+
+trials:
+  sponsors: [Agios]

@@ -547,3 +547,4 @@ pre.yaml { margin-top: 10px; padding: 10px 12px; background: var(--panel-3); bor
 .ev .ic.trial { background: rgba(144,133,233,.14); color: #b2a9f2; }
 .ev .ic.catalyst { background: var(--warn-soft); color: var(--warn); }
 a.order-row:hover { text-decoration: none; background: rgba(255,255,255,.02); }
+.kpi.warn { background: linear-gradient(180deg, rgba(242,166,54,.10), var(--panel)); }

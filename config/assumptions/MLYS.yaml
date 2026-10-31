@@ -83,3 +83,46 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# rNPV - ajouté le 31/10/2026. HYPOTHÈSES DE DÉPART : pics de ventes, dates de perte d'exclusivité,
+# marges et probabilités ajustées sont des ordres de grandeur pour faire tourner le modèle, PAS un
+# consensus. Les faits (dates de décision, résultats d'essais) sont sourcés dans les catalyseurs.
+# Le simulateur de l'onglet Biotech permet d'essayer d'autres chiffres puis de copier le YAML.
+# ============================================================================
+
+# Faits : NDA du lorundrostat (hypertension non contrôlée ou résistante, 2 à 5 traitements) acceptée,
+# décision le 22/12/2026. Launch-HTN : -11,7 mmHg de pression systolique vs placebo à 12 semaines
+# (50 mg) ; Advance-HTN : -7,9 mmHg (moyenne sur 24 h). Concurrent direct : baxdrostat (AstraZeneca).
+rnpv:
+  primary: true
+  discount_rate: 0.10
+  tax_rate: 0.21
+  horizon: 2045
+  net_cash: auto
+  corporate:
+    annual_cost: 100000000
+    years: 10
+  assets:
+    - name: Lorundrostat (hypertension)
+      indication: Hypertension non contrôlée ou résistante
+      stage: filed
+      area: cardiovascular
+      launch_year: 2027
+      peak_sales: 2000000000
+      years_to_peak: 7
+      loe_year: 2040
+      cogs_pct: 0.05
+      opex_pct: 0.40
+
+catalysts:
+  - id: lorundrostat-pdufa
+    date: 2026-12-22
+    kind: pdufa
+    asset: Lorundrostat (hypertension)
+    title: Décision de la FDA sur le lorundrostat dans l'hypertension
+    confirmed: true
+    source: https://www.thepharmaletter.com/ones-to-watch/mineralys-therapeutics
+
+trials:
+  sponsors: [Mineralys]

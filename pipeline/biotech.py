@@ -54,6 +54,13 @@ def enrich_catalysts(items: list[dict], res: dict | None, opt: dict | None, pric
                       "expected_abs_move": a.get("expected_abs_move"),
                       "asset_per_share": a.get("per_share"),
                       "value_if_success_ps": (a["value_if_success"] / res["shares"]) if a.get("value_if_success") is not None and res.get("shares") else None})
+        elif c.get("stage") in rnpv.STAGES:
+            # catalyst without an rNPV programme (big pharma): base rate from its stage and area only
+            st = c["stage"]
+            x.update({"stage": st, "stage_label": rnpv.STAGE_LABELS[st],
+                      "area_label": rnpv.AREA_LABELS.get(str(c.get("area") or "all").lower()),
+                      "p_base": rnpv.step_probability(st, c.get("area")),
+                      "p_model": float(c["p"]) if c.get("p") is not None else rnpv.step_probability(st, c.get("area"))})
         im = rnpv.implied_move(opt, x["date"], price) if not outcome and d >= today else None
         if im:
             x["options"] = im
@@ -64,8 +71,53 @@ def enrich_catalysts(items: list[dict], res: dict | None, opt: dict | None, pric
     return sorted(out, key=lambda x: x["date"])
 
 
+def runway(fin: dict) -> dict | None:
+    """Cash runway: (cash + short-term investments) / average quarterly operating cash burn (last 4 quarters)."""
+    q = [p["label"] for p in fin["periods"]["quarterly"]][-4:]
+    cfo = [fin["lines"].get("cfo", {}).get("quarterly", {}).get(l) for l in q]
+    cfo = [x for x in cfo if x is not None]
+    T = fin["ttm"]
+    cash = (T.get("cash") or 0) + (T.get("short_term_investments") or 0)
+    if not cfo:
+        return None
+    avg = sum(cfo) / len(cfo)
+    out = {"cash": cash, "cfo_q": avg, "quarters_used": len(cfo), "label": q[-1] if q else None}
+    out["burn_q"] = -avg if avg < 0 else 0.0
+    out["quarters"] = cash / -avg if avg < 0 else None     # None = cash-generative
+    return out
+
+
+def reaction(bars: list[dict] | None, event_date: str) -> dict | None:
+    """Share-price reaction: last close before the event date -> close of the first session after it
+    (decisions often land after the close, or on a weekend: the next session prices them)."""
+    if not bars:
+        return None
+    before = [b for b in bars if b["t"] < event_date]
+    after = [b for b in bars if b["t"] > event_date]
+    if not before or not after:
+        return None
+    b0, b1 = before[-1], after[0]
+    return {"from_date": b0["t"], "from": b0["c"], "to_date": b1["t"], "to": b1["c"], "move": b1["c"] / b0["c"] - 1}
+
+
+def freeze(path: Path, cats: list[dict], today: str) -> dict:
+    """Pre-event snapshot of each catalyst (probabilities, modelled and options-implied moves), refreshed
+    until the event date and frozen afterwards: the post-mortem compares it with what happened, even after
+    the YAML has been updated (stage moved on, programme removed)."""
+    hist = feed.load_json(path, {})
+    keep = ("p_base", "p_model", "p_market", "move_up", "move_down", "expected_abs_move", "options", "asset", "kind_label",
+            "title", "date")
+    for c in cats:
+        if c["date"] >= today and not c.get("outcome"):
+            hist[c["id"]] = {**{k: c.get(k) for k in keep}, "asof": today}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(__import__("json").dumps(hist, ensure_ascii=False, separators=(",", ":"), default=str))
+    return hist
+
+
 def build(*, ticker: str, assump: dict, fin: dict, price: float | None, shares: float | None, opt: dict | None,
-          today: str, src, out_dir: Path, family: str | None, company_name: str, status: dict) -> dict | None:
+          today: str, src, out_dir: Path, family: str | None, company_name: str, status: dict,
+          bars: list[dict] | None = None) -> dict | None:
     """Returns {"rnpv": ..., "catalysts": [...], "trials": {...}, "events": [...]} or None if not a biotech."""
     cfg_r, cfg_c, cfg_t = assump.get("rnpv"), assump.get("catalysts"), assump.get("trials")
     if not (cfg_r or cfg_c or cfg_t or family == "sante"):
@@ -78,6 +130,11 @@ def build(*, ticker: str, assump: dict, fin: dict, price: float | None, shares: 
         res["net_cash_source"] = nc_src
         res["primary"] = bool(cfg_r.get("primary", True))
     cats = enrich_catalysts(cfg_c or [], res, opt, price, t0)
+    frozen = freeze(out_dir / ticker / "catalyst_history.json", cats, today)
+    for c in cats:
+        if c["date"] < today:
+            c["pre_event"] = frozen.get(c["id"])
+            c["reaction"] = reaction(bars, c["date"])
 
     # ---- ClinicalTrials.gov (best effort, cached)
     sponsors = (cfg_t or {}).get("sponsors") or [company_name.replace(",", "").replace(" Inc.", "").replace(" Inc", "").strip()]
@@ -116,5 +173,6 @@ def build(*, ticker: str, assump: dict, fin: dict, price: float | None, shares: 
             events.append({"id": feed._eid(ticker, "catalyst-outcome", c["id"]), "date": c["date"], "ticker": ticker,
                            "type": "catalyst", "title": f"{ticker} : {c['kind_label']} {c.get('asset') or ''} : {c['status']}",
                            "detail": c.get("title") or "", "url": c.get("source"), "values": {"catalyst": c["id"]}})
-    out = {"ticker": ticker, "asof": today, "price": price, "rnpv": res, "catalysts": cats, "trials": tr}
+    out = {"ticker": ticker, "asof": today, "price": price, "rnpv": res, "catalysts": cats, "trials": tr,
+           "runway": runway(fin)}
     return {**out, "events": events}

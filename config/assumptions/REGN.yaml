@@ -83,3 +83,18 @@ predictions:
 # Exemple :
 #   Q3 FY2027: {revenue: 100.0, revenue_low: 98.0, revenue_high: 102.0, gross_margin: 40.0, source: communiqué du ...}
 guidance: {}
+
+# ============================================================================
+# Catalyseurs (ajoutés le 31/10/2026). Sans bloc rnpv (Regeneron est valorisé par le DCF), la
+# probabilité de base vient du stade et de l'aire thérapeutique (taux BIO 2011-2020).
+# ============================================================================
+catalysts:
+  - id: cemdisiran-gmg-pdufa
+    date: 2026-11-30
+    kind: pdufa
+    stage: filed
+    area: neurology
+    asset: Cemdisiran (myasthénie grave généralisée)
+    title: Décision de la FDA sur le cemdisiran (licence Alnylam), examen prioritaire ; « novembre 2026 », jour non publié (fin de mois retenue)
+    confirmed: false
+    source: https://managedhealthcareexecutive.com/view/fda-sets-target-date-in-november-2026-for-cemdisiran-for-gmg

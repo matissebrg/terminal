@@ -87,10 +87,10 @@
     if (T.members && T.members.configured) await T.members.ready;
     const bio = await T.getBio(tk);
     if (!bio) { el.innerHTML = '<div class="empty">Pas de module biotech pour cette valeur. Ajoute un bloc <code>rnpv:</code>, <code>catalysts:</code> ou <code>trials:</code> dans <code>config/assumptions/' + tk + '.yaml</code>.</div>'; return; }
-    const r = bio.rnpv, cats = bio.catalysts || [], tr = bio.trials || {};
+    const r = bio.rnpv, cats = bio.catalysts || [], tr = bio.trials || {}, rw = bio.runway;
     const next = cats.find((c) => c.days >= 0 && !c.outcome);
     el.innerHTML = `
-      ${r ? `<div class="kpis kpis-4" id="bk"></div>` : '<p class="note">Pas encore de modèle rNPV : ajoute un bloc <code>rnpv:</code> au fichier d\'hypothèses (modèle : BBIO).</p>'}
+      ${r ? `<div class="kpis kpis-5" id="bk"></div>` : '<p class="note">Pas encore de modèle rNPV : ajoute un bloc <code>rnpv:</code> au fichier d\'hypothèses (modèle : BBIO).</p>'}
       ${r ? `<div class="grid g2" style="margin-top:14px">
         <div class="panel"><h3>Somme des parties <span class="hint">$ par action</span></h3><div class="chart" id="bsotp" style="height:300px"></div></div>
         <div class="panel"><h3>Flux de trésorerie pondérés par le risque <span class="hint">Md$ par an, par programme</span></h3><div class="chart" id="bcf" style="height:300px"></div></div>
@@ -124,6 +124,18 @@
         <td class="n">${predCell(dbid(c), c, mine[dbid(c)])}</td></tr>`).join("")}</tbody></table>`
       : '<div class="muted">Aucun catalyseur saisi (bloc <code>catalysts:</code> du fichier d\'hypothèses).</div>';
     wirePredictions(T.$("#bcat"), cats.filter((c) => !c.outcome).map(dbid));
+    const past = cats.filter((c) => c.reaction);
+    if (past.length) {
+      T.$("#bcat").insertAdjacentHTML("afterend", `<div class="group-title" style="margin-top:12px">Bilan des catalyseurs passés <span class="hint">ce que le modèle et les options attendaient la veille, et ce qui s'est passé</span></div>
+        <div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Événement</th><th>Issue</th><th class="n">Probabilité (base / modèle)</th><th class="n">Attendu si succès / échec</th><th class="n">Options</th><th class="n">Réaction réelle</th></tr></thead><tbody>
+        ${past.map((c) => { const p = c.pre_event || {}, rx = c.reaction;
+          return `<tr><td>${F.date(c.date)}</td><td>${T.esc(c.kind_label)} · ${T.esc(c.asset || "")}</td><td>${c.outcome ? `<b class="${c.outcome === "success" ? "up" : c.outcome === "failure" ? "down" : ""}">${T.esc(c.status)}</b>` : '<span class="muted">non renseignée</span>'}</td>
+            <td class="n">${pc(p.p_base)} / ${pc(p.p_model)}</td>
+            <td class="n">${T.isNum(p.move_up) ? `<span class="up">${F.pct(p.move_up, 1, true)}</span> / <span class="down">${F.pct(p.move_down, 1, true)}</span>` : "-"}</td>
+            <td class="n">${p.options && T.isNum(p.options.event_move) ? "±" + F.pct(p.options.event_move, 1) : p.options ? "±" + F.pct(p.options.straddle_move, 1) : "-"}</td>
+            <td class="n"><b class="${T.cls(rx.move)}">${F.pct(rx.move, 1, true)}</b><br><span class="muted">${F.date(rx.from_date)} → ${F.date(rx.to_date)}</span></td></tr>`; }).join("")}</tbody></table></div>
+        <p class="note">Une fois l'événement passé, renseigne <code>outcome: success</code> (ou <code>failure</code>, <code>mixed</code>) dans le bloc <code>catalysts</code> : les prédictions des membres sont notées, puis fais évoluer le programme (stade, probabilité) dans le bloc <code>rnpv</code>.</p>`);
+    }
 
     // ---- trials
     const rd = tr.expected_readouts || [];
@@ -155,6 +167,8 @@
         ["Valeur rNPV", F.px(res.value_per_share), `<span class="${T.cls(res.upside)}">${F.pct(res.upside, 1, true)}</span> vs cours ${F.px(bio.price)}`, "hl"],
         ["Valeur du pipeline", mdd(res.pipeline_value), `${res.assets.length} programme(s), pondérée du risque`],
         ["Frais centraux (VA)", mdd(res.overhead_pv), `${md((cfg.corporate || {}).annual_cost)}/an sur ${(cfg.corporate || {}).years || 10} ans, après impôt`],
+        ["Autonomie financière", rw ? (rw.quarters == null ? "positive" : `${F.n(rw.quarters, 0)} trim.`) : "-",
+          rw ? (rw.quarters == null ? `flux opérationnels positifs (${md(rw.cfo_q)}/trim.)` : `${mdd(rw.cash)} de trésorerie, ${md(rw.burn_q)} brûlés/trim.`) : "flux de trésorerie indisponibles", rw && rw.quarters != null && rw.quarters < 6 ? "warn" : ""],
         ["Prochain catalyseur", next ? days(next.days) : "-", next ? `${T.esc(next.kind_label)} · ${T.esc(next.asset || "")}` : "aucun saisi"],
       ].map(([l, v, s, c]) => `<div class="kpi ${c || ""}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
       T.$("#btbl").innerHTML = `<table class="t"><thead><tr><th class="lbl">Programme</th><th>Stade</th><th class="n">PoS (base)</th><th class="n">PoS</th><th class="n">Pic M$</th><th class="n">Lancement</th><th class="n">Exclusivité</th><th class="n">rNPV $/action</th><th class="n">Si succès</th><th class="n">Part</th></tr></thead><tbody>

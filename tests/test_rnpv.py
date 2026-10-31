@@ -92,3 +92,19 @@ def test_options_event_move_strips_ordinary_volatility():
     import math
     assert m["event_move"] == pytest.approx(math.sqrt((0.49 - 0.16) * 48 / 365) * math.sqrt(2 / math.pi))
     assert rnpv.implied_move(opt, "2027-01-15", 75.0) is None
+
+
+def test_runway_reaction_and_frozen_snapshot(tmp_path):
+    from pipeline import biotech
+    fin = {"periods": {"quarterly": [{"label": f"Q{i} FY2026"} for i in (1, 2, 3, 4)]},
+           "lines": {"cfo": {"quarterly": {"Q1 FY2026": -100.0, "Q2 FY2026": -120.0, "Q3 FY2026": -80.0, "Q4 FY2026": -100.0}}},
+           "ttm": {"cash": 900.0, "short_term_investments": 100.0}}
+    r = biotech.runway(fin)
+    assert r["burn_q"] == 100.0 and r["quarters"] == 10.0
+    bars = [{"t": "2026-11-20", "c": 10.0}, {"t": "2026-11-23", "c": 7.0}, {"t": "2026-11-24", "c": 7.5}]
+    m = biotech.reaction(bars, "2026-11-22")
+    assert m["from"] == 10.0 and m["to"] == 7.0 and m["move"] == pytest.approx(-0.3)
+    path = tmp_path / "h.json"
+    biotech.freeze(path, [{"id": "a", "date": "2026-11-22", "p_base": 0.9, "move_down": -0.2}], "2026-11-01")
+    h = biotech.freeze(path, [{"id": "a", "date": "2026-11-22", "p_base": 0.5}], "2026-11-25")   # past: frozen
+    assert h["a"]["p_base"] == 0.9 and h["a"]["asof"] == "2026-11-01"
