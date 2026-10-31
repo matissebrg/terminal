@@ -101,6 +101,12 @@ tickers:
     industry: Cardiologie (lorundrostat, inhibiteur de l'aldostérone synthase)
     peers: [AZN, MRK]
     benchmarks: [SPY, IBB]
+  PRAX:
+    name: Praxis Precision Medicines, Inc.
+    sector: Biotechnologie
+    industry: 'Neurologie (relutrigine : épilepsies génétiques ; ulixacaltamide : tremblement essentiel)'
+    peers: [XENE, NBIX]
+    benchmarks: [SPY, IBB]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
@@ -136,6 +142,8 @@ peer_names:
   INSM: INSMED Inc
   EXEL: Exelixis, Inc.
   IDYA: IDEAYA Biosciences, Inc.
+  XENE: Xenon Pharmaceuticals Inc.
+  NBIX: Neurocrine Biosciences Inc
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -187,6 +195,9 @@ families:
   EXEL: sante
   IDYA: sante
   MLYS: sante
+  PRAX: sante
+  XENE: sante
+  NBIX: sante
 
 # CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
 ciks:
@@ -234,3 +245,6 @@ ciks:
   EXEL: 939767
   IDYA: 1676725
   MLYS: 1933414
+  PRAX: 1689548
+  XENE: 1582313
+  NBIX: 914475
