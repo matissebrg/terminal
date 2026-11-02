@@ -1,6 +1,231 @@
 {
  "events": [
   {
+   "id": "72481bfaff08",
+   "date": "2026-11-02",
+   "ticker": "XOM",
+   "type": "filing",
+   "ts": "2026-11-02T22:41:17Z",
+   "title": "XOM a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/2115436/000211543626000020/xom-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0002115436-26-000020"
+   }
+  },
+  {
+   "id": "d4ec0d941e31",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:18:20Z",
+   "ticker": "VEEV",
+   "type": "valuation",
+   "title": "VEEV : valeur DCF 149,78 $ → 152,31 $ (+1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 307,00 $, potentiel -50,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.5338
+    }
+   ],
+   "values": {
+    "from": 149.77646262507395,
+    "to": 152.31022642250548,
+    "change": 0.016916969148711606,
+    "price": 307.0
+   }
+  },
+  {
+   "id": "58023462e9d4",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:18:07Z",
+   "ticker": "BBIO",
+   "type": "cross",
+   "title": "BBIO : le cours passe au-dessus de la valeur rNPV",
+   "detail": "Cours 75,00 $ vs valeur rNPV 71,38 $.",
+   "values": {
+    "price": 74.995,
+    "value": 71.37733051768825
+   }
+  },
+  {
+   "id": "71fcc77cfac5",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:18:01Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 14,71 $ → 14,39 $ (-2,2 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 245,63 $, potentiel -94,1 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.3202
+    }
+   ],
+   "values": {
+    "from": 14.70593203767256,
+    "to": 14.385765099112655,
+    "change": -0.021771278266465938,
+    "price": 245.63
+   }
+  },
+  {
+   "id": "4c28bfb7f340",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:17:55Z",
+   "ticker": "XOM",
+   "type": "valuation",
+   "title": "XOM : valeur DCF 105,27 $ → 122,57 $ (+16,4 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 179,67 $, potentiel -31,8 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 16.559
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.7381
+    }
+   ],
+   "values": {
+    "from": 105.26935088495203,
+    "to": 122.5664324909119,
+    "change": 0.16431260818605875,
+    "price": 179.67
+   }
+  },
+  {
+   "id": "277762cd897f",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:17:48Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 124,51 $ → 120,75 $ (-3,0 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 278,04 $, potentiel -56,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -3.7603
+    }
+   ],
+   "values": {
+    "from": 124.50533779827809,
+    "to": 120.74501427317821,
+    "change": -0.03020210692647013,
+    "price": 278.04
+   }
+  },
+  {
+   "id": "d72298097032",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T22:17:44Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 54,61 $ → 55,74 $ (+2,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 127,69 $, potentiel -56,3 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.1352
+    }
+   ],
+   "values": {
+    "from": 54.60618712789687,
+    "to": 55.741432765200514,
+    "change": 0.020789688806594597,
+    "price": 127.69
+   }
+  },
+  {
+   "id": "f1e4a7fe0901",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -7,7 % sur la séance",
+   "detail": "Clôture à 14,80 $.",
+   "values": {
+    "change": -0.07673112913287583,
+    "close": 14.8
+   }
+  },
+  {
+   "id": "082f5f7a5ef1",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +13,5 % sur la séance",
+   "detail": "Clôture à 7,24 $.",
+   "values": {
+    "change": 0.13479623824451425,
+    "close": 7.24
+   }
+  },
+  {
+   "id": "be5cb87ccc6f",
+   "date": "2026-11-02",
+   "ts": "2026-11-02T21:00:00Z",
+   "ticker": "MLYS",
+   "type": "price",
+   "title": "MLYS -14,5 % sur la séance",
+   "detail": "Clôture à 15,55 $.",
+   "values": {
+    "change": -0.14466446644664466,
+    "close": 15.55
+   }
+  },
+  {
+   "id": "4786df851fab",
+   "date": "2026-11-02",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT07854782 recrutement en cours",
+   "detail": "Phase 3 · Trial to Evaluate ALN-CIDEB in Adults With Metabolic Dysfunction-Associated Steatotic Liver Disease (MASLD) (avant : pas encore de recrutement).",
+   "url": "https://clinicaltrials.gov/study/NCT07854782",
+   "values": {
+    "nct": "NCT07854782",
+    "kind": "status"
+   }
+  },
+  {
    "id": "064db7048aac",
    "date": "2026-10-31",
    "ts": "2026-10-31T01:01:30Z",
@@ -806,5 +1031,5 @@
    }
   }
  ],
- "updated": "2026-10-31"
+ "updated": "2026-11-02"
 }
