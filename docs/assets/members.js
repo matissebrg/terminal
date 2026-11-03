@@ -241,7 +241,7 @@
       Object.entries(m.vs || {}).forEach(([b, v]) => chips.push(`<span class="chip-s ${v.you_win ? "ok" : "ko"}">${v.you_win ? "bat" : "battu par"} ${BENCH[b].toLowerCase()}</span>`));
       const et = m.kind === "margin" ? (T.isNum(m.error_pts) ? (m.error_pts > 0 ? "+" : "") + F.n(m.error_pts, 2) + " pt" : "-") : F.pct(m.error_pct, 1, true);
       return `<tr><td>${T.esc(m.label)}</td><td class="n"><b>${shown(m.key, m.value)}</b>${T.isNum(m.low) ? `<span class="yoy muted">${shown(m.key, m.low)} à ${shown(m.key, m.high)}</span>` : ""}</td>
-        <td class="n">${shown(m.key, m.actual)}</td><td class="n">${m.actual != null ? et : "-"}</td>
+        <td class="n">${m.na ? '<span class="muted" title="Ligne non publiée par la société pour ce trimestre : non notée">non publié</span>' : shown(m.key, m.actual)}</td><td class="n">${m.actual != null ? et : "-"}</td>
         ${["naive", "guidance", "analysts", "crowd"].map((b) => `<td class="n">${shown(m.key, (m.benchmarks || {})[b])}</td>`).join("")}<td class="wrap">${chips.join(" ")}</td></tr>`;
     }).join("") : Object.entries(p.metrics || {}).map(([k, v]) => `<tr><td>${T.esc(METRIC[k] ? METRIC[k][0] : k)}</td><td class="n"><b>${shownInput(k, v.value)}</b>${T.isNum(v.low) ? `<span class="yoy muted">${shownInput(k, v.low)} à ${shownInput(k, v.high)}</span>` : ""}</td><td class="n">-</td><td class="n">-</td><td colspan="4"></td><td></td></tr>`).join("");
     const pts = (r && res.price_targets ? res.price_targets : p.price_targets || []).map((t) => `<tr><td>Cours ${T.esc(p.ticker)} au ${F.date(t.date)}</td>
@@ -250,7 +250,7 @@
       <td>${t.in_interval === true ? '<span class="chip-s ok">dans l\'intervalle</span>' : t.in_interval === false ? '<span class="chip-s ko">hors intervalle</span>' : ""}</td></tr>`).join("");
     const qs = (r && res.questions ? res.questions : (p.questions || []).map((q) => ({ id: q.id, p: q.p, outcome: null })))
       .map((q) => `<div class="evq"><span>${T.esc(QLABEL[q.id] || q.id)}</span><span class="num">${F.n(q.p, 0)} %</span>
-        <span>${q.outcome == null ? '<span class="muted">non résolue</span>' : q.outcome ? '<span class="chip-s ok">oui</span>' : '<span class="chip-s ko">non</span>'}</span>
+        <span>${q.na ? '<span class="muted" title="Référence absente pour ce trimestre (pas de guidance, de consensus ou de chiffre publié) : non notée">sans objet</span>' : q.outcome == null ? '<span class="muted">non résolue</span>' : q.outcome ? '<span class="chip-s ok">oui</span>' : '<span class="chip-s ko">non</span>'}</span>
         <span class="num muted">${T.isNum(q.brier) ? "Brier " + F.n(q.brier, 3) : ""}</span></div>`).join("");
     return `<div class="pcard"><div class="pcard-h"><div>${opts.who ? `<b data-user="${T.esc(opts.who)}">${T.esc(opts.who)}</b> · ` : ""}<b>${T.esc(p.ticker)} ${T.esc(p.period)}</b> <span class="badge ${status[1]}">${status[0]}</span>
         ${p.visibility === "private" ? '<span class="badge">privée</span>' : ""}</div>

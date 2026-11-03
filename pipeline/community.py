@@ -418,7 +418,9 @@ def _score(snap, others, fin, label, gd, analysts, crowd, reaction, bars):
         m = {"key": k, "label": P.METRICS[k][0], "unit": P.METRICS[k][1], "kind": P.METRICS[k][3],
              "value": pred, "low": lo, "high": hi, "actual": act}
         if act is None or pred is None:
-            done = False
+            # the quarter's report is processed (period_end exists): a line still missing is one the
+            # company does not report (gross margin of a biotech...) -> not applicable, not pending
+            m["na"] = True
             res["metrics"].append(m)
             continue
         e = P._err(k, pred, act)
@@ -467,8 +469,10 @@ def _score(snap, others, fin, label, gd, analysts, crowd, reaction, bars):
             item["brier"] = (p / 100 - (1.0 if outcome else 0.0)) ** 2
             score["brier_sum"] += item["brier"]
             score["brier_n"] += 1
+        elif qid == "price_up_after":
+            done = False          # waits for the session after the release
         else:
-            done = False
+            item["na"] = True     # benchmark that does not exist for this quarter (no guidance, no consensus...)
         res["questions"].append(item)
 
     for pt in snap.get("price_targets") or []:

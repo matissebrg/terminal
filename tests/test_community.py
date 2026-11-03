@@ -96,7 +96,8 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     _su(url, "update public.periods set deadline = now() + interval '1 day' where period = 'Q2 FY2027'")
     pred = "insert into public.predictions (ticker, period, metrics, questions) values ('NVDA', 'Q2 FY2027', %s, %s) returning id"
     alice.q(pred, (json.dumps({"revenue": {"value": 97.0, "low": 93, "high": 100}, "gross_margin": {"value": 75.0}}),
-                   json.dumps([{"id": "rev_above_crowd", "p": 70}, {"id": "price_up_after", "p": 55}])))
+                   json.dumps([{"id": "rev_above_crowd", "p": 70}, {"id": "price_up_after", "p": 55},
+                               {"id": "rev_above_guidance_high", "p": 40}])))   # no guidance range: not applicable
     bob.q(pred, (json.dumps({"revenue": {"value": 90.0}}), "[]"))
     carol.q(pred, (json.dumps({"revenue": {"value": 92.0}}), "[]"))
     dave.q(pred, (json.dumps({"revenue": {"value": 99.0}}), "[]"))
@@ -133,6 +134,7 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     assert rev["vs"]["crowd"]["you_win"] is True and rev["vs"]["analysts"]["you_win"] is True
     assert a["score"]["interval_hit"] == 1 and a["score"]["brier_n"] == 2
     q = {x["id"]: x for x in a["results"]["questions"]}
+    assert q["rev_above_guidance_high"].get("na") is True and a["status"] == "resolved"
     assert q["rev_above_crowd"]["outcome"] is True                     # 96.2 > median(97, 90, 92) = 92
     assert q["price_up_after"]["outcome"] is True                      # synthetic bars always rise
     b = res[str(ids[1])]
