@@ -237,6 +237,16 @@ def _price_reaction(bars: list[dict], release: date) -> float | None:
 
 
 # --------------------------------------------------------------------------- main
+def _status_counts(results: list[dict]) -> dict:
+    """{"REGN Q3 FY2026": {"resolved": 2}} - anonymous counts for status.json (diagnostics)."""
+    out: dict = {}
+    for r in results:
+        k = f"{r['ticker']} {r['period']}"
+        out.setdefault(k, {})
+        out[k][r["status"]] = out[k].get(r["status"], 0) + 1
+    return out
+
+
 def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, consensus: dict,
          next_earnings: dict, names: dict, now: datetime | None = None, families: dict | None = None,
          option_chains: dict | None = None, catalysts: list[dict] | None = None) -> dict:
@@ -348,7 +358,10 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
         client.upsert("crowd_consensus", crowd_rows, "ticker,period,metric")
     if results:
         client.upsert("prediction_results", results, "prediction_id")
-    summary["predictions"] = {"total": len(preds), "scored": len(results), "crowd_metrics": len(crowd_rows)}
+    summary["predictions"] = {"total": len(preds), "scored": len(results), "crowd_metrics": len(crowd_rows),
+                              "by_status": {st: sum(1 for r in results if r["status"] == st)
+                                            for st in sorted({r["status"] for r in results})},
+                              "by_period": _status_counts(results)}
 
     # 6. portfolio values -------------------------------------------------------------------
     pfs = client.select("portfolios")
