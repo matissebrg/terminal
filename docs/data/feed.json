@@ -1,6 +1,87 @@
 {
  "events": [
   {
+   "id": "71d0512141e6",
+   "date": "2026-11-03",
+   "ts": "2026-11-03T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT +9,3 % sur la séance",
+   "detail": "Clôture à 16,17 $.",
+   "values": {
+    "change": 0.09256756756756768,
+    "close": 16.17
+   }
+  },
+  {
+   "id": "8746b87c4185",
+   "date": "2026-11-03",
+   "ts": "2026-11-03T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +6,6 % sur la séance",
+   "detail": "Clôture à 7,72 $.",
+   "values": {
+    "change": 0.0662983425414363,
+    "close": 7.72
+   }
+  },
+  {
+   "id": "1688be45d24b",
+   "date": "2026-11-03",
+   "ts": "2026-11-03T21:00:00Z",
+   "ticker": "AGIO",
+   "type": "price",
+   "title": "AGIO +5,0 % sur la séance",
+   "detail": "Clôture à 31,46 $.",
+   "values": {
+    "change": 0.050417362270450905,
+    "close": 31.46
+   }
+  },
+  {
+   "id": "ab1decd296db",
+   "date": "2026-11-03",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT02612454 terminé",
+   "detail": "Phase 3 · Study to Assess the Long-term Safety of Dupilumab Administered in Participants ≥6 Months to <18 Years of Age With Atopic Dermatitis (AD) (avant : en cours, recrutement terminé).",
+   "url": "https://clinicaltrials.gov/study/NCT02612454",
+   "values": {
+    "nct": "NCT02612454",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "11e8d5106582",
+   "date": "2026-11-03",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de NCT02612454 repoussée (2026-10-07 → 2026-10-09)",
+   "detail": "Phase 3 · Study to Assess the Long-term Safety of Dupilumab Administered in Participants ≥6 Months to <18 Years of Age With Atopic Dermatitis (AD).",
+   "url": "https://clinicaltrials.gov/study/NCT02612454",
+   "values": {
+    "nct": "NCT02612454",
+    "kind": "date"
+   }
+  },
+  {
+   "id": "7a084e6475e6",
+   "date": "2026-11-03",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de NCT06465329 repoussée (2027-05-20 → 2029-12-04)",
+   "detail": "Phase 2 · A Study of Cemiplimab Plus Chemotherapy Versus Cemiplimab Plus Chemotherapy Plus Other Cancer Treatments for Adult Patients With Operable Non-Small Cell Lung Cancer (NSCLC).",
+   "url": "https://clinicaltrials.gov/study/NCT06465329",
+   "values": {
+    "nct": "NCT06465329",
+    "kind": "date"
+   }
+  },
+  {
    "id": "72481bfaff08",
    "date": "2026-11-02",
    "ticker": "XOM",
