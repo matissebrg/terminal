@@ -167,12 +167,36 @@ def naive_backtest(fin: dict, metric: str = "revenue", n: int = 8) -> dict:
     return out
 
 
+PREANNOUNCE_DAYS = 10   # an 8-K 2.02 this soon after the quarter end is a preliminary update, not the release
+RELEASE_BEFORE_10Q = 30  # the earnings release 8-K precedes the 10-Q by at most this many days
+
+
 def release_date(fin: dict, filings: list[dict], label: str) -> date | None:
+    """Day the quarter's results were published: the earnings-release 8-K (item 2.02) if there is one,
+    else the 10-Q / 10-K.
+
+    Not every 8-K 2.02 is the release. Regeneron filed one on 6 October 2026 (with items 1.01 and 8.01,
+    6 days after the quarter end) and released Q3 on 30 October: taking the first one moved the deadline
+    three weeks back and marked every prediction late. So 8-Ks filed within PREANNOUNCE_DAYS of the
+    quarter end are ignored, and once the periodic report is out, only 8-Ks in the RELEASE_BEFORE_10Q
+    days before it count."""
     end = period_end(fin, label)
     if end is None:
         return None
-    cands = [date.fromisoformat(f["filed"]) for f in filings
-             if f.get("is_results") and date.fromisoformat(f["filed"]) > end]
+    after = [f for f in filings if f.get("is_results") and date.fromisoformat(f["filed"]) > end]
+    periodic = [date.fromisoformat(f["filed"]) for f in after if f["form"] in ("10-Q", "10-K", "20-F")]
+    report = min(periodic) if periodic else None
+    cands = []
+    for f in after:
+        d = date.fromisoformat(f["filed"])
+        if f["form"] == "8-K":
+            if (d - end).days <= PREANNOUNCE_DAYS:
+                continue
+            if report and not (0 <= (report - d).days <= RELEASE_BEFORE_10Q):
+                continue
+        elif report and d != report:
+            continue
+        cands.append(d)
     return min(cands) if cands else None
 
 

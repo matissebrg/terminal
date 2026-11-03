@@ -333,8 +333,10 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
         for p in plist:
             snap = valid.get(p["id"])
             if snap is None:
+                # same keys as the scored rows: PostgREST rejects a bulk upsert whose objects differ
                 results.append({"prediction_id": p["id"], "user_id": p["user_id"], "ticker": t, "period": label,
-                                "status": "late", "results": {}, "score": {}, "resolved_at": now.isoformat()})
+                                "status": "late", "scored_version_at": None, "results": {}, "score": {},
+                                "resolved_at": now.isoformat()})
                 continue
             others = [s for pid, s in valid.items() if pid != p["id"]]
             res, score = _score(snap, others, fin, label, gd, analysts, crowd, reaction, bars.get(t) or [])

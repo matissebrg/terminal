@@ -181,3 +181,20 @@ def test_seasonal_naive_beats_sequential_on_seasonal_business():
     assert P.naive(fin, "Q4 FY2026", "revenue") == pytest.approx(120 * 1.05 ** 2)
     # margins: same quarter last year + last year-on-year change (here the Q4 bonus point repeats)
     assert P.naive(fin, "Q4 FY2026", "gross_margin", "seasonal") == pytest.approx(0.26)
+
+
+def test_release_date_ignores_preannouncement_8k():
+    from datetime import date as _d
+    from pipeline import predictions as P
+    fin = {"periods": {"quarterly": [{"label": "Q3 FY2026", "end": "2026-09-30"}]}}
+    f = lambda form, filed, items="": {"form": form, "filed": filed, "items": items,  # noqa: E731
+                                       "is_results": form in ("10-Q", "10-K") or "2.02" in items}
+    regn = [f("8-K", "2026-10-06", "1.01,2.02,8.01"), f("8-K", "2026-10-30", "2.02,9.01"), f("10-Q", "2026-10-30")]
+    assert P.release_date(fin, regn, "Q3 FY2026") == _d(2026, 10, 30)
+    # before the 10-Q: the pre-announcement alone does not count as a release
+    assert P.release_date(fin, regn[:1], "Q3 FY2026") is None
+    # usual case: release 8-K, 10-Q ten days later (Walmart-like)
+    wmt = [f("8-K", "2026-11-19", "2.02,9.01"), f("10-Q", "2026-11-29")]
+    assert P.release_date(fin, wmt, "Q3 FY2026") == _d(2026, 11, 19)
+    # bank-like release 14 days after the quarter end is kept
+    assert P.release_date(fin, [f("8-K", "2026-10-14", "2.02")], "Q3 FY2026") == _d(2026, 10, 14)

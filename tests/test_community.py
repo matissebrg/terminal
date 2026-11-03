@@ -36,6 +36,8 @@ class PgSupa:
         return [json.loads(json.dumps(r[0], default=str)) for r in self.c.q(sql, args)]
 
     def upsert(self, table, rows, on_conflict):
+        # PostgREST refuses a bulk insert whose objects do not all have the same keys (PGRST102)
+        assert len({tuple(sorted(r)) for r in rows}) <= 1, f"{table}: lignes aux clés différentes (PGRST102)"
         for r in rows:
             cols = list(r)
             upd = ", ".join(f"{c} = excluded.{c}" for c in cols if c not in on_conflict.split(","))
@@ -73,11 +75,11 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     bars = {"NVDA": _bars(), "SPY": [{"t": "2026-10-29", "c": 650.0}]}
     # members
     ids = []
-    for i, name in enumerate(("alice", "bob", "carol")):
+    for i, name in enumerate(("alice", "bob", "carol", "dave")):
         uid = _new_user(url, f"{name}@x.test")
         ids.append(uid)
         _su(url, "insert into public.profiles (id, username) values (%s, %s)", (uid, name))
-    alice, bob, carol = (Client(url, u) for u in ids)
+    alice, bob, carol, dave = (Client(url, u) for u in ids)
     sb = PgSupa(url)
     now0 = datetime(2026, 8, 20, 12, tzinfo=timezone.utc)
 
@@ -97,8 +99,11 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
                    json.dumps([{"id": "rev_above_crowd", "p": 70}, {"id": "price_up_after", "p": 55}])))
     bob.q(pred, (json.dumps({"revenue": {"value": 90.0}}), "[]"))
     carol.q(pred, (json.dumps({"revenue": {"value": 92.0}}), "[]"))
-    # history timestamps: put the versions before the real deadline, and one late edit by bob after it
+    dave.q(pred, (json.dumps({"revenue": {"value": 99.0}}), "[]"))
+    # history timestamps: put the versions before the real deadline, and one late edit by bob after it;
+    # dave only has a version after the deadline -> "late" row next to scored rows (same keys required)
     _su(url, "update public.prediction_history set recorded_at = '2026-08-20T10:00:00+00:00'")
+    _su(url, "update public.prediction_history set recorded_at = '2026-08-28T09:00:00+00:00' where user_id = %s", (ids[3],))
     _su(url, """insert into public.prediction_history (prediction_id, user_id, snapshot, recorded_at)
                 select id, user_id, jsonb_build_object('metrics', '{"revenue": {"value": 96.2}}'::jsonb,
                        'questions', '[]'::jsonb, 'price_targets', '[]'::jsonb), '2026-08-28T10:00:00+00:00'
@@ -119,6 +124,7 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     assert float(o["fill_price"]) == pytest.approx(nv["2026-10-29"])
 
     res = {r["user_id"]: r for r in sb.select("prediction_results")}
+    assert res[str(ids[3])]["status"] == "late" and res[str(ids[3])]["scored_version_at"] is None
     a = res[str(ids[0])]
     assert a["status"] == "resolved"
     rev = next(m for m in a["results"]["metrics"] if m["key"] == "revenue")
@@ -140,8 +146,8 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     lb = alice.q("select username, rev_n, interval_hit, crowd_wins from public.leaderboard()")
     assert ("alice", 1, 1, 1) in lb
     # group can now see each other's predictions and results
-    assert len(bob.q("select id from public.predictions")) == 3
-    assert len(bob.q("select prediction_id from public.prediction_results")) == 3
+    assert len(bob.q("select id from public.predictions")) == 4
+    assert len(bob.q("select prediction_id from public.prediction_results")) == 4
 
 
 def test_fill_bar_rules():
