@@ -1,13 +1,39 @@
 {
  "events": [
   {
+   "id": "809f4201e38f",
+   "date": "2026-11-04",
+   "ts": "2026-11-04T21:00:00Z",
+   "ticker": "AMZN",
+   "type": "price",
+   "title": "AMZN +6,9 % sur la séance",
+   "detail": "Clôture à 268,09 $.",
+   "values": {
+    "change": 0.06940843272567698,
+    "close": 268.09
+   }
+  },
+  {
+   "id": "d3d0c88b3d2f",
+   "date": "2026-11-04",
+   "ts": "2026-11-04T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +5,5 % sur la séance",
+   "detail": "Clôture à 8,69 $.",
+   "values": {
+    "change": 0.05461165048543681,
+    "close": 8.69
+   }
+  },
+  {
    "id": "f42f80527167",
    "date": "2026-11-04",
-   "ts": "2026-11-04T01:39:11Z",
+   "ts": "2026-11-04T20:25:47Z",
    "ticker": "AMZN",
    "type": "valuation",
-   "title": "AMZN : valeur DCF 14,29 $ → 14,65 $ (+2,6 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 245,63 $, potentiel -94,0 %.",
+   "title": "AMZN : valeur DCF 14,29 $ → 13,46 $ (-5,8 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 268,09 $, potentiel -95,0 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -19,14 +45,42 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.3654
+     "delta": -0.8339
     }
    ],
    "values": {
     "from": 14.289386128084727,
-    "to": 14.654777521319433,
-    "change": 0.025570825083700153,
-    "price": 245.63
+    "to": 13.455452575376833,
+    "change": -0.058360348389554624,
+    "price": 268.09
+   }
+  },
+  {
+   "id": "002670939104",
+   "date": "2026-11-04",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT06836609 en cours, recrutement terminé",
+   "detail": "Phase 1/Phase 2 · A Study to Evaluate ALN-CIDEB in Adult Participants With Metabolic Dysfunction-Associated Steatotic Liver Disease or With Metabolic Dysfunction-Associated Steatohepatitis (MASLD/MASH) (avant : recrutement en cours).",
+   "url": "https://clinicaltrials.gov/study/NCT06836609",
+   "values": {
+    "nct": "NCT06836609",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "447aa846f7cd",
+   "date": "2026-11-04",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de NCT06836609 repoussée (2027-05-15 → 2027-08-17)",
+   "detail": "Phase 1/Phase 2 · A Study to Evaluate ALN-CIDEB in Adult Participants With Metabolic Dysfunction-Associated Steatotic Liver Disease or With Metabolic Dysfunction-Associated Steatohepatitis (MASLD/MASH).",
+   "url": "https://clinicaltrials.gov/study/NCT06836609",
+   "values": {
+    "nct": "NCT06836609",
+    "kind": "date"
    }
   },
   {
