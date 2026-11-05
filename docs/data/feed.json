@@ -1,6 +1,341 @@
 {
  "events": [
   {
+   "id": "b03d42a841f3",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "NVDA",
+   "type": "price",
+   "title": "NVDA -9,0 % sur la séance",
+   "detail": "Clôture à 182,15 $.",
+   "values": {
+    "change": -0.08986658671863279,
+    "close": 182.145
+   }
+  },
+  {
+   "id": "4eee0db8abf4",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -11,9 % sur la séance",
+   "detail": "Clôture à 14,24 $.",
+   "values": {
+    "change": -0.11904761904761918,
+    "close": 14.245
+   }
+  },
+  {
+   "id": "8a75c0edb3b5",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "SVRA",
+   "type": "price",
+   "title": "SVRA -6,7 % sur la séance",
+   "detail": "Clôture à 4,35 $.",
+   "values": {
+    "change": -0.06652360515021472,
+    "close": 4.35
+   }
+  },
+  {
+   "id": "3ee0e195a338",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "COGT",
+   "type": "price",
+   "title": "COGT -6,3 % sur la séance",
+   "detail": "Clôture à 29,52 $.",
+   "values": {
+    "change": -0.06255954271197206,
+    "close": 29.52
+   }
+  },
+  {
+   "id": "c059192905d6",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "MLYS",
+   "type": "price",
+   "title": "MLYS -9,5 % sur la séance",
+   "detail": "Clôture à 15,38 $.",
+   "values": {
+    "change": -0.09529411764705875,
+    "close": 15.38
+   }
+  },
+  {
+   "id": "2bce4674fc14",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "PRAX",
+   "type": "price",
+   "title": "PRAX -7,7 % sur la séance",
+   "detail": "Clôture à 262,85 $.",
+   "values": {
+    "change": -0.07703922188279078,
+    "close": 262.85
+   }
+  },
+  {
+   "id": "9b8203d42f28",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T21:00:00Z",
+   "ticker": "AGIO",
+   "type": "price",
+   "title": "AGIO -11,8 % sur la séance",
+   "detail": "Clôture à 27,67 $.",
+   "values": {
+    "change": -0.11822817080943271,
+    "close": 27.67
+   }
+  },
+  {
+   "id": "20ef329a37a3",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:39:23Z",
+   "ticker": "AGIO",
+   "type": "valuation",
+   "title": "AGIO : valeur rNPV 51,73 $ → 51,85 $ (+0,2 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 27,67 $, potentiel +87,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.1263
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 51.728395110988636,
+    "to": 51.85471478341575,
+    "change": 0.002441979345310896,
+    "price": 27.67
+   }
+  },
+  {
+   "id": "069ab1ad5291",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:39:18Z",
+   "ticker": "MLYS",
+   "type": "valuation",
+   "title": "MLYS : valeur rNPV 43,23 $ → 42,75 $ (-1,1 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 15,38 $, potentiel +178,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.4764
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 43.229454670212476,
+    "to": 42.75301116166936,
+    "change": -0.011021270385615331,
+    "price": 15.38
+   }
+  },
+  {
+   "id": "fbf69a52d84d",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:39:14Z",
+   "ticker": "SVRA",
+   "type": "cross",
+   "title": "SVRA : le cours passe en dessous de la valeur rNPV",
+   "detail": "Cours 4,35 $ vs valeur rNPV 4,43 $.",
+   "values": {
+    "price": 4.35,
+    "value": 4.429708759541676
+   }
+  },
+  {
+   "id": "a28d923b1fc6",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:39:10Z",
+   "ticker": "SMMT",
+   "type": "valuation",
+   "title": "SMMT : valeur rNPV 8,12 $ → 8,03 $ (-1,2 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 14,24 $, potentiel -43,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.0943
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 8.119317562664097,
+    "to": 8.025066164531975,
+    "change": -0.011608290648160961,
+    "price": 14.245
+   }
+  },
+  {
+   "id": "eed2a2a8cfbd",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:38:48Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 13,46 $ → 16,35 $ (+21,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 259,05 $, potentiel -93,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.8982
+    }
+   ],
+   "values": {
+    "from": 13.455452575376833,
+    "to": 16.353634088868155,
+    "change": 0.21539086086148648,
+    "price": 259.05
+   }
+  },
+  {
+   "id": "f48dad9fd4a6",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:38:38Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 120,82 $ → 122,98 $ (+1,8 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 283,27 $, potentiel -56,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.1603
+    }
+   ],
+   "values": {
+    "from": 120.82276966851612,
+    "to": 122.98311825319743,
+    "change": 0.017880310065795962,
+    "price": 283.27
+   }
+  },
+  {
+   "id": "6fb1d16080ee",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:38:34Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 55,35 $ → 56,88 $ (+2,8 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 128,29 $, potentiel -55,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.5301
+    }
+   ],
+   "values": {
+    "from": 55.34557155680549,
+    "to": 56.875644178331925,
+    "change": 0.02764580035018706,
+    "price": 128.29
+   }
+  },
+  {
+   "id": "701856fa17af",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T20:38:27Z",
+   "ticker": "NVDA",
+   "type": "valuation",
+   "title": "NVDA : valeur DCF 142,53 $ → 139,52 $ (-2,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 182,15 $, potentiel -23,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -3.0069
+    }
+   ],
+   "values": {
+    "from": 142.53022134420365,
+    "to": 139.52333355067023,
+    "change": -0.021096492836224067,
+    "price": 182.145
+   }
+  },
+  {
+   "id": "5c31294e8b10",
+   "date": "2026-11-05",
+   "ticker": "AGIO",
+   "type": "filing",
+   "ts": "2026-11-05T19:38:29Z",
+   "title": "AGIO a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1439222/000143922226000131/agio-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001439222-26-000131"
+   }
+  },
+  {
+   "id": "1510ffd618c0",
+   "date": "2026-11-05",
+   "ticker": "AGIO",
+   "type": "filing",
+   "ts": "2026-11-05T16:33:13Z",
+   "title": "AGIO a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-05.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1439222/000143922226000129/agio-20261105.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001439222-26-000129"
+   }
+  },
+  {
    "id": "933ed006abb6",
    "date": "2026-11-04",
    "ticker": "MLYS",
@@ -54,93 +389,6 @@
    "values": {
     "form": "8-K",
     "accession": "0001933414-26-000142"
-   }
-  },
-  {
-   "id": "069ab1ad5291",
-   "date": "2026-11-05",
-   "ts": "2026-11-05T01:46:07Z",
-   "ticker": "MLYS",
-   "type": "valuation",
-   "title": "MLYS : valeur rNPV 43,23 $ → 42,75 $ (-1,1 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 15,99 $, potentiel +167,4 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -0.4764
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 43.229454670212476,
-    "to": 42.75301116166936,
-    "change": -0.011021270385615331,
-    "price": 15.99
-   }
-  },
-  {
-   "id": "a28d923b1fc6",
-   "date": "2026-11-05",
-   "ts": "2026-11-05T01:45:57Z",
-   "ticker": "SMMT",
-   "type": "valuation",
-   "title": "SMMT : valeur rNPV 8,12 $ → 8,03 $ (-1,2 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 15,80 $, potentiel -49,2 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -0.0943
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 8.119317562664097,
-    "to": 8.025066164531975,
-    "change": -0.011608290648160961,
-    "price": 15.8
-   }
-  },
-  {
-   "id": "eed2a2a8cfbd",
-   "date": "2026-11-05",
-   "ts": "2026-11-05T01:45:36Z",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 13,46 $ → 14,21 $ (+5,6 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 250,69 $, potentiel -94,3 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.7534
-    }
-   ],
-   "values": {
-    "from": 13.455452575376833,
-    "to": 14.208806153549228,
-    "change": 0.055988720851427455,
-    "price": 250.69
    }
   },
   {

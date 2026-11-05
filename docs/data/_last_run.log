@@ -1,24 +1,24 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.2s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.3s)
-  valeur DCF 141.42 $ | pondérée 139.39 $ | cours 206.69
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
+  valeur DCF 139.52 $ | pondérée 137.51 $ | cours 182.145
 == WMT
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000104169.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.5s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (1.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.1s)
-  valeur DCF 55.48 $ | pondérée 57.13 $ | cours 124.86
+  valeur DCF 56.88 $ | pondérée 58.55 $ | cours 128.29
 == GOOG
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.0s)
@@ -28,30 +28,30 @@
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.0s)
   [calendrier] GOOG: date Yahoo périmée (2026-10-28), consensus ignoré jusqu'à sa mise à jour
-  valeur DCF 120.42 $ | pondérée 123.61 $ | cours 278.27
+  valeur DCF 122.98 $ | pondérée 126.24 $ | cours 283.27
 == XOM
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0002115436.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000034088.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000034088.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0002115436.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000034088.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000093410.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000797468.json (0.0s)
-  valeur DCF 122.45 $ | pondérée 124.79 $ | cours 177.46
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000797468.json (0.4s)
+  valeur DCF 122.70 $ | pondérée 125.04 $ | cours 166.7
 == AMZN
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001018724.json (0.0s)
   [calendrier] AMZN: date Yahoo périmée (2026-10-29), consensus ignoré jusqu'à sa mise à jour
-  valeur DCF 14.21 $ | pondérée 15.84 $ | cours 250.69
+  valeur DCF 16.35 $ | pondérée 18.05 $ | cours 259.05
 == BBIO
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001743881.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001743881.json (0.1s)
-    [http] sec 200 https://www.sec.gov/files/company_tickers.json (0.4s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001178670.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001048477.json (0.1s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001743881.json (0.0s)
+    [http] sec 200 https://www.sec.gov/files/company_tickers.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001178670.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001048477.json (0.3s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000873303.json (0.0s)
   [calendrier] BBIO: date Yahoo périmée (2026-10-29), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.3s)
@@ -59,51 +59,51 @@
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 71.43 $ | pondérée 71.43 $ | cours 74.03
+  valeur rNPV 71.43 $ | pondérée 71.43 $ | cours 74.27
 == REGN
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000872589.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000872589.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000872589.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000318154.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000217410.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.5s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.7s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur DCF 625.31 $ | pondérée 635.64 $ | cours 973.36
+  valeur DCF 626.25 $ | pondérée 636.60 $ | cours 902.79
 == VEEV
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001393052.json (0.3s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001393052.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001108524.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001827090.json (0.3s)
-  valeur DCF 152.14 $ | pondérée 154.19 $ | cours 303.21
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001393052.json (0.0s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001393052.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001108524.json (0.7s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001827090.json (0.4s)
+  valeur DCF 152.61 $ | pondérée 154.68 $ | cours 307.55
 == SMMT
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001599298.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001599298.json (0.5s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001599298.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000078003.json (0.5s)
   [calendrier] SMMT: date Yahoo périmée (2026-11-04), consensus ignoré jusqu'à sa mise à jour
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 8.03 $ | pondérée 8.03 $ | cours 15.8
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
+  valeur rNPV 8.03 $ | pondérée 8.03 $ | cours 14.245
 == CAPR
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001133869.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001133869.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001133869.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001818794.json (0.1s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 4.15 $ | pondérée 4.15 $ | cours 8.24
+  valeur rNPV 4.15 $ | pondérée 4.15 $ | cours 8.595
 == SVRA
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001160308.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001160308.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001104506.json (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 4.43 $ | pondérée 4.43 $ | cours 4.75
+  valeur rNPV 4.43 $ | pondérée 4.43 $ | cours 4.35
 == COGT
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001622229.json (0.2s)
@@ -111,28 +111,29 @@
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000939767.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001676725.json (0.2s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 32.88 $ | pondérée 32.88 $ | cours 31.06
+  valeur rNPV 32.88 $ | pondérée 32.88 $ | cours 29.52
 == MLYS
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001933414.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001933414.json (0.0s)
   [calendrier] MLYS: date Yahoo périmée (2026-11-04), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 42.75 $ | pondérée 42.75 $ | cours 15.99
+  valeur rNPV 42.75 $ | pondérée 42.75 $ | cours 15.38
 == PRAX
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001689548.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001689548.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001582313.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000914475.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000914475.json (0.2s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 198.89 $ | pondérée 198.89 $ | cours 280.51
+  valeur rNPV 198.89 $ | pondérée 198.89 $ | cours 262.85
 == AGIO
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001439222.json (0.3s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001439222.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000875320.json (0.4s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001070081.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001439222.json (0.2s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001439222.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000875320.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001070081.json (0.0s)
+  [calendrier] AGIO: date Yahoo périmée (2026-11-05), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  valeur rNPV 51.74 $ | pondérée 51.74 $ | cours 31.2
-  [membres] {'periods': 105, 'prices': 60, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0}, 'options': {'quotes': 5023, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 3, 'scored': 3, 'crowd_metrics': 12, 'by_status': {'partial': 2, 'resolved': 1}, 'by_period': {'XOM Q3 FY2026': {'partial': 1}, 'REGN Q3 FY2026': {'resolved': 1, 'partial': 1}}}, 'portfolios': 2, 'catalysts': 16, 'badges': 0}
+  valeur rNPV 51.85 $ | pondérée 51.85 $ | cours 27.67
+  [membres] {'periods': 105, 'prices': 60, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0}, 'options': {'quotes': 4411, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 3, 'scored': 3, 'crowd_metrics': 12, 'by_status': {'partial': 2, 'resolved': 1}, 'by_period': {'XOM Q3 FY2026': {'partial': 1}, 'REGN Q3 FY2026': {'resolved': 1, 'partial': 1}}}, 'portfolios': 2, 'catalysts': 16, 'badges': 0}
