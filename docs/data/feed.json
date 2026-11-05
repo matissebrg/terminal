@@ -1,6 +1,149 @@
 {
  "events": [
   {
+   "id": "933ed006abb6",
+   "date": "2026-11-04",
+   "ticker": "MLYS",
+   "type": "filing",
+   "ts": "2026-11-05T03:15:07Z",
+   "title": "MLYS a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1933414/000193341426000144/mlys-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001933414-26-000144"
+   }
+  },
+  {
+   "id": "209a04bb0b1b",
+   "date": "2026-11-04",
+   "ticker": "SMMT",
+   "type": "filing",
+   "ts": "2026-11-05T03:08:01Z",
+   "title": "SMMT a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1599298/000159929826000090/smmt-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001599298-26-000090"
+   }
+  },
+  {
+   "id": "fd51d707fc56",
+   "date": "2026-11-04",
+   "ticker": "SMMT",
+   "type": "filing",
+   "ts": "2026-11-05T02:51:56Z",
+   "title": "SMMT a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-04.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1599298/000159929826000088/smmt-20261104.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001599298-26-000088"
+   }
+  },
+  {
+   "id": "78c34eb177b7",
+   "date": "2026-11-04",
+   "ticker": "MLYS",
+   "type": "filing",
+   "ts": "2026-11-05T02:08:08Z",
+   "title": "MLYS a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-10-29.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1933414/000193341426000142/mlys-20261029.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001933414-26-000142"
+   }
+  },
+  {
+   "id": "069ab1ad5291",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T01:46:07Z",
+   "ticker": "MLYS",
+   "type": "valuation",
+   "title": "MLYS : valeur rNPV 43,23 $ → 42,75 $ (-1,1 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 15,99 $, potentiel +167,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.4764
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 43.229454670212476,
+    "to": 42.75301116166936,
+    "change": -0.011021270385615331,
+    "price": 15.99
+   }
+  },
+  {
+   "id": "a28d923b1fc6",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T01:45:57Z",
+   "ticker": "SMMT",
+   "type": "valuation",
+   "title": "SMMT : valeur rNPV 8,12 $ → 8,03 $ (-1,2 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 15,80 $, potentiel -49,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.0943
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 8.119317562664097,
+    "to": 8.025066164531975,
+    "change": -0.011608290648160961,
+    "price": 15.8
+   }
+  },
+  {
+   "id": "eed2a2a8cfbd",
+   "date": "2026-11-05",
+   "ts": "2026-11-05T01:45:36Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 13,46 $ → 14,21 $ (+5,6 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 250,69 $, potentiel -94,3 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.7534
+    }
+   ],
+   "values": {
+    "from": 13.455452575376833,
+    "to": 14.208806153549228,
+    "change": 0.055988720851427455,
+    "price": 250.69
+   }
+  },
+  {
    "id": "809f4201e38f",
    "date": "2026-11-04",
    "ts": "2026-11-04T21:00:00Z",
@@ -1195,5 +1338,5 @@
    }
   }
  ],
- "updated": "2026-11-04"
+ "updated": "2026-11-05"
 }
