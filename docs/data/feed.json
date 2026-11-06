@@ -3,7 +3,7 @@
   {
    "id": "8b8ccafcffe1",
    "date": "2026-11-06",
-   "ts": "2026-11-06T11:34:09Z",
+   "ts": "2026-11-06T14:20:48Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 16,35 $ → 17,08 $ (+4,5 %)",
@@ -32,7 +32,7 @@
   {
    "id": "5ed1a45de9df",
    "date": "2026-11-06",
-   "ts": "2026-11-06T11:33:49Z",
+   "ts": "2026-11-06T14:20:29Z",
    "ticker": "WMT",
    "type": "valuation",
    "title": "WMT : valeur DCF 56,88 $ → 57,56 $ (+1,2 %)",
@@ -56,6 +56,62 @@
     "to": 57.561315520445355,
     "change": 0.012055623316784381,
     "price": 127.72
+   }
+  },
+  {
+   "id": "e6740525f6fc",
+   "date": "2026-11-06",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai LINKER-MM4 en cours, recrutement terminé",
+   "detail": "Phase 1/Phase 2 · A Window of Opportunity Trial to Learn if Linvoseltamab is Safe and Well Tolerated, and How Well it Works in Adult Participants With Recently Diagnosed Multiple Myeloma Who Have Not Already Received Treatment (avant : recrutement en cours).",
+   "url": "https://clinicaltrials.gov/study/NCT05828511",
+   "values": {
+    "nct": "NCT05828511",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "5d35dbe57e68",
+   "date": "2026-11-06",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de AURA-AD repoussée (2028-06-23 → 2028-08-14)",
+   "detail": "Phase 1 · First-in-Human Trial to Assess REGN20423 in Healthy Adult Participants and Adult Participants With Atopic Dermatitis.",
+   "url": "https://clinicaltrials.gov/study/NCT07527923",
+   "values": {
+    "nct": "NCT07527923",
+    "kind": "date"
+   }
+  },
+  {
+   "id": "0ff9e999e850",
+   "date": "2026-11-06",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai ACCESS-1 terminé",
+   "detail": "Phase 3 · A Study to Evaluate How Safe Pozelimab + Cemdisiran Combination Therapy is and How Well it Works in Adult Patients With Paroxysmal Nocturnal Hemoglobinuria (PNH) Who Have Not Recently Received or Have Not Received Complement Inhibitor Treatment (avant : en cours, recrutement terminé).",
+   "url": "https://clinicaltrials.gov/study/NCT05133531",
+   "values": {
+    "nct": "NCT05133531",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "c69546c4f644",
+   "date": "2026-11-06",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : fin principale de ACCESS-1 avancée (2026-10-12 → 2026-09-28)",
+   "detail": "Phase 3 · A Study to Evaluate How Safe Pozelimab + Cemdisiran Combination Therapy is and How Well it Works in Adult Patients With Paroxysmal Nocturnal Hemoglobinuria (PNH) Who Have Not Recently Received or Have Not Received Complement Inhibitor Treatment.",
+   "url": "https://clinicaltrials.gov/study/NCT05133531",
+   "values": {
+    "nct": "NCT05133531",
+    "kind": "date"
    }
   },
   {
