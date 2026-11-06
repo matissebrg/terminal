@@ -1,6 +1,78 @@
 {
  "events": [
   {
+   "id": "8b8ccafcffe1",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T11:34:09Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,35 $ → 17,08 $ (+4,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 260,21 $, potentiel -93,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.7295
+    }
+   ],
+   "values": {
+    "from": 16.353634088868155,
+    "to": 17.083160725417663,
+    "change": 0.044609450877104655,
+    "price": 260.21
+   }
+  },
+  {
+   "id": "5ed1a45de9df",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T11:33:49Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 56,88 $ → 57,56 $ (+1,2 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 127,72 $, potentiel -54,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.6857
+    }
+   ],
+   "values": {
+    "from": 56.875644178331925,
+    "to": 57.561315520445355,
+    "change": 0.012055623316784381,
+    "price": 127.72
+   }
+  },
+  {
+   "id": "779842407c22",
+   "date": "2026-11-06",
+   "ticker": "VEEV",
+   "type": "filing",
+   "ts": "2026-11-06T05:16:43Z",
+   "title": "VEEV a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-05.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1393052/000139305226000039/veev-20261105.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001393052-26-000039"
+   }
+  },
+  {
    "id": "05e1c15d1c4a",
    "date": "2026-11-05",
    "ticker": "COGT",
@@ -71,35 +143,6 @@
    }
   },
   {
-   "id": "8b8ccafcffe1",
-   "date": "2026-11-06",
-   "ts": "2026-11-06T01:47:07Z",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 16,35 $ → 13,65 $ (-16,5 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,03 $, potentiel -94,9 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -2.7023
-    }
-   ],
-   "values": {
-    "from": 16.353634088868155,
-    "to": 13.651336347603497,
-    "change": -0.16524142136114567,
-    "price": 266.03
-   }
-  },
-  {
    "id": "ca632862712f",
    "date": "2026-11-06",
    "ts": "2026-11-06T01:46:57Z",
@@ -126,35 +169,6 @@
     "to": 121.17936195022179,
     "change": -0.014666698394019188,
     "price": 287.3
-   }
-  },
-  {
-   "id": "5ed1a45de9df",
-   "date": "2026-11-06",
-   "ts": "2026-11-06T01:46:54Z",
-   "ticker": "WMT",
-   "type": "valuation",
-   "title": "WMT : valeur DCF 56,88 $ → 55,63 $ (-2,2 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 129,17 $, potentiel -56,9 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -1.2415
-    }
-   ],
-   "values": {
-    "from": 56.875644178331925,
-    "to": 55.63414487228922,
-    "change": -0.021828311995025853,
-    "price": 129.17
    }
   },
   {
