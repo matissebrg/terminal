@@ -86,10 +86,22 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   (1 mois à 10 ans).
 - **Options** (`0005_options.sql`, `docs/assets/options-lab.js`) : onglet Options enrichi (grecques par strike, skew 25Δ par
   échéance, max pain, historique de l'IV 30 j, constructeur de stratégies avec payoff à l'échéance et aujourd'hui, points
-  morts, probabilité de gain log-normale, grecques agrégées) et paper trading d'options : positions acheteuses uniquement,
-  exécution à la clôture suivante au prix demandé (ask) à l'achat et offert (bid) à la vente, dénouement à l'échéance à la
-  valeur intrinsèque. Les cotations du soir (après 16:00 New York) servent aux exécutions ; Yahoo ne publie pas de bid / ask
+  morts, probabilité de gain log-normale, grecques agrégées) et paper trading d'options : achat, revente avant l'échéance
+  et vente couverte (`0007_trading.sql` : call vendu = 100 actions détenues bloquées par contrat, put vendu = strike × 100 $
+  de liquidités réservées ; une option achetée ne couvre pas une option vendue, faute de règles de marge),
+  exécution à la clôture suivante au prix demandé (ask) à l'achat et offert (bid) à la vente, dénouement au comptant à
+  l'échéance à la valeur intrinsèque (le vendeur la paie). Les cotations du soir (après 16:00 New York) servent aux exécutions ; Yahoo ne publie pas de bid / ask
   avant l'ouverture. Succès : Premier contrat, Levier gagnant (position soldée à +100 % ou plus).
+- **Exécution des ordres sur actions** (`pipeline/execution.py`, `0007_trading.sql`, `docs/assets/trade-ticket.js`) : barres
+  quotidiennes seulement, donc modèle séance par séance. Écart acheteur-vendeur estimé d'après le volume moyen en dollars
+  (10 pb × (ADV / 10 M$)^-0,5, entre 1 et 150 pb, au moins un cent), impact de marché en racine carrée
+  (0,5 × σ quotidienne × √(Q / V)), 10 % du volume de la séance au plus (exécutions partielles, prix moyen pondéré).
+  Ordre au marché : clôture de la première séance dont la clôture était inconnue, ± demi-écart + impact. Ordre à cours
+  limité : actif dès la séance suivante (même séance s'il est passé avant 9 h 30 New York), exécuté à la limite si le
+  marché la traverse strictement (ou à l'ouverture en cas de gap), sans écart ni impact, valable 30 jours. Le ticket
+  d'ordre montre la fourchette estimée, l'impact, la part du volume, le moment d'exécution et, pour une limite, la
+  probabilité d'être touchée en 30 jours (marche aléatoire sans tendance). Logos : services publics d'images de logos,
+  initiales en repli.
 - **Titres** : chaque badge d'argent ou plus donne un titre, affiché à côté du pseudo (choisi dans *Mon compte*, vérifié par la base).
 - **Profils** (`#/membre/<pseudo>`) : statut, titre, statistiques, badges, portefeuilles visibles et prédictions
   après la date limite. **Liste des membres** avec e-mails et dernières connexions : administrateurs seulement.

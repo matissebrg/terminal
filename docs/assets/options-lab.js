@@ -218,13 +218,14 @@
           { name: "Aujourd'hui", type: "line", showSymbol: false, data: xs.map((x, i) => [x, now[i]]), lineStyle: { width: 1.5, type: "dashed", color: C().series[1] }, itemStyle: { color: C().series[1] } },
         ],
       });
-      // paper trade (long legs only)
+      // paper trade (short legs must be covered by shares or cash, checked by the server)
       const M = T.members;
       if (!M || !M.configured || !T.member) { trade.innerHTML = `<p class="note">Connecte-toi pour acheter ces contrats dans un portefeuille fictif.</p>`; return; }
-      if (L.some((l) => l.side === "short")) { trade.innerHTML = `<p class="note warn">Paper trading : positions acheteuses uniquement pour l'instant (la vente à découvert d'options demanderait des règles de marge).</p>`; return; }
-      trade.innerHTML = `<div class="panel-sub"><b>Acheter dans un portefeuille fictif</b>
+      const shorts = L.filter((l) => l.side === "short");
+      trade.innerHTML = `<div class="panel-sub"><b>${shorts.length ? "Passer la stratégie" : "Acheter"} dans un portefeuille fictif</b>
         <div class="row" style="margin-top:6px"><select class="sel" id="opf"><option>Chargement…</option></select><button class="btn primary" id="obuy">Passer ${L.length} ordre(s)</button></div>
-        <div class="note" id="obmsg">Exécution à la clôture de la prochaine séance, au prix demandé (ask). Coût estimé au milieu : ${F.n(cost, 0)} $.</div></div>`;
+        <div class="note" id="obmsg">Exécution à la clôture de la prochaine séance, au prix demandé (ask) à l'achat et offert (bid) à la vente. ${shorts.length ? "" : `Coût estimé au milieu : ${F.n(cost, 0)} $.`}</div>
+        ${shorts.length ? `<p class="note">Jambes vendues acceptées seulement si elles sont couvertes : 100 actions détenues par call vendu, strike × 100 $ de liquidités réservées par put vendu. Une option achetée ne sert pas de couverture (pas de règles de marge sur les écarts). Les achats sont passés d'abord.</p>` : ""}</div>`;
       M.sb.from("portfolios").select("id, name, cash").eq("user_id", T.member.id).then(({ data }) => {
         const sel = T.$("#opf"); if (!sel) return;
         sel.innerHTML = (data || []).map((p) => `<option value="${p.id}">${T.esc(p.name)} · ${F.n(+p.cash, 0)} $</option>`).join("") || "<option value=''>Crée d'abord un portefeuille</option>";
@@ -232,9 +233,11 @@
       T.$("#obuy").onclick = async () => {
         const pf = T.$("#opf").value, msg = T.$("#obmsg");
         if (!pf) { msg.className = "note warn"; msg.innerHTML = 'Crée d\'abord un portefeuille dans <a href="#/portefeuilles">Portefeuilles</a>.'; return; }
-        for (const l of L) {
-          const r = await M.sb.rpc("place_option_order", { p_portfolio: pf, p_ticker: tk, p_expiry: l.exp, p_strike: l.strike, p_type: l.type, p_side: "buy", p_qty: l.qty });
-          if (r.error) { msg.className = "note warn"; msg.textContent = r.error.message; return; }
+        let n = 0;
+        for (const l of L.slice().sort((a, b) => (a.side === "short") - (b.side === "short"))) {
+          const r = await M.sb.rpc("place_option_order", { p_portfolio: pf, p_ticker: tk, p_expiry: l.exp, p_strike: l.strike, p_type: l.type, p_side: l.side === "short" ? "sell" : "buy", p_qty: l.qty });
+          if (r.error) { msg.className = "note warn"; msg.textContent = (n ? `${n} ordre(s) enregistré(s), puis refus : ` : "") + r.error.message; return; }
+          n++;
         }
         msg.className = "note up"; msg.innerHTML = `${L.length} ordre(s) enregistré(s) ✓ <a href="#/portefeuilles/${pf}">voir le portefeuille</a>`;
       };

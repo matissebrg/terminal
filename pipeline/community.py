@@ -23,6 +23,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 from . import http
+from . import execution as X
 from . import predictions as P
 
 QUESTIONS = {
@@ -122,6 +123,9 @@ def _ts(s) -> datetime:
     return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
 
 
+MICRO_COLS = ("open", "high", "low", "prev_close", "volume", "adv_shares", "sigma_d", "spread_bps")
+
+
 def fill_bar(bars: list[dict], created_at: datetime) -> dict | None:
     """First daily bar whose close was unknown when the order was placed."""
     ny = created_at.astimezone(P.NY)
@@ -205,8 +209,8 @@ def _sync_options(client, chains: dict, bars: dict, now: datetime):
         pos[k] = pos.get(k, 0) + (tr["qty"] if tr["side"] == "buy" else -tr["qty"])
     marks = {}
     for k, q in pos.items():
-        if q <= 0:
-            continue
+        if q == 0:
+            continue                                         # short positions (q < 0) are liabilities
         _, t, exp, strike, typ = k
         quote = quotes.get((t, exp, strike, typ))
         if quote and quote.get("mid"):
@@ -275,25 +279,53 @@ def sync(client, *, fins: dict, filings: dict, bars: dict, guidance: dict, conse
 
     # 2. latest prices ----------------------------------------------------------------------
     families = families or {}
+    micro = {s: X.stats(b) for s, b in bars.items() if b}
     price_rows = [{"ticker": s, "name": names.get(s, s), "family": families.get(s), "close": b[-1]["c"], "price_date": b[-1]["t"],
                    "updated_at": now.isoformat()} for s, b in bars.items() if b]
     if price_rows:
-        client.upsert("latest_prices", price_rows, "ticker")
+        rich = [{**r, **{k: micro[r["ticker"]].get(k) for k in MICRO_COLS}} for r in price_rows]
+        try:
+            client.upsert("latest_prices", rich, "ticker")
+        except Exception:  # noqa: BLE001 - database without migration 0007 yet
+            client.upsert("latest_prices", price_rows, "ticker")
     summary["prices"] = len(price_rows)
 
     # 3. pending orders ---------------------------------------------------------------------
-    filled = rejected = waiting = 0
+    # realistic execution (pipeline/execution.py): half-spread + square-root impact for market orders,
+    # trade-through for limit orders, at most 10 % of a session's volume (the rest waits), 30-day limits
+    filled = rejected = waiting = partial = expired = 0
+    today_ny = now.astimezone(P.NY).date()
     for o in client.select("orders", {"status": "eq.pending", "order": "id.asc"}):
-        b = fill_bar(bars.get(o["ticker"]) or [], _ts(o["created_at"]))
-        if b is None:
-            waiting += 1
+        tb = bars.get(o["ticker"]) or []
+        o = {**o, "created_at": _ts(o["created_at"])}
+        pl = X.plan(o, tb, micro.get(o["ticker"]) or {}, today_ny)
+        res = {}
+        for f in pl["fills"]:
+            detail = {k: f.get(k) for k in ("type", "close", "limit", "half_spread_bps", "impact_bps", "participation", "gap", "partial")}
+            try:
+                res = client.rpc("fill_order", {"p_order": o["id"], "p_price": f["price"], "p_date": f["session"],
+                                                "p_qty": f["qty"], "p_detail": detail}) or {}
+            except Exception as exc:  # noqa: BLE001 - database without migration 0007: old signature, close price
+                if not re.search(r"PGRST202|does not exist|Could not find|p_detail|p_qty", str(exc)):
+                    raise
+                res = client.rpc("fill_order", {"p_order": o["id"], "p_price": f["close"] if f.get("close") else f["price"],
+                                                "p_date": f["session"]}) or {}
+            if res.get("status") != "pending":
+                break
+        if pl["expire"] and (res.get("status") in (None, "pending")):
+            res = client.rpc("expire_order", {"p_order": o["id"], "p_reason": pl["expire"]}) or {}
+            expired += 1
             continue
-        res = client.rpc("fill_order", {"p_order": o["id"], "p_price": b["c"], "p_date": b["t"]}) or {}
-        if res.get("status") == "filled":
+        st = res.get("status")
+        if not pl["fills"]:
+            waiting += 1
+        elif st == "filled":
             filled += 1
+        elif st == "pending":
+            partial += 1
         else:
             rejected += 1
-    summary["orders"] = {"filled": filled, "rejected": rejected, "waiting": waiting}
+    summary["orders"] = {"filled": filled, "rejected": rejected, "waiting": waiting, "partial": partial, "expired": expired}
 
     # 3b. options: quotes, fills at the evening snapshot, expiries ---------------------------
     opt_marks: dict[tuple, float] = {}

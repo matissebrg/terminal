@@ -47,9 +47,10 @@ class PgSupa:
             self.c.q(sql, (json.dumps(r, default=str),), fetch=False)
 
     def rpc(self, fn, args):
-        cast = lambda v: "::bigint" if isinstance(v, int) else "::numeric" if isinstance(v, float) else ""  # noqa: E731
+        cast = lambda v: "::bigint" if isinstance(v, int) else "::numeric" if isinstance(v, float) else "::jsonb" if isinstance(v, dict) else ""  # noqa: E731
         names = ", ".join(f"{k} => %s{cast(v)}" for k, v in args.items())
-        r = self.c.q(f"select to_jsonb(public.{fn}({names}))", list(args.values()))
+        vals = [json.dumps(v) if isinstance(v, dict) else v for v in args.values()]
+        r = self.c.q(f"select to_jsonb(public.{fn}({names}))", vals)
         return r[0][0] if r else None
 
 
@@ -122,7 +123,9 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     o = sb.select("orders", {"id": f"eq.{oid}"})[0]
     assert o["fill_date"] == "2026-10-29"           # 17:30 New York on the 28th -> next session's close
     nv = {b["t"]: b["c"] for b in bars["NVDA"]}
-    assert float(o["fill_price"]) == pytest.approx(nv["2026-10-29"])
+    # bars without volume: unknown liquidity -> widest spread (150 bp), half paid on a buy, no impact estimate
+    assert float(o["fill_price"]) == pytest.approx(nv["2026-10-29"] * 1.0075, abs=1e-3)
+    assert o["detail"]["half_spread_bps"] == 75.0
 
     res = {r["user_id"]: r for r in sb.select("prediction_results")}
     assert res[str(ids[3])]["status"] == "late" and res[str(ids[3])]["scored_version_at"] is None
@@ -144,7 +147,7 @@ def test_sync_end_to_end(dburl, fin):  # noqa: F811
     assert crowd["revenue"]["n"] == 3 and float(crowd["revenue"]["median"]) == pytest.approx(92e9)
     vals = sb.select("portfolio_values")
     assert len(vals) == 1 and float(vals[0]["value"]) == pytest.approx(
-        100000 - 10 * nv["2026-10-29"] + 10 * bars["NVDA"][-1]["c"], abs=0.02)
+        100000 - 10 * round(nv["2026-10-29"] * 1.0075, 4) + 10 * bars["NVDA"][-1]["c"], abs=0.02)
     lb = alice.q("select username, rev_n, interval_hit, crowd_wins from public.leaderboard()")
     assert ("alice", 1, 1, 1) in lb
     # group can now see each other's predictions and results

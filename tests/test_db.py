@@ -213,17 +213,29 @@ def test_orders_execute_only_through_fill(world):
         f.q("select public.place_order(%s, 'FAKE', 'buy', 1)", (pf,))
     buy = f.q("select (public.place_order(%s, 'nvda', 'buy', 100)).id", (pf,))[0][0]
     too_big = f.q("select (public.place_order(%s, 'NVDA', 'buy', 1000)).id", (pf,))[0][0]
-    short = f.q("select (public.place_order(%s, 'SPY', 'sell', 1)).id", (pf,))[0][0]
+    with pytest.raises(psycopg.errors.RaiseException, match="Vente impossible"):     # no short selling
+        f.q("select public.place_order(%s, 'SPY', 'sell', 1)", (pf,))
+    with pytest.raises(psycopg.errors.RaiseException, match="trop éloigné"):
+        f.q("select public.place_order(%s, 'NVDA', 'buy', 1, 'limit', 50)", (pf,))
+    lim = f.q("select (public.place_order(%s, 'NVDA', 'buy', 10, 'limit', 190)).expires_on is not null", (pf,))[0][0]
+    assert lim is True
     svc = Client(url, None, role="service_role")
     assert svc.q("select (public.fill_order(%s, 201.5, '2026-10-28')).status", (buy,))[0][0] == "filled"
     assert svc.q("select (public.fill_order(%s, 201.5, '2026-10-28')).status", (too_big,))[0][0] == "rejected"
-    assert svc.q("select (public.fill_order(%s, 650, '2026-10-28')).status", (short,))[0][0] == "rejected"
+    # partial fill: 400 of 1000 executed, the order stays pending with an average price
+    part = f.q("select (public.place_order(%s, 'NVDA', 'buy', 300)).id", (pf,))[0][0]
+    r = svc.q("select status, filled_qty, fill_price from public.fill_order(%s, 100, '2026-10-28', 100, '{\"impact_bps\": 3}')", (part,))[0]
+    assert r[0] == "pending" and float(r[1]) == 100
+    r = svc.q("select status, filled_qty, fill_price from public.fill_order(%s, 103, '2026-10-29')", (part,))[0]
+    assert r[0] == "filled" and float(r[1]) == 300 and float(r[2]) == pytest.approx((100 * 100 + 103 * 200) / 300)
+    assert svc.q("select detail->>'impact_bps' from public.trades where order_id = %s order by id limit 1", (part,))[0][0] == "3"
+    svc.q("update public.portfolios set cash = cash + 30600 where id = %s", (pf,))          # undo for the checks below
     assert float(f.q("select cash from public.portfolios where id = %s", (pf,))[0][0]) == pytest.approx(100000 - 20150)
     sell = f.q("select (public.place_order(%s, 'NVDA', 'sell', 40)).id", (pf,))[0][0]
     svc.q("select public.fill_order(%s, 210, '2026-10-29')", (sell,))
     assert float(f.q("select cash from public.portfolios where id = %s", (pf,))[0][0]) == pytest.approx(100000 - 20150 + 8400)
     # group visibility of portfolios and trades, orders stay private
-    assert m.q("select count(*) from public.trades where portfolio_id = %s", (pf,))[0][0] == 2
+    assert m.q("select count(*) from public.trades where portfolio_id = %s", (pf,))[0][0] == 4
     assert m.q("select count(*) from public.orders where portfolio_id = %s", (pf,))[0][0] == 0
     # cancel
     o = f.q("select (public.place_order(%s, 'NVDA', 'buy', 1)).id", (pf,))[0][0]
