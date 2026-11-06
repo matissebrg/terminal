@@ -1,6 +1,100 @@
 {
  "events": [
   {
+   "id": "41a5cebbd6a8",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT +12,2 % sur la séance",
+   "detail": "Clôture à 15,93 $.",
+   "values": {
+    "change": 0.12233262861169836,
+    "close": 15.9259
+   }
+  },
+  {
+   "id": "c05c43a7e519",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T21:00:00Z",
+   "ticker": "SVRA",
+   "type": "price",
+   "title": "SVRA +10,3 % sur la séance",
+   "detail": "Clôture à 4,83 $.",
+   "values": {
+    "change": 0.10273972602739723,
+    "close": 4.83
+   }
+  },
+  {
+   "id": "0005e5b0ca5e",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T21:00:00Z",
+   "ticker": "COGT",
+   "type": "price",
+   "title": "COGT +6,1 % sur la séance",
+   "detail": "Clôture à 31,38 $.",
+   "values": {
+    "change": 0.060682893847194164,
+    "close": 31.375
+   }
+  },
+  {
+   "id": "1eac1cc9695f",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T21:00:00Z",
+   "ticker": "PRAX",
+   "type": "price",
+   "title": "PRAX +5,1 % sur la séance",
+   "detail": "Clôture à 276,09 $.",
+   "values": {
+    "change": 0.05141094481891928,
+    "close": 276.09
+   }
+  },
+  {
+   "id": "724cd151e261",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T19:57:44Z",
+   "ticker": "SVRA",
+   "type": "cross",
+   "title": "SVRA : le cours passe au-dessus de la valeur rNPV",
+   "detail": "Cours 4,83 $ vs valeur rNPV 4,43 $.",
+   "values": {
+    "price": 4.83,
+    "value": 4.43120968539613
+   }
+  },
+  {
+   "id": "9015f08589c5",
+   "date": "2026-11-06",
+   "ts": "2026-11-06T19:56:39Z",
+   "ticker": "NVDA",
+   "type": "valuation",
+   "title": "NVDA : valeur DCF 139,52 $ → 141,10 $ (+1,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 187,91 $, potentiel -24,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.5814
+    }
+   ],
+   "values": {
+    "from": 139.52333355067023,
+    "to": 141.1047287131933,
+    "change": 0.011334270206128424,
+    "price": 187.91
+   }
+  },
+  {
    "id": "8b8ccafcffe1",
    "date": "2026-11-06",
    "ts": "2026-11-06T14:20:48Z",
@@ -186,19 +280,6 @@
    }
   },
   {
-   "id": "724cd151e261",
-   "date": "2026-11-06",
-   "ts": "2026-11-06T01:47:30Z",
-   "ticker": "SVRA",
-   "type": "cross",
-   "title": "SVRA : le cours passe au-dessus de la valeur rNPV",
-   "detail": "Cours 4,66 $ vs valeur rNPV 4,43 $.",
-   "values": {
-    "price": 4.66,
-    "value": 4.43120968539613
-   }
-  },
-  {
    "id": "ca632862712f",
    "date": "2026-11-06",
    "ts": "2026-11-06T01:46:57Z",
@@ -225,35 +306,6 @@
     "to": 121.17936195022179,
     "change": -0.014666698394019188,
     "price": 287.3
-   }
-  },
-  {
-   "id": "9015f08589c5",
-   "date": "2026-11-06",
-   "ts": "2026-11-06T01:46:48Z",
-   "ticker": "NVDA",
-   "type": "valuation",
-   "title": "NVDA : valeur DCF 139,52 $ → 142,76 $ (+2,3 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 200,13 $, potentiel -28,7 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 3.2373
-    }
-   ],
-   "values": {
-    "from": 139.52333355067023,
-    "to": 142.7606113314102,
-    "change": 0.02320241136988235,
-    "price": 200.13
    }
   },
   {
