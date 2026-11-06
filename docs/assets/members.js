@@ -455,7 +455,7 @@
             ${trades.slice().sort((a, b) => (b.price_date || "").localeCompare(a.price_date || "") || b.id - a.id).map((t) => `<tr><td>${F.date(t.price_date)}</td><td class="${t.side === "buy" ? "up" : "down"}">${t.side === "buy" ? "Achat" : "Vente"}</td><td><b>${t.ticker}</b></td><td class="n">${F.n(+t.qty, +t.qty % 1 ? 2 : 0)}</td><td class="n">${F.px(+t.price)}</td><td class="n">${F.n(+t.qty * +t.price, 0)} $</td></tr>`).join("") || '<tr><td colspan="6" class="muted">Aucune transaction.</td></tr>'}
             </tbody></table></div></div>
         </div>
-        ${own ? `<div class="stack"><div class="panel sticky-panel" id="ticket"></div>
+        ${own ? `<div class="stack"><div class="panel" id="ticket"></div>
           <div class="panel"><h3>Ordre sur options <a class="hint" href="#/options">espace Options →</a></h3>
             <form id="xform" class="aform">
               <div class="tt-side" id="xside"><i class="pill"></i><button type="button" data-k="buy" class="on">Acheter</button><button type="button" data-k="sell">Vendre</button></div>
@@ -545,7 +545,7 @@
       document.body.appendChild(pop);
       const r = b.getBoundingClientRect(); pop.style.top = `${Math.min(r.bottom + 6, innerHeight - pop.offsetHeight - 8)}px`; pop.style.left = `${Math.max(8, r.right - pop.offsetWidth)}px`;
       const away = (e) => { if (!pop.contains(e.target) && e.target !== b) { pop.remove(); document.removeEventListener("mousedown", away); } };
-      setTimeout(() => document.addEventListener("mousedown", away)); addEventListener("hashchange", () => pop.remove(), { once: true });
+      setTimeout(() => document.addEventListener("mousedown", away)); addEventListener("hashchange", () => pop.remove(), { once: true }); addEventListener("scroll", () => pop.remove(), { once: true, passive: true });
       const inp = pop.querySelector("input"); inp.focus(); inp.select();
       pop.querySelectorAll("[data-d]").forEach((x) => x.onclick = () => { inp.value = Math.min(max, Math.max(1, (+inp.value || 0) + +x.dataset.d)); });
       pop.querySelector("[data-x]").onclick = () => pop.remove();
