@@ -1,6 +1,147 @@
 {
  "events": [
   {
+   "id": "3d97108077e0",
+   "date": "2026-11-07",
+   "ticker": "SMMT",
+   "type": "catalyst",
+   "title": "SMMT : Décision FDA (PDUFA) dans 7 j (Ivonescimab (CPNPC EGFR muté après TKI))",
+   "detail": "Décision de la FDA sur ivonescimab + chimiothérapie (HARMONi, CPNPC EGFR muté)",
+   "url": "https://www.biospace.com/press-releases/summit-therapeutics-reports-financial-results-and-operational-progress-for-the-second-quarter-and-six-months-ended-june-30-2026",
+   "values": {
+    "catalyst": "ivonescimab-egfrm-pdufa"
+   }
+  },
+  {
+   "id": "691c267ff26e",
+   "date": "2026-11-07",
+   "ts": "2026-11-07T01:09:54Z",
+   "ticker": "SVRA",
+   "type": "cross",
+   "title": "SVRA : le cours passe en dessous de la valeur rNPV",
+   "detail": "Cours 4,38 $ vs valeur rNPV 4,43 $.",
+   "values": {
+    "price": 4.38,
+    "value": 4.432711003459045
+   }
+  },
+  {
+   "id": "d3b1c32f7c44",
+   "date": "2026-11-07",
+   "ts": "2026-11-07T01:09:44Z",
+   "ticker": "VEEV",
+   "type": "valuation",
+   "title": "VEEV : valeur DCF 152,62 $ → 155,00 $ (+1,6 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 310,10 $, potentiel -50,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.3789
+    }
+   ],
+   "values": {
+    "from": 152.61792910820915,
+    "to": 154.99682443572425,
+    "change": 0.015587259907244657,
+    "price": 310.1
+   }
+  },
+  {
+   "id": "fab52290ca06",
+   "date": "2026-11-07",
+   "ts": "2026-11-07T01:09:24Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,45 $ → 17,68 $ (+7,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 260,21 $, potentiel -93,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.2297
+    }
+   ],
+   "values": {
+    "from": 16.450455216881647,
+    "to": 17.680127458256514,
+    "change": 0.07475004339776346,
+    "price": 260.21
+   }
+  },
+  {
+   "id": "0e78f354559a",
+   "date": "2026-11-07",
+   "ts": "2026-11-07T01:09:12Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 123,61 $ → 125,49 $ (+1,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 281,74 $, potentiel -55,5 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.879
+    }
+   ],
+   "values": {
+    "from": 123.60992673949436,
+    "to": 125.48891566222734,
+    "change": 0.015200954909494616,
+    "price": 281.74
+   }
+  },
+  {
+   "id": "c52e8b826388",
+   "date": "2026-11-07",
+   "ts": "2026-11-07T01:09:07Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 56,82 $ → 58,47 $ (+2,9 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 127,72 $, potentiel -54,2 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 1.6425
+    }
+   ],
+   "values": {
+    "from": 56.82410756685961,
+    "to": 58.466581474569615,
+    "change": 0.028904526230833637,
+    "price": 127.72
+   }
+  },
+  {
    "id": "41a5cebbd6a8",
    "date": "2026-11-06",
    "ts": "2026-11-06T21:00:00Z",
@@ -1920,5 +2061,5 @@
    }
   }
  ],
- "updated": "2026-11-06"
+ "updated": "2026-11-07"
 }
