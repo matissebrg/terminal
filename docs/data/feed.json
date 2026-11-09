@@ -1,6 +1,298 @@
 {
  "events": [
   {
+   "id": "8517aac296df",
+   "date": "2026-11-09",
+   "ticker": "PRAX",
+   "type": "filing",
+   "ts": "2026-11-10T02:31:59Z",
+   "title": "PRAX a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1689548/000168954826000089/prax-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001689548-26-000089"
+   }
+  },
+  {
+   "id": "3ac99d406212",
+   "date": "2026-11-09",
+   "ticker": "SVRA",
+   "type": "filing",
+   "ts": "2026-11-10T02:02:35Z",
+   "title": "SVRA a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1160308/000119312526453535/svra-20260930.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001193125-26-453535"
+   }
+  },
+  {
+   "id": "a458aa811496",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:59:41Z",
+   "ticker": "PRAX",
+   "type": "valuation",
+   "title": "PRAX : valeur rNPV 199,00 $ → 198,41 $ (-0,3 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 332,97 $, potentiel -40,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.5894
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 199.00305359297448,
+    "to": 198.41362425498195,
+    "change": -0.0029619110227228004,
+    "price": 332.97
+   }
+  },
+  {
+   "id": "b7d210deca59",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:59:35Z",
+   "ticker": "COGT",
+   "type": "cross",
+   "title": "COGT : le cours passe au-dessus de la valeur rNPV",
+   "detail": "Cours 33,54 $ vs valeur rNPV 32,82 $.",
+   "values": {
+    "price": 33.54,
+    "value": 32.820027769308595
+   }
+  },
+  {
+   "id": "a50f4658ea50",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:59:31Z",
+   "ticker": "SVRA",
+   "type": "valuation",
+   "title": "SVRA : valeur rNPV 4,43 $ → 3,93 $ (-11,3 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 5,05 $, potentiel -22,1 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.4991
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 4.432711003459045,
+    "to": 3.9335972345719328,
+    "change": -0.11259785907487113,
+    "price": 5.05
+   }
+  },
+  {
+   "id": "0f65c0eb637b",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:59:31Z",
+   "ticker": "SVRA",
+   "type": "cross",
+   "title": "SVRA : le cours passe au-dessus de la valeur rNPV",
+   "detail": "Cours 5,05 $ vs valeur rNPV 3,93 $.",
+   "values": {
+    "price": 5.05,
+    "value": 3.9335972345719328
+   }
+  },
+  {
+   "id": "f3fd3415c7d7",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:59:00Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 17,68 $ → 16,92 $ (-4,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,93 $, potentiel -93,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.7559
+    }
+   ],
+   "values": {
+    "from": 17.680127458256514,
+    "to": 16.92425062278346,
+    "change": -0.04275290646279041,
+    "price": 266.93
+   }
+  },
+  {
+   "id": "9051f3b32d75",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:58:43Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 58,47 $ → 57,81 $ (-1,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 125,66 $, potentiel -54,0 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.6572
+    }
+   ],
+   "values": {
+    "from": 58.466581474569615,
+    "to": 57.80938432760054,
+    "change": -0.011240560511562095,
+    "price": 125.66
+   }
+  },
+  {
+   "id": "bb563694bf09",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T22:58:34Z",
+   "ticker": "NVDA",
+   "type": "valuation",
+   "title": "NVDA : valeur DCF 141,09 $ → 143,48 $ (+1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 178,67 $, potentiel -19,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 2.3877
+    }
+   ],
+   "values": {
+    "from": 141.08974487932412,
+    "to": 143.4774635336443,
+    "change": 0.016923403301653445,
+    "price": 178.67
+   }
+  },
+  {
+   "id": "8b4040ce3085",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT +9,2 % sur la séance",
+   "detail": "Clôture à 17,84 $.",
+   "values": {
+    "change": 0.09246785058175155,
+    "close": 17.84
+   }
+  },
+  {
+   "id": "89727ec6f52c",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +9,4 % sur la séance",
+   "detail": "Clôture à 9,85 $.",
+   "values": {
+    "change": 0.09444444444444433,
+    "close": 9.85
+   }
+  },
+  {
+   "id": "366c712bcd13",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T21:00:00Z",
+   "ticker": "COGT",
+   "type": "price",
+   "title": "COGT +6,0 % sur la séance",
+   "detail": "Clôture à 33,54 $.",
+   "values": {
+    "change": 0.05988307789540204,
+    "close": 33.54
+   }
+  },
+  {
+   "id": "5937d4d2815b",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T21:00:00Z",
+   "ticker": "PRAX",
+   "type": "price",
+   "title": "PRAX +19,9 % sur la séance",
+   "detail": "Clôture à 332,97 $.",
+   "values": {
+    "change": 0.19937324400259349,
+    "close": 332.97
+   }
+  },
+  {
+   "id": "4840b6671a1e",
+   "date": "2026-11-09",
+   "ts": "2026-11-09T21:00:00Z",
+   "ticker": "AGIO",
+   "type": "price",
+   "title": "AGIO +6,7 % sur la séance",
+   "detail": "Clôture à 31,38 $.",
+   "values": {
+    "change": 0.06698401904114237,
+    "close": 31.38
+   }
+  },
+  {
+   "id": "37b2caf73f2c",
+   "date": "2026-11-09",
+   "ticker": "PRAX",
+   "type": "filing",
+   "ts": "2026-11-09T17:02:20Z",
+   "title": "PRAX a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-09.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1689548/000168954826000086/prax-20261109.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001689548-26-000086"
+   }
+  },
+  {
+   "id": "be00954eba0d",
+   "date": "2026-11-09",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de Honey-B repoussée (2026-08-21 → 2026-11-20)",
+   "detail": "- · A Trial That Evaluates Disease Characteristics in Hemophilia B Adult Male Participants Receiving Prophylaxis With Standard of Care Factor IX Protein (FIX) Replacement Therapy.",
+   "url": "https://clinicaltrials.gov/study/NCT05568459",
+   "values": {
+    "nct": "NCT05568459",
+    "kind": "date"
+   }
+  },
+  {
    "id": "3d97108077e0",
    "date": "2026-11-07",
    "ticker": "SMMT",
@@ -2061,5 +2353,5 @@
    }
   }
  ],
- "updated": "2026-11-07"
+ "updated": "2026-11-09"
 }
