@@ -1,6 +1,130 @@
 {
  "events": [
   {
+   "id": "63aef8639534",
+   "date": "2026-11-10",
+   "ts": "2026-11-10T21:00:00Z",
+   "ticker": "NVDA",
+   "type": "price",
+   "title": "NVDA -5,9 % sur la séance",
+   "detail": "Clôture à 168,18 $.",
+   "values": {
+    "change": -0.05871159120165659,
+    "close": 168.18
+   }
+  },
+  {
+   "id": "ef7fd8678913",
+   "date": "2026-11-10",
+   "ts": "2026-11-10T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR -8,1 % sur la séance",
+   "detail": "Clôture à 9,05 $.",
+   "values": {
+    "change": -0.08121827411167504,
+    "close": 9.05
+   }
+  },
+  {
+   "id": "d4bd3fba876d",
+   "date": "2026-11-10",
+   "ts": "2026-11-10T20:27:57Z",
+   "ticker": "COGT",
+   "type": "cross",
+   "title": "COGT : le cours passe en dessous de la valeur rNPV",
+   "detail": "Cours 32,09 $ vs valeur rNPV 32,83 $.",
+   "values": {
+    "price": 32.09,
+    "value": 32.82923393063255
+   }
+  },
+  {
+   "id": "b05917039a4c",
+   "date": "2026-11-10",
+   "ts": "2026-11-10T20:27:22Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,92 $ → 16,54 $ (-2,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 271,83 $, potentiel -93,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -0.3836
+    }
+   ],
+   "values": {
+    "from": 16.92425062278346,
+    "to": 16.540680192100464,
+    "change": -0.022663953591341535,
+    "price": 271.83
+   }
+  },
+  {
+   "id": "4be1093816ec",
+   "date": "2026-11-10",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT06848088 en cours, recrutement terminé",
+   "detail": "Phase 2 · A Study to Learn About the Long-Term Health of Adult Participants From a Previous Study of a New Melanoma Treatment (avant : inclusion sur invitation).",
+   "url": "https://clinicaltrials.gov/study/NCT06848088",
+   "values": {
+    "nct": "NCT06848088",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "8c7b4b9b194f",
+   "date": "2026-11-10",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de NCT06848088 repoussée (2029-10-10 → 2030-10-09)",
+   "detail": "Phase 2 · A Study to Learn About the Long-Term Health of Adult Participants From a Previous Study of a New Melanoma Treatment.",
+   "url": "https://clinicaltrials.gov/study/NCT06848088",
+   "values": {
+    "nct": "NCT06848088",
+    "kind": "date"
+   }
+  },
+  {
+   "id": "74a44b47ef83",
+   "date": "2026-11-10",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de NCT05608291 repoussée (2026-07-27 → 2027-01-15)",
+   "detail": "Phase 3 · A Trial to See if the Combination of Fianlimab With Cemiplimab Works Better Than Pembrolizumab for Preventing or Delaying Melanoma From Coming Back After it Has Been Removed With Surgery.",
+   "url": "https://clinicaltrials.gov/study/NCT05608291",
+   "values": {
+    "nct": "NCT05608291",
+    "kind": "date"
+   }
+  },
+  {
+   "id": "41e890a128fd",
+   "date": "2026-11-10",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT07830329 recrutement en cours",
+   "detail": "Phase 2 · Efficacy and Safety of Olatorepatide Versus Placebo in Adults With Moderate to Severe Hidradenitis Suppurativa Living With Overweight or Obesity (avant : pas encore de recrutement).",
+   "url": "https://clinicaltrials.gov/study/NCT07830329",
+   "values": {
+    "nct": "NCT07830329",
+    "kind": "status"
+   }
+  },
+  {
    "id": "8517aac296df",
    "date": "2026-11-09",
    "ticker": "PRAX",
