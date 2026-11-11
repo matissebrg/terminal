@@ -170,7 +170,9 @@
     await M.ready;
     if (!gate(view)) return;
     if (!T.member.is_admin) { view.innerHTML = '<div class="empty">Réservé aux administrateurs.</div>'; return; }
-    const [rows, reports] = await Promise.all([must(M.sb.rpc("admin_members")), must(M.sb.rpc("admin_reports"))]);
+    const [rows, reports, asks] = await Promise.all([must(M.sb.rpc("admin_members")), must(M.sb.rpc("admin_reports")),
+      must(M.sb.rpc("admin_invite_requests")).catch(() => null)]);   // null until migration 0008 is applied
+    const open = (asks || []).filter((r) => !r.handled_at).length;
     await B().load();
     view.innerHTML = `<div class="thead"><div class="id"><h1>Membres</h1><div class="sub">${rows.length} membre(s) · vue administrateur (les e-mails ne sont visibles que d'ici)</div></div>
         <a class="btn" href="#/compte">Invitations et badges</a></div>
@@ -178,10 +180,28 @@
         ${rows.map((r) => `<tr><td data-user="${T.esc(r.username)}"><b>${T.esc(r.username)}</b>${r.is_admin ? ' <span class="badge">admin</span>' : ""}</td><td class="muted">${T.esc(r.email || "")}</td>
           <td>${F.date(r.created_at.slice(0, 10))}</td><td>${r.last_sign_in_at ? F.dateTime(r.last_sign_in_at) : "-"}</td><td class="num muted">${T.esc(r.invited_with || "")}</td>
           <td class="n">${r.badges}</td><td class="n">${r.predictions}</td><td class="n">${r.portfolios}</td></tr>`).join("")}</tbody></table></div></div>
+      ${asks ? `<div class="panel" style="margin-top:14px"><h3>Demandes d'invitation <span class="hint">${open} en attente · déposées depuis la page de présentation</span></h3>
+        ${asks.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Reçue le</th><th>E-mail</th><th>Message</th><th>Langue</th><th>Code d'invitation</th><th></th></tr></thead><tbody>
+          ${asks.map((r) => `<tr><td>${F.dateTime(r.created_at)}</td><td>${T.esc(r.email)}</td><td class="wrap muted">${T.esc(r.note || "")}</td><td class="muted">${T.esc(r.lang || "")}</td>
+            <td class="num">${r.invite_code ? T.esc(r.invite_code) : '<span class="muted">-</span>'}</td>
+            <td style="text-align:right">${r.invite_code ? "" : `<button class="btn btn-xs primary" data-ask-ok="${r.id}">Créer un code</button> `}<button class="btn btn-xs danger" data-ask-del="${r.id}">Supprimer</button></td></tr>`).join("")}</tbody></table></div>
+          <p class="note">« Créer un code » génère un code à usage unique, valable 30 jours. Il n'est pas envoyé automatiquement : écris-le toi-même au demandeur. « Supprimer » efface l'adresse de la base.</p>`
+          : '<div class="empty">Aucune demande pour l\'instant.</div>'}<div class="note" id="askMsg"></div></div>` : ""}
       <div class="panel" style="margin-top:14px"><h3>Messages signalés <span class="hint">seuls les messages signalés sont visibles ici</span></h3>
         ${reports.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Date</th><th>Signalé par</th><th>Auteur</th><th>Message</th><th>Motif</th></tr></thead><tbody>
           ${reports.map((r) => `<tr><td>${F.dateTime(r.created_at)}</td><td>${T.esc(r.reporter || "?")}</td><td>${T.esc(r.reported || "?")}</td><td class="wrap">${T.esc(r.body_copy)}</td><td class="wrap muted">${T.esc(r.reason || "")}</td></tr>`).join("")}</tbody></table></div>`
           : '<div class="empty">Aucun signalement.</div>'}</div>`;
     if (B()) B().decorate(view);
+    const askMsg = (m, bad) => { const el = T.$("#askMsg"); if (el) { el.className = bad ? "note warn" : "note up"; el.textContent = m; } };
+    T.$$("[data-ask-ok]").forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try { const code = await must(M.sb.rpc("accept_invite_request", { p_id: +b.dataset.askOk })); await T.render(); askMsg(`Code créé : ${code}. À envoyer toi-même au demandeur.`); }
+      catch (e) { b.disabled = false; askMsg(err(e), true); }
+    }));
+    T.$$("[data-ask-del]").forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true;
+      try { await must(M.sb.rpc("delete_invite_request", { p_id: +b.dataset.askDel })); await T.render(); askMsg("Demande supprimée."); }
+      catch (e) { b.disabled = false; askMsg(err(e), true); }
+    }));
   });
 })();

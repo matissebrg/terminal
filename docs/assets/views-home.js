@@ -63,6 +63,8 @@
 
   // ------------------------------------------------------------------ home
   T.route(/^\/$/, async (view) => {
+    // a first-time visitor without an account sees the front door once (views-landing.js)
+    if (T.landing && await T.landing.shouldShow()) { location.replace(location.pathname + location.search + "#/bienvenue"); return; }
     const [u, feed, status, bio] = await Promise.all([T.get("universe.json"), T.get("feed.json"), T.get("status.json").catch(() => null),
       T.get("biotech.json").catch(() => null)]);
     const today = new Date().toISOString().slice(0, 10);

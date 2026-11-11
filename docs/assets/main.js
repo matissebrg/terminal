@@ -48,6 +48,7 @@
       ...u.tickers.map((t) => ({ label: `${t.ticker} options stratégies`, html: `<b>${t.ticker}</b> · Options (espace dédié)`, kind: "page", href: `#/options/${t.ticker}/strategies`, icon: "⌁" })),
       { label: "Prédictions registre score entraînement forecasting", kind: "page", href: "#/predictions", icon: "◎" },
       { label: "Méthodologie sources documentation", kind: "page", href: "#/methodo", icon: "?" },
+      { label: "Présentation accueil à propos about welcome", html: "Présentation du terminal", kind: "page", href: "#/bienvenue", icon: "›" },
       ...(T.members && T.members.configured ? [
         { label: "Communauté classement membres", kind: "page", href: "#/communaute", icon: "◎" },
         { label: "Portefeuilles fictifs ordres", kind: "page", href: "#/portefeuilles", icon: "▤" },
