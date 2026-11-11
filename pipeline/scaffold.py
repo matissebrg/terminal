@@ -186,6 +186,10 @@ dcf:
   tax_rate: {d['tax']}
   d_and_a_pct_revenue: auto
   capex_pct_revenue: auto
+  # Cycle d'investissement en cours ? Décommente pour faire converger le capex vers le régime de croisière
+  # (auto = amortissements + NOPAT × croissance terminale / ROIC terminal) au lieu de le garder dix ans.
+  # capex_pct_revenue_target: auto
+  # capex_years_to_target: 5
   nwc_pct_incremental_revenue: {d['nwc']}
   terminal_growth: {TERMINAL_G}
   # Réinvestissement terminal = croissance terminale / ROIC : le capex actuel n'est pas supposé durer

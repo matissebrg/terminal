@@ -28,7 +28,8 @@
       const ebit = rev * m;
       const nopat = ebit * (1 - r.tax_rate);
       const da = rev * r.d_and_a_pct_revenue;
-      const capex = rev * r.capex_pct_revenue;
+      const cx0 = r.capex_pct_revenue, cx1 = r.capex_pct_revenue_target, cy = Math.max(1, r.capex_years_to_target || 5);
+      const capex = rev * (cx1 == null ? cx0 : cx0 + (cx1 - cx0) * Math.min(t, cy) / cy);
       const dnwc = (rev - revPrev) * r.nwc_pct_incremental_revenue;
       const fcff = nopat + da - capex - dnwc;
       const expo = r.mid_year ? t - 0.5 : t;

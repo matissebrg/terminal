@@ -394,6 +394,9 @@
       ["nw", "BFR / CA additionnel", 0, 0.5, 0.01, "pct", (s) => s.nwc_pct_incremental_revenue, (s, v) => { s.nwc_pct_incremental_revenue = v; }],
       ["da", "D&A / CA", 0, 0.2, 0.0025, "pct", (s) => s.d_and_a_pct_revenue, (s, v) => { s.d_and_a_pct_revenue = v; }],
       ["cx", "Capex / CA", 0, 0.3, 0.0025, "pct", (s) => s.capex_pct_revenue, (s, v) => { s.capex_pct_revenue = v; }],
+      ...(base.capex_pct_revenue_target != null ? [
+        ["cxt", "Capex / CA cible", 0, 0.3, 0.0025, "pct", (s) => s.capex_pct_revenue_target, (s, v) => { s.capex_pct_revenue_target = v; }],
+        ["cxy", "Années pour l'atteindre (capex)", 1, 10, 1, "int", (s) => s.capex_years_to_target, (s, v) => { s.capex_years_to_target = v; }]] : []),
       ["rf", "Taux sans risque", 0, 0.08, 0.0005, "pct", () => W.risk_free, (s, v) => { W.risk_free = v; }],
       ["bt", "Bêta", 0.3, 3, 0.01, "num", () => W.beta, (s, v) => { W.beta = v; }],
       ["erp", "Prime de risque actions", 0.02, 0.08, 0.0025, "pct", () => W.equity_risk_premium, (s, v) => { W.equity_risk_premium = v; }],
@@ -455,9 +458,10 @@
     buildCtl(); run();
     T.$("#reset").addEventListener("click", () => { sim = JSON.parse(JSON.stringify(I)); Object.assign(W, I.wacc_detail); buildCtl(); run(); });
     T.$("#yaml").addEventListener("click", async () => {
+      const S0 = D.sources || {};
       const r3 = (x) => +(+x).toFixed(4);
       const same = (a, b) => Math.abs(a - b) < 1e-9;  // untouched slider -> keep "auto" (recomputed each run)
-      const y = `dcf:\n  years: ${sim.years}\n  base_revenue: ttm\n  revenue_growth: [${sim.revenue_growth.map(r3).join(", ")}]\n  ebit_margin_start: auto\n  ebit_margin_target: ${r3(sim.ebit_margin_target)}\n  margin_years_to_target: ${sim.margin_years_to_target}\n  tax_rate: ${r3(sim.tax_rate)}\n  d_and_a_pct_revenue: ${same(sim.d_and_a_pct_revenue, I.d_and_a_pct_revenue) ? "auto" : r3(sim.d_and_a_pct_revenue)}\n  capex_pct_revenue: ${same(sim.capex_pct_revenue, I.capex_pct_revenue) ? "auto" : r3(sim.capex_pct_revenue)}\n  nwc_pct_incremental_revenue: ${r3(sim.nwc_pct_incremental_revenue)}\n  terminal_growth: ${r3(sim.terminal_growth)}\n  terminal_roic: ${sim.terminal_roic || "null"}\n  mid_year: ${sim.mid_year}\n  include_equity_investments: ${(I.investments || 0) > 0}\n\nwacc:\n  method: capm\n  risk_free: ${same(W.risk_free, I.wacc_detail.risk_free) ? "auto" : r3(W.risk_free)}\n  beta: ${same(W.beta, I.wacc_detail.beta) ? "auto" : r3(W.beta)}\n  equity_risk_premium: ${r3(W.equity_risk_premium)}\n  pre_tax_cost_of_debt: ${r3(W.pre_tax_cost_of_debt)}\n  debt_weight: auto\n`;
+      const y = `dcf:\n  years: ${sim.years}\n  base_revenue: ttm\n  revenue_growth: [${sim.revenue_growth.map(r3).join(", ")}]\n  ebit_margin_start: auto\n  ebit_margin_target: ${r3(sim.ebit_margin_target)}\n  margin_years_to_target: ${sim.margin_years_to_target}\n  tax_rate: ${r3(sim.tax_rate)}\n  d_and_a_pct_revenue: ${same(sim.d_and_a_pct_revenue, I.d_and_a_pct_revenue) ? "auto" : r3(sim.d_and_a_pct_revenue)}\n  capex_pct_revenue: ${same(sim.capex_pct_revenue, I.capex_pct_revenue) ? "auto" : r3(sim.capex_pct_revenue)}${sim.capex_pct_revenue_target != null ? `\n  capex_pct_revenue_target: ${same(sim.capex_pct_revenue_target, I.capex_pct_revenue_target) && S0.capex_pct_revenue_target !== "hypothèse" ? "auto" : r3(sim.capex_pct_revenue_target)}\n  capex_years_to_target: ${sim.capex_years_to_target}` : ""}\n  nwc_pct_incremental_revenue: ${r3(sim.nwc_pct_incremental_revenue)}\n  terminal_growth: ${r3(sim.terminal_growth)}\n  terminal_roic: ${sim.terminal_roic || "null"}\n  mid_year: ${sim.mid_year}\n  include_equity_investments: ${(I.investments || 0) > 0}\n\nwacc:\n  method: capm\n  risk_free: ${same(W.risk_free, I.wacc_detail.risk_free) ? "auto" : r3(W.risk_free)}\n  beta: ${same(W.beta, I.wacc_detail.beta) ? "auto" : r3(W.beta)}\n  equity_risk_premium: ${r3(W.equity_risk_premium)}\n  pre_tax_cost_of_debt: ${r3(W.pre_tax_cost_of_debt)}\n  debt_weight: auto\n`;
       try { await navigator.clipboard.writeText(y); T.$("#yaml").textContent = "Copié ✓"; }
       catch (e) { window.prompt("Copie ce YAML :", y); }
       setTimeout(() => { T.$("#yaml").textContent = "Copier en YAML"; }, 1800);
@@ -509,7 +513,7 @@
     const rowsSrc = [
       ["CA de départ", F.usd(I.base_revenue), S.base_revenue], ["Marge EBIT de départ", F.pct(I.ebit_margin_start, 1), S.ebit_margin_start],
       ["Marge EBIT cible", F.pct(I.ebit_margin_target, 1), "hypothèse"], ["D&A / CA", F.pct(I.d_and_a_pct_revenue, 2), S.d_and_a_pct_revenue],
-      ["Capex / CA", F.pct(I.capex_pct_revenue, 2), S.capex_pct_revenue], ["BFR / CA additionnel", F.pct(I.nwc_pct_incremental_revenue, 1), "hypothèse"],
+      ["Capex / CA", F.pct(I.capex_pct_revenue, 2), S.capex_pct_revenue], ...(I.capex_pct_revenue_target != null ? [["Capex / CA cible (en " + I.capex_years_to_target + " ans)", F.pct(I.capex_pct_revenue_target, 2), S.capex_pct_revenue_target]] : []), ["BFR / CA additionnel", F.pct(I.nwc_pct_incremental_revenue, 1), "hypothèse"],
       ["Taux d'impôt", F.pct(I.tax_rate, 1), "hypothèse"], ["Croissance terminale", F.pct(I.terminal_growth, 2), "hypothèse"],
       ["Taux sans risque", F.pct(I.wacc_detail.risk_free, 2), S.risk_free], ["Bêta", F.n(I.wacc_detail.beta, 2), S.beta],
       ["Prime de risque actions", F.pct(I.wacc_detail.equity_risk_premium, 2), "hypothèse"],

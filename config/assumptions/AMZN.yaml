@@ -17,7 +17,7 @@
 # ============================================================================
 
 ticker: AMZN
-updated: 2026-10-29
+updated: 2026-11-11
 thesis: >
   À écrire : pourquoi cette valeur, ce que le marché price, ce qui ferait changer d'avis.
 
@@ -32,6 +32,12 @@ dcf:
   tax_rate: 0.226
   d_and_a_pct_revenue: auto
   capex_pct_revenue: auto
+  # Le capex actuel (27 % du CA, centres de données IA) n'est pas supposé durer dix ans : il converge
+  # en 5 ans vers le régime de croisière cohérent avec la valeur terminale
+  # (auto = amortissements + NOPAT × croissance terminale / ROIC terminal, soit environ 11,7 % du CA).
+  # Limite : les amortissements restent à leur niveau actuel, ce qui est prudent après un tel cycle.
+  capex_pct_revenue_target: auto
+  capex_years_to_target: 5
   nwc_pct_incremental_revenue: -0.15
   terminal_growth: 0.03
   # Réinvestissement terminal = croissance terminale / ROIC : le capex actuel n'est pas supposé durer

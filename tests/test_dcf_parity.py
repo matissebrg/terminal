@@ -19,6 +19,8 @@ CASES = [
     base_r(terminal_roic=0.25, nwc_pct_incremental_revenue=0.1, mid_year=True),
     base_r(investments=12.5, mid_year=True),
     base_r(minority=7.5, mid_year=True),
+    base_r(capex_pct_revenue=0.27, capex_pct_revenue_target=0.117, capex_years_to_target=5, terminal_roic=0.16, mid_year=True),
+    base_r(capex_pct_revenue=0.02, capex_pct_revenue_target=0.06, capex_years_to_target=20),
 ]
 
 

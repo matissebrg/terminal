@@ -164,6 +164,7 @@
       <div class="panel"><h3>DCF (FCFF, deux phases)</h3>
         <div class="kv">
           <div>Flux disponible</div><div>EBIT × (1 - t) + D&A - capex - ΔBFR</div>
+          <div>Capex</div><div>part constante du CA, ou convergence vers un régime de croisière (amortissements + NOPAT × g / ROIC) quand l'entreprise est en plein cycle d'investissement</div>
           <div>Croissance</div><div>années explicites puis fondu linéaire vers g</div>
           <div>Marge</div><div>convergence linéaire vers la marge cible</div>
           <div>Valeur terminale</div><div>Gordon : FCFF(N+1) / (WACC - g)</div>

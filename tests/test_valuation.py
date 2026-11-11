@@ -157,3 +157,35 @@ def test_minority_interest_reduces_equity_value():
     b = V.dcf({**r, "minority": 1.0e9})
     assert b["enterprise_value"] == pytest.approx(a["enterprise_value"])
     assert a["equity_value"] - b["equity_value"] == pytest.approx(1.0e9)
+
+
+def test_capex_converges_to_target():
+    """Capex in an investment cycle fades to a steady-state share of revenue instead of staying at the peak."""
+    flat = V.dcf(base_r(capex_pct_revenue=0.25))
+    fade = V.dcf(base_r(capex_pct_revenue=0.25, capex_pct_revenue_target=0.05, capex_years_to_target=4))
+    rows = fade["rows"]
+    assert rows[0]["capex"] / rows[0]["revenue"] == pytest.approx(0.20)       # one quarter of the way after year 1
+    assert rows[3]["capex"] / rows[3]["revenue"] == pytest.approx(0.05)
+    assert rows[-1]["capex"] / rows[-1]["revenue"] == pytest.approx(0.05)
+    assert fade["value_per_share"] > flat["value_per_share"]
+    # no target = the old behaviour, to the cent
+    assert V.dcf(base_r(capex_pct_revenue=0.25, capex_pct_revenue_target=None))["value_per_share"] == flat["value_per_share"]
+
+
+def test_capex_target_auto_is_the_steady_state():
+    fin = {"ttm": {"revenue": 100.0, "operating_income": 20.0, "d_and_a": 8.0, "capex": 25.0, "cash": 10.0,
+                   "short_term_investments": 0.0, "total_debt": 5.0, "_label": "TTM"},
+           "periods": {"annual": [], "quarterly": []}, "lines": {}}
+    dcf = {"years": 10, "base_revenue": "ttm", "revenue_growth": [0.1] * 5, "ebit_margin_start": "auto",
+           "ebit_margin_target": 0.2, "margin_years_to_target": 1, "tax_rate": 0.25, "d_and_a_pct_revenue": "auto",
+           "capex_pct_revenue": "auto", "capex_pct_revenue_target": "auto", "nwc_pct_incremental_revenue": 0,
+           "terminal_growth": 0.03, "terminal_roic": 0.15, "mid_year": False}
+    wacc = {"method": "fixed", "fixed": 0.08, "risk_free": 0.04, "beta": 1.0, "equity_risk_premium": 0.05, "debt_weight": 0.0}
+    mkt = {"price": 20.0, "shares": 10.0, "mcap": 200.0, "rf": [0.04, "t", None], "beta": None}
+    r = V.resolve({"dcf": dcf, "wacc": wacc}, fin, mkt)
+    src = r["_sources"]
+    # depreciation replaced (8 %) + NOPAT (20 % × 0.75) × g / ROIC (0.03 / 0.15) = 8 % + 3 % = 11 %
+    assert r["capex_pct_revenue_target"] == pytest.approx(0.11)
+    assert r["capex_years_to_target"] == 5 and "croisière" in src["capex_pct_revenue_target"]
+    with pytest.raises(ValueError, match="terminal_roic"):
+        V.resolve({"dcf": dict(dcf, terminal_roic=None), "wacc": wacc}, fin, mkt)

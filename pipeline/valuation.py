@@ -7,6 +7,8 @@ tests/test_dcf_parity.py checks that both give identical results.
 Conventions (documented because they move the result):
   * FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR. Stock-based compensation is
     NOT added back: it is treated as a real cost (it is, it dilutes shareholders).
+  * Capex is a constant share of revenue, or converges linearly to `capex_pct_revenue_target`
+    over `capex_years_to_target` years when that key is set ("auto" = D&A + NOPAT × g / terminal ROIC).
   * Revenue growth: explicit years from the assumption file, then a linear fade
     to the terminal growth rate in year N.
   * Mid-year convention (optional): cash flows arrive in the middle of each year,
@@ -84,6 +86,22 @@ def resolve(assump: dict, fin: dict, market: dict) -> dict:
         "terminal_roic": float(d["terminal_roic"]) if d.get("terminal_roic") not in (None, "null") else None,
         "mid_year": bool(d.get("mid_year", True)),
     }
+    # Optional: capex converges from today's ratio to a steady-state level (a company in an investment
+    # cycle - data centers, new plants - does not keep spending at the peak for ten years).
+    cxt = d.get("capex_pct_revenue_target")
+    if cxt in (None, "null"):
+        r["capex_pct_revenue_target"] = None
+    elif cxt == "auto":
+        if not r["terminal_roic"]:
+            raise ValueError("capex_pct_revenue_target: auto demande terminal_roic (le régime de croisière en dépend)")
+        # steady state consistent with the terminal value: replace what depreciates + reinvest g / ROIC of NOPAT
+        r["capex_pct_revenue_target"] = (r["d_and_a_pct_revenue"]
+                                         + r["ebit_margin_target"] * (1 - r["tax_rate"]) * r["terminal_growth"] / r["terminal_roic"])
+        src["capex_pct_revenue_target"] = "régime de croisière : amortissements + NOPAT × g / ROIC terminal"
+    else:
+        r["capex_pct_revenue_target"] = float(cxt)
+        src["capex_pct_revenue_target"] = "hypothèse"
+    r["capex_years_to_target"] = int(d.get("capex_years_to_target", 5))
 
     # ---- WACC
     rf_val, rf_src, rf_asof = market["rf"]
@@ -167,7 +185,9 @@ def dcf(r: dict) -> dict:
         ebit = rev * m
         nopat = ebit * (1 - r["tax_rate"])
         da = rev * r["d_and_a_pct_revenue"]
-        capex = rev * r["capex_pct_revenue"]
+        cx0, cx1 = r["capex_pct_revenue"], r.get("capex_pct_revenue_target")
+        cy = max(1, r.get("capex_years_to_target") or 5)
+        capex = rev * (cx0 if cx1 is None else cx0 + (cx1 - cx0) * min(t, cy) / cy)
         dnwc = (rev - rev_prev) * r["nwc_pct_incremental_revenue"]
         fcff = nopat + da - capex - dnwc
         expo = t - 0.5 if r["mid_year"] else t
