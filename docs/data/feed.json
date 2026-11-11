@@ -3,7 +3,7 @@
   {
    "id": "c519812dc324",
    "date": "2026-11-11",
-   "ts": "2026-11-11T22:31:16Z",
+   "ts": "2026-11-11T22:37:47Z",
    "ticker": "CAPR",
    "type": "valuation",
    "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
@@ -32,7 +32,7 @@
   {
    "id": "aa5f7e14f573",
    "date": "2026-11-11",
-   "ts": "2026-11-11T22:30:51Z",
+   "ts": "2026-11-11T22:37:16Z",
    "ticker": "AMZN",
    "type": "valuation",
    "title": "AMZN : valeur DCF 16,54 $ → 96,34 $ (+482,4 %)",
