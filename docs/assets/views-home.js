@@ -3,7 +3,18 @@
   "use strict";
   const T = window.T, F = T.fmt;
 
-  const ICON = { valuation: "◆", filing: "▤", price: "⚡", cross: "⇅", coverage: "✦", prediction: "◎", results: "★", trial: "⚗", catalyst: "⏱" };
+  // feed icons: inline SVG (emoji rendered differently on every system)
+  const ICON = {
+    valuation: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 21 12 12 21 3 12z"/><path d="M12 8v8M8 12h8"/></svg>',
+    filing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>',
+    price: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 5 13.5h6L10 22l9-12h-6z"/></svg>',
+    cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20V5M3.5 8.5 7 5l3.5 3.5M17 4v15M13.5 15.5 17 19l3.5-3.5"/></svg>',
+    coverage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18M6 6l12 12M18 6 6 18"/></svg>',
+    prediction: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+    results: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
+    trial: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6.5L4.5 19a1.5 1.5 0 0 0 1.3 2.2h12.4a1.5 1.5 0 0 0 1.3-2.2L14 9.5V3"/><path d="M7.5 14h9"/></svg>',
+    catalyst: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
+  };
   const TYPE_LABEL = { valuation: "Valorisation", filing: "Publication", price: "Mouvement de cours", cross: "Seuil franchi", coverage: "Couverture", prediction: "Prédiction", results: "Résultats", trial: "Essai clinique", catalyst: "Catalyseur" };
 
   T.banner = (meta, status) => {
@@ -34,7 +45,7 @@
         const left = b.delta >= 0 ? 50 : 50 - w;
         return `<span class="sec">${T.esc(b.label)}</span>
           <span class="bar"><span style="left:${left}%;width:${w}%;background:${b.delta >= 0 ? T.C.up : T.C.down}"></span>
-          <span style="left:50%;width:1px;background:#3a4050"></span></span>
+          <span style="left:50%;width:1px;background:var(--border-2)"></span></span>
           <span class="num ${T.cls(b.delta)}" style="text-align:right">${b.delta >= 0 ? "+" : ""}${F.n(b.delta, 2)} $</span>`;
       }).join("")}</div>`;
     }

@@ -1,0 +1,4 @@
+Archivo (c) The Archivo Project Authors, https://github.com/Omnibus-Type/Archivo
+Martian Mono (c) The Martian Mono Project Authors, https://github.com/evilmartians/mono
+Both under the SIL Open Font License 1.1: https://openfontlicense.org
+Files from the Fontsource packages @fontsource-variable/archivo and @fontsource-variable/martian-mono.

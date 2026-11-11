@@ -81,18 +81,19 @@
   };
   const baseEc = () => ({
     backgroundColor: "transparent",
-    textStyle: { fontFamily: "Inter, system-ui, sans-serif", color: T.C.text2 },
+    textStyle: { fontFamily: "Archivo, system-ui, sans-serif", color: T.C.text2 },
     animationDuration: 350,
     grid: { left: 8, right: 14, top: 26, bottom: 8, containLabel: true },
     tooltip: {
-      backgroundColor: "#1e222d", borderColor: "#2f3544", textStyle: { color: T.C.text, fontSize: 12 },
-      extraCssText: "box-shadow:0 8px 30px rgba(0,0,0,.45);border-radius:8px;",
+      backgroundColor: "rgba(14,18,27,.96)", borderColor: "#3a445c", textStyle: { color: T.C.text, fontSize: 12 },
+      extraCssText: "box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px rgba(140,175,255,.10);border-radius:2px;backdrop-filter:blur(6px);",
+      axisPointer: { lineStyle: { color: "#6b7890", type: "dashed" }, crossStyle: { color: "#6b7890" } },
     },
     legend: { textStyle: { color: T.C.text2 }, icon: "roundRect", itemWidth: 10, itemHeight: 3, top: 0, right: 0 },
   });
   T.axis = (extra = {}) => Object.assign({
     axisLine: { lineStyle: { color: T.C.border } }, axisTick: { show: false },
-    axisLabel: { color: T.C.muted, fontSize: 11, fontFamily: "JetBrains Mono, monospace" },
+    axisLabel: { color: T.C.muted, fontSize: 10, fontFamily: "Martian Mono, monospace" },
     splitLine: { lineStyle: { color: T.C.grid } },
   }, extra);
   T.ec = (el, option) => {
@@ -108,12 +109,12 @@
     const chart = LightweightCharts.createChart(el, Object.assign({
       autoSize: true,
       layout: { background: { type: "solid", color: "transparent" }, textColor: T.C.muted,
-                fontFamily: "JetBrains Mono, monospace", fontSize: 11 },
+                fontFamily: "Martian Mono, monospace", fontSize: 10 },
       grid: { vertLines: { color: T.C.grid }, horzLines: { color: T.C.grid } },
       rightPriceScale: { borderColor: T.C.border },
       timeScale: { borderColor: T.C.border, timeVisible: false },
-      crosshair: { mode: 0, vertLine: { color: "#4a5163", labelBackgroundColor: "#2a2e39" },
-                   horzLine: { color: "#4a5163", labelBackgroundColor: "#2a2e39" } },
+      crosshair: { mode: 0, vertLine: { color: "#8fa3c9", width: 1, style: 3, labelBackgroundColor: "#dbe6ff" },
+                   horzLine: { color: "#8fa3c9", width: 1, style: 3, labelBackgroundColor: "#dbe6ff" } },
       localization: { locale: "fr-FR", priceFormatter: (p) => f(p, 2) },
     }, opts));
     live.push(chart);

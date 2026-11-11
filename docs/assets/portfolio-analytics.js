@@ -168,7 +168,7 @@
         grid: { top: 6, bottom: 18 }, legend: { show: false },
         xAxis: T.axis({ type: "category", data: v.map((x) => x.date), axisLabel: { show: false }, splitLine: { show: false } }),
         yAxis: T.axis({ type: "value", max: 0, splitNumber: 2, axisLabel: { color: C().muted, fontSize: 10, formatter: (x) => F.pct(x, Math.abs(st.maxDD) < 0.05 ? 1 : 0) } }),
-        series: [{ name: "Drawdown", type: "line", showSymbol: false, data: st.ddSeries, lineStyle: { width: 1, color: C().down }, areaStyle: { color: "rgba(242,54,69,.15)" } }],
+        series: [{ name: "Drawdown", type: "line", showSymbol: false, data: st.ddSeries, lineStyle: { width: 1, color: C().down }, areaStyle: { color: "rgba(255,97,112,.15)" } }],
       });
     } else {
       T.$("#pa_perf").innerHTML = '<div class="empty" style="margin-top:40px">La courbe se construit à chaque mise à jour du soir.</div>';

@@ -60,7 +60,7 @@
       s.setData(bars.map((b) => ({ time: b.t, open: b.o, high: b.h, low: b.l, close: b.c })));
       const v = chart.addHistogramSeries({ priceScaleId: "", priceFormat: { type: "volume" }, lastValueVisible: false, priceLineVisible: false });
       v.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
-      v.setData(bars.map((b) => ({ time: b.t, value: b.v, color: b.c >= b.o ? "rgba(38,166,154,.35)" : "rgba(239,83,80,.35)" })));
+      v.setData(bars.map((b) => ({ time: b.t, value: b.v, color: b.c >= b.o ? "rgba(52,211,154,.32)" : "rgba(255,97,112,.32)" })));
     } else if (mode === "cmp" && benchmarks) {
       const s = chart.addLineSeries({ color: T.colorOf(tk), lineWidth: 2, title: tk });
       s.setData(bars.map((b) => ({ time: b.t, value: b.ac })));
@@ -70,8 +70,9 @@
         l.setData(arr.map(([t, v]) => ({ time: t, value: v })));
       });
     } else {
-      const s = chart.addAreaSeries({ lineColor: "#3d7bff", lineWidth: 2,
-        topColor: "rgba(41,98,255,.28)", bottomColor: "rgba(41,98,255,0)" });
+      const s = chart.addAreaSeries({ lineColor: "#dbe6ff", lineWidth: 2, priceLineColor: "#8fa3c9",
+        crosshairMarkerBackgroundColor: "#ffffff", crosshairMarkerBorderColor: "#04060a", crosshairMarkerRadius: 4,
+        topColor: "rgba(150,180,255,.26)", bottomColor: "rgba(150,180,255,0)" });
       s.setData(bars.map((b) => ({ time: b.t, value: b.c })));
     }
     setRange(chart, bars, range);
@@ -111,12 +112,12 @@
         return `<b>${T.esc(r.label)}</b><br>${F.px(r.low)} - ${F.px(r.high)}${T.isNum(r.mid) ? `<br>Point central ${F.px(r.mid)}` : ""}`;
       } },
       xAxis: T.axis({ type: "value", min: xmin, max: xmax, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
-      yAxis: T.axis({ type: "category", data: labels, inverse: true, axisLabel: { color: C().text2, fontFamily: "Inter", width: 180, overflow: "break" }, splitLine: { show: false } }),
+      yAxis: T.axis({ type: "category", data: labels, inverse: true, axisLabel: { color: C().text2, fontFamily: "Archivo", width: 180, overflow: "break" }, splitLine: { show: false } }),
       series: [
         { type: "bar", stack: "r", data: rows.map((r) => r.low), itemStyle: { color: "transparent" }, silent: true, barWidth: 14 },
         { type: "bar", stack: "r", data: rows.map((r, i) => ({ value: r.high - r.low,
             itemStyle: { color: i === rows.length - 1 ? C().neutral : C().series[0], borderRadius: 4 } })), barWidth: 14,
-          markLine: price ? { symbol: "none", silent: true, label: { position: "start", formatter: "cours " + F.n(price, 0), color: C().text, fontFamily: "JetBrains Mono", fontSize: 11 },
+          markLine: price ? { symbol: "none", silent: true, label: { position: "start", formatter: "cours " + F.n(price, 0), color: C().text, fontFamily: "Martian Mono", fontSize: 11 },
             lineStyle: { color: C().text, type: "solid", width: 1.5 }, data: [{ xAxis: price }] } : undefined },
         { type: "scatter", symbolSize: 9, data: rows.map((r, i) => (T.isNum(r.mid) ? [r.mid, i] : null)).filter(Boolean),
           itemStyle: { color: "#fff", borderColor: C().panel, borderWidth: 2 }, tooltip: { show: false } },
@@ -174,7 +175,7 @@
               <span class="chg ${T.cls(up)}" style="font:600 14px var(--mono);padding:3px 8px;border-radius:6px">${F.pct(up, 1, true)}</span></div>
             <div class="muted">Valeur par action pondérée par les probabilités des scénarios</div>
             <div class="meter" style="margin-top:28px">
-              <div class="fill" style="left:${pos(lowS)}%;right:${100 - pos(highS)}%;background:linear-gradient(90deg,rgba(57,135,229,.25),rgba(57,135,229,.55))"></div>
+              <div class="fill" style="left:${pos(lowS)}%;right:${100 - pos(highS)}%;background:linear-gradient(90deg,rgba(150,180,255,.16),rgba(190,212,255,.6));box-shadow:0 0 12px rgba(140,175,255,.25)"></div>
               ${order.map((k) => `<div class="mk" style="left:${pos(sc[k].value_per_share)}%;background:${C().series[0]}"><span>${k}</span></div>`).join("")}
               <div class="mk" style="left:${pos(price)}%;background:${C().text};height:22px;top:-7px"><span style="top:-17px;color:var(--text)">cours</span></div>
             </div>
@@ -276,7 +277,7 @@
         yAxis: T.axis({ type: "value", axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
         series: [{ type: "bar", data: ps.map((p) => { const v = val(k, p.label); return T.isNum(v) ? +(v / d).toFixed(4) : null; }),
           barMaxWidth: 34, itemStyle: { color: (p) => (p.value < 0 ? C().down : C().series[0]), borderRadius: [4, 4, 0, 0] },
-          label: { show: true, position: "top", color: C().text2, fontSize: 10.5, fontFamily: "JetBrains Mono",
+          label: { show: true, position: "top", color: C().text2, fontSize: 10.5, fontFamily: "Martian Mono",
             formatter: (p) => (p.dataIndex === ps.length - 1 ? F.n(p.value, isPs ? 2 : d >= 1e9 ? 1 : 0) : "") } }],
       });
     }
@@ -579,7 +580,7 @@
       yAxis: T.axis({ type: "category", data: om.map((x) => x.ticker), splitLine: { show: false } }),
       series: [{ type: "bar", data: om.map((x) => ({ value: +(x.operating_margin_ttm * 100).toFixed(1),
         itemStyle: { color: x.ticker === tk ? C().series[0] : C().neutral, borderRadius: x.operating_margin_ttm >= 0 ? [0, 4, 4, 0] : [4, 0, 0, 4] } })),
-        barMaxWidth: 16, label: { show: true, position: "right", color: C().text2, fontSize: 10.5, fontFamily: "JetBrains Mono", formatter: (p) => F.n(p.value, 0) + " %" } }],
+        barMaxWidth: 16, label: { show: true, position: "right", color: C().text2, fontSize: 10.5, fontFamily: "Martian Mono", formatter: (p) => F.n(p.value, 0) + " %" } }],
     });
     // revenue indexed, by calendar quarter end
     const series3 = all.map((x) => {

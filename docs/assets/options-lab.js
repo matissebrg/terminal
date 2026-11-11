@@ -213,7 +213,7 @@
         yAxis: T.axis({ type: "value", axisLabel: { color: C().muted, formatter: (v) => F.n(v / 1000, 1) + " k" } }),
         series: [
           { name: "À l'échéance", type: "line", showSymbol: false, data: xs.map((x, i) => [x, exp[i]]), lineStyle: { width: 2, color: C().series[0] }, itemStyle: { color: C().series[0] },
-            areaStyle: { origin: 0, color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(38,166,154,.25)" }, { offset: 1, color: "rgba(239,83,80,.25)" }] } },
+            areaStyle: { origin: 0, color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(52,211,154,.24)" }, { offset: 1, color: "rgba(255,97,112,.24)" }] } },
             markLine: { symbol: "none", silent: true, data: [{ xAxis: S0, label: { formatter: "cours", color: C().text2 }, lineStyle: { color: C().text, type: "dashed" } }, { yAxis: 0, label: { show: false }, lineStyle: { color: C().muted } }] } },
           { name: "Aujourd'hui", type: "line", showSymbol: false, data: xs.map((x, i) => [x, now[i]]), lineStyle: { width: 1.5, type: "dashed", color: C().series[1] }, itemStyle: { color: C().series[1] } },
         ],

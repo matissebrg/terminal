@@ -211,3 +211,19 @@ alertes par e-mail.
 Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, Stooq. Graphiques :
 [TradingView Lightweight Charts™](https://www.tradingview.com/) (Apache 2.0) et Apache ECharts (Apache 2.0).
 Outil personnel d'étude - pas un conseil en investissement.
+
+## Interface (refonte de novembre 2026)
+
+- **Principe** : l'interface est monochrome (blanc chrome sur fond noir) ; la couleur est réservée aux données (vert / rouge
+  pour le sens du marché, ambre pour les alertes, six teintes validées pour les séries). Les panneaux sont des cadres
+  d'instrument : filet fin et crochets d'angle qui s'ouvrent sous le pointeur ou le focus clavier.
+- **Typographies** auto-hébergées dans `docs/assets/fonts/` (licence SIL OFL) : Archivo (texte, et sa largeur étendue pour
+  les titres) et Martian Mono (chiffres). Plus aucun appel à Google Fonts.
+- **Effets** (`docs/assets/fx.js`, tout est facultatif, le site fonctionne sans) : fond animé en WebGL2 (lignes de niveau
+  qui se déforment sous le pointeur), changements de page par l'API View Transitions, repère glissant sous l'onglet actif,
+  séquence d'ouverture une fois par session, horloge de New York.
+- **Accessibilité** : les effets se coupent avec le réglage système « réduire les animations » ou le bouton de la barre du
+  haut (mémorisé) ; contrastes du texte au-dessus de 4,5:1 ; focus clavier visible partout ; sur écran tactile le fond est
+  une image fixe.
+- Les couleurs des graphiques viennent des variables CSS (`T.C` dans `core.js`) : changer une teinte se fait dans `:root`
+  de `app.css`.

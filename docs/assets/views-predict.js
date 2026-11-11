@@ -297,7 +297,7 @@
         xAxis: T.axis({ type: "category", data: labels, splitLine: { show: false }, axisLabel: { color: C().muted, fontSize: 10, rotate: 30 } }),
         yAxis: T.axis({ type: "value", scale: true, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
         series: [
-          { name: "Réel", type: "bar", data: h.map((x) => x.v).concat(null), barMaxWidth: 22, itemStyle: { color: "#2b3446", borderRadius: [3, 3, 0, 0] } },
+          { name: "Réel", type: "bar", data: h.map((x) => x.v).concat(null), barMaxWidth: 22, itemStyle: { color: "#2f3850", borderRadius: [1, 1, 0, 0] } },
           pt(mk(m.naive), C().neutral, "Naïf", "circle"),
           pt(mk(m.guidance), C().series[2], "Guidance", "diamond"),
           pt(m.consensus ? mk(m.consensus.avg) : null, C().series[1], "Consensus", "triangle"),
@@ -330,12 +330,12 @@
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, formatter: (ps) => { const r = rows[ps[0].dataIndex];
           return `<b>${r.label}</b>${T.isNum(r.mid) ? `<br>${F.n(r.mid, 2)} Md$` : ""}${T.isNum(r.lo) && T.isNum(r.hi) ? `<br>${F.n(r.lo, 2)} à ${F.n(r.hi, 2)} Md$` : ""}`; } },
         xAxis: T.axis({ type: "value", min: Math.floor((lo - pad) * 2) / 2, max: Math.ceil((hi + pad) * 2) / 2, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
-        yAxis: T.axis({ type: "category", data: rows.map((r) => r.label), inverse: true, splitLine: { show: false }, axisLabel: { color: C().text2, fontFamily: "Inter" } }),
+        yAxis: T.axis({ type: "category", data: rows.map((r) => r.label), inverse: true, splitLine: { show: false }, axisLabel: { color: C().text2, fontFamily: "Archivo" } }),
         series: [
           { type: "bar", stack: "r", silent: true, barWidth: 10, itemStyle: { color: "transparent" }, data: rows.map((r) => (T.isNum(r.lo) && T.isNum(r.hi) ? r.lo : 0)) },
           { type: "bar", stack: "r", barWidth: 10, data: rows.map((r) => ({ value: T.isNum(r.lo) && T.isNum(r.hi) ? r.hi - r.lo : 0, itemStyle: { color: r.color, opacity: 0.35, borderRadius: 5 } })) },
           { type: "scatter", symbolSize: 11, z: 5, data: rows.map((r, i) => (T.isNum(r.mid) ? { value: [r.mid, i], itemStyle: { color: r.color, borderColor: C().panel, borderWidth: 2 } } : null)).filter(Boolean),
-            label: { show: true, position: "top", distance: 6, color: C().text2, fontSize: 10.5, fontFamily: "JetBrains Mono", formatter: (p) => F.n(p.value[0], 1) } },
+            label: { show: true, position: "top", distance: 6, color: C().text2, fontSize: 10.5, fontFamily: "Martian Mono", formatter: (p) => F.n(p.value[0], 1) } },
         ],
       };
       if (strip) strip.setOption(opt, { replaceMerge: ["series"] }); else strip = T.ec(T.$("#pstrip"), opt);

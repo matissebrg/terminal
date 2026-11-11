@@ -55,6 +55,11 @@
         { label: "Messages messagerie conversations", kind: "page", href: "#/messages", icon: "✉" }] : []),
     ];
     window.addEventListener("hashchange", T.render);
+    // charts draw their labels on a canvas: wait (briefly) for the two typefaces so the first render uses them
+    if (document.fonts && document.fonts.load) {
+      await Promise.race([Promise.all([document.fonts.load('500 12px "Archivo"'), document.fonts.load('500 12px "Martian Mono"')]).catch(() => {}),
+        new Promise((r) => setTimeout(r, 700))]);
+    }
     T.render();
   }
   document.addEventListener("DOMContentLoaded", boot);
