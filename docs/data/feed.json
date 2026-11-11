@@ -1,6 +1,105 @@
 {
  "events": [
   {
+   "id": "7c84873252a6",
+   "date": "2026-11-10",
+   "ticker": "CAPR",
+   "type": "filing",
+   "ts": "2026-11-11T03:25:43Z",
+   "title": "CAPR a publié son rapport trimestriel (10-Q)",
+   "detail": "Période close le 2026-09-30.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1133869/000110465926125355/capr-20260930x10q.htm",
+   "values": {
+    "form": "10-Q",
+    "accession": "0001104659-26-125355"
+   }
+  },
+  {
+   "id": "84951f6cc49d",
+   "date": "2026-11-10",
+   "ticker": "CAPR",
+   "type": "filing",
+   "ts": "2026-11-11T02:05:08Z",
+   "title": "CAPR a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-10.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1133869/000110465926125150/capr-20261110x8k.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001104659-26-125150"
+   }
+  },
+  {
+   "id": "332ad1085765",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T01:29:19Z",
+   "ticker": "COGT",
+   "type": "cross",
+   "title": "COGT : le cours passe au-dessus de la valeur rNPV",
+   "detail": "Cours 33,54 $ vs valeur rNPV 32,84 $.",
+   "values": {
+    "price": 33.54,
+    "value": 32.83844249588389
+   }
+  },
+  {
+   "id": "c519812dc324",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T01:29:13Z",
+   "ticker": "CAPR",
+   "type": "valuation",
+   "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 9,85 $, potentiel -64,8 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.692
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 4.1598737375796455,
+    "to": 3.4678453663910633,
+    "change": -0.16635802306615863,
+    "price": 9.85
+   }
+  },
+  {
+   "id": "aa5f7e14f573",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T01:28:45Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,54 $ → 16,73 $ (+1,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,93 $, potentiel -93,7 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.188
+    }
+   ],
+   "values": {
+    "from": 16.540680192100464,
+    "to": 16.728649197376434,
+    "change": 0.011364043261397514,
+    "price": 266.93
+   }
+  },
+  {
    "id": "63aef8639534",
    "date": "2026-11-10",
    "ts": "2026-11-10T21:00:00Z",
@@ -2477,5 +2576,5 @@
    }
   }
  ],
- "updated": "2026-11-10"
+ "updated": "2026-11-11"
 }
