@@ -1,6 +1,64 @@
 {
  "events": [
   {
+   "id": "c519812dc324",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:33:39Z",
+   "ticker": "CAPR",
+   "type": "valuation",
+   "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 11,22 $, potentiel -69,1 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.692
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 4.1598737375796455,
+    "to": 3.4678453663910633,
+    "change": -0.16635802306615863,
+    "price": 11.22
+   }
+  },
+  {
+   "id": "aa5f7e14f573",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:33:14Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,54 $ → 17,09 $ (+3,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,17 $, potentiel -93,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.5532
+    }
+   ],
+   "values": {
+    "from": 16.540680192100464,
+    "to": 17.093839177796724,
+    "change": 0.033442336063086414,
+    "price": 266.17
+   }
+  },
+  {
    "id": "abf1d6c5bf5a",
    "date": "2026-11-11",
    "ts": "2026-11-11T21:00:00Z",
@@ -50,64 +108,6 @@
    "values": {
     "change": 0.05025773195876293,
     "close": 16.3
-   }
-  },
-  {
-   "id": "c519812dc324",
-   "date": "2026-11-11",
-   "ts": "2026-11-11T20:10:47Z",
-   "ticker": "CAPR",
-   "type": "valuation",
-   "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 10,61 $, potentiel -67,3 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -0.692
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 4.1598737375796455,
-    "to": 3.4678453663910633,
-    "change": -0.16635802306615863,
-    "price": 10.605
-   }
-  },
-  {
-   "id": "aa5f7e14f573",
-   "date": "2026-11-11",
-   "ts": "2026-11-11T20:10:18Z",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 16,54 $ → 17,09 $ (+3,3 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,42 $, potentiel -93,6 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.5492
-    }
-   ],
-   "values": {
-    "from": 16.540680192100464,
-    "to": 17.089830462755742,
-    "change": 0.03319998115419359,
-    "price": 266.42
    }
   },
   {
