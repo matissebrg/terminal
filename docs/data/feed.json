@@ -1,6 +1,116 @@
 {
  "events": [
   {
+   "id": "abf1d6c5bf5a",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -6,0 % sur la séance",
+   "detail": "Clôture à 16,75 $.",
+   "values": {
+    "change": -0.06029164329781267,
+    "close": 16.755
+   }
+  },
+  {
+   "id": "d9adbc9d3330",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR +19,6 % sur la séance",
+   "detail": "Clôture à 10,61 $.",
+   "values": {
+    "change": 0.19560315670800477,
+    "close": 10.605
+   }
+  },
+  {
+   "id": "02236b3c7cc5",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:00:00Z",
+   "ticker": "COGT",
+   "type": "price",
+   "title": "COGT -5,9 % sur la séance",
+   "detail": "Clôture à 29,77 $.",
+   "values": {
+    "change": -0.05910240202275607,
+    "close": 29.77
+   }
+  },
+  {
+   "id": "95882fc3588e",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T21:00:00Z",
+   "ticker": "MLYS",
+   "type": "price",
+   "title": "MLYS +5,0 % sur la séance",
+   "detail": "Clôture à 16,30 $.",
+   "values": {
+    "change": 0.05025773195876293,
+    "close": 16.3
+   }
+  },
+  {
+   "id": "c519812dc324",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T20:10:47Z",
+   "ticker": "CAPR",
+   "type": "valuation",
+   "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
+   "detail": "Moteur principal : Nouvelles données financières. Cours 10,61 $, potentiel -67,3 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": -0.692
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.0
+    }
+   ],
+   "values": {
+    "from": 4.1598737375796455,
+    "to": 3.4678453663910633,
+    "change": -0.16635802306615863,
+    "price": 10.605
+   }
+  },
+  {
+   "id": "aa5f7e14f573",
+   "date": "2026-11-11",
+   "ts": "2026-11-11T20:10:18Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 16,54 $ → 17,09 $ (+3,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,42 $, potentiel -93,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": 0.5492
+    }
+   ],
+   "values": {
+    "from": 16.540680192100464,
+    "to": 17.089830462755742,
+    "change": 0.03319998115419359,
+    "price": 266.42
+   }
+  },
+  {
    "id": "7c84873252a6",
    "date": "2026-11-10",
    "ticker": "CAPR",
@@ -39,64 +149,6 @@
    "values": {
     "price": 33.54,
     "value": 32.83844249588389
-   }
-  },
-  {
-   "id": "c519812dc324",
-   "date": "2026-11-11",
-   "ts": "2026-11-11T01:29:13Z",
-   "ticker": "CAPR",
-   "type": "valuation",
-   "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
-   "detail": "Moteur principal : Nouvelles données financières. Cours 9,85 $, potentiel -64,8 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": -0.692
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.0
-    }
-   ],
-   "values": {
-    "from": 4.1598737375796455,
-    "to": 3.4678453663910633,
-    "change": -0.16635802306615863,
-    "price": 9.85
-   }
-  },
-  {
-   "id": "aa5f7e14f573",
-   "date": "2026-11-11",
-   "ts": "2026-11-11T01:28:45Z",
-   "ticker": "AMZN",
-   "type": "valuation",
-   "title": "AMZN : valeur DCF 16,54 $ → 16,73 $ (+1,1 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,93 $, potentiel -93,7 %.",
-   "bridge": [
-    {
-     "label": "Nouvelles données financières",
-     "delta": 0.0
-    },
-    {
-     "label": "Hypothèses modifiées",
-     "delta": 0.0
-    },
-    {
-     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": 0.188
-    }
-   ],
-   "values": {
-    "from": 16.540680192100464,
-    "to": 16.728649197376434,
-    "change": 0.011364043261397514,
-    "price": 266.93
    }
   },
   {
