@@ -23,6 +23,20 @@
   const BENCH = { naive: "Naïf", guidance: "Guidance", analysts: "Analystes", crowd: "Communauté" };
 
   // ------------------------------------------------------------------ client & session
+  // A password-reset e-mail brings the visitor back with a session in the address fragment
+  // (#access_token=...&refresh_token=...&type=recovery, or #error=...&error_description=...).
+  // The router owns the fragment, so the tokens are read here, removed from the address at once
+  // (they must not stay in the history), then handed to Supabase in M.ready.
+  let recovery = null;
+  (function () {
+    const h = location.hash.replace(/^#/, "");
+    if (h.startsWith("/") || !/(^|&)(access_token|error_description|error)=/.test(h)) return;
+    const p = new URLSearchParams(h);
+    recovery = { type: p.get("type"), access: p.get("access_token"), refresh: p.get("refresh_token"),
+                 error: p.get("error_description") || p.get("error") };
+    const to = recovery.error || recovery.type === "recovery" ? "#/compte/mot-de-passe" : "#/compte";
+    try { history.replaceState(null, "", location.pathname + location.search + to); } catch (e) { location.hash = to; }
+  })();
   if (M.configured) {
     M.sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
@@ -46,6 +60,11 @@
   }
   M.ready = (async () => {
     if (!M.sb) { drawAccountButton(); return; }
+    if (recovery && recovery.access && recovery.refresh) {
+      const r = await M.sb.auth.setSession({ access_token: recovery.access, refresh_token: recovery.refresh });
+      if (r.error) recovery.error = err(r.error);
+    }
+    M.recovery = recovery;
     await loadProfile();
     M.sb.auth.onAuthStateChange((ev) => {
       if (ev === "SIGNED_IN" || ev === "SIGNED_OUT" || ev === "USER_UPDATED") loadProfile().then(() => T.render());
@@ -87,6 +106,54 @@
     return accountPage(view);
   });
 
+  // ------------------------------------------------------------------ #/compte/mot-de-passe
+  // Two states: not signed in -> ask for the reset e-mail; signed in (normally through the e-mailed link) -> choose a new password.
+  T.route(/^\/compte\/mot-de-passe$/, async (view) => {
+    await M.ready;
+    if (!M.configured) { view.innerHTML = notConfigured; return; }
+    const linkError = M.recovery && M.recovery.error;
+    if (M.pwDone && Date.now() - M.pwDone < 60000) {   // also survives the re-render Supabase triggers after the change
+      view.innerHTML = `<div class="auth-wrap"><div class="panel auth"><h3>Mot de passe enregistré</h3>
+        <p class="sec" style="margin:0">Ton nouveau mot de passe est actif. Tu es connecté.</p><a class="btn primary" href="#/compte">Aller à mon compte</a></div></div>`;
+      return;
+    }
+    if (T.user && !linkError) {
+      view.innerHTML = `<div class="auth-wrap"><div class="panel auth"><h3>Nouveau mot de passe</h3>
+        <p class="sec" style="margin:0">Compte : ${T.esc(T.user.email)}</p>
+        <form id="npform" class="aform"><label>Nouveau mot de passe<input type="password" name="pw" required minlength="8" autocomplete="new-password"></label>
+          <label>Le même, une seconde fois<input type="password" name="pw2" required minlength="8" autocomplete="new-password"></label>
+          <button class="btn primary" type="submit">Enregistrer le mot de passe</button><div class="note" id="npmsg"></div></form></div></div>`;
+      T.$("#npform").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target), msg = T.$("#npmsg"); msg.className = "note";
+        if (fd.get("pw") !== fd.get("pw2")) { msg.className = "note warn"; msg.textContent = "Les deux mots de passe ne sont pas identiques."; return; }
+        try { await must(M.sb.auth.updateUser({ password: fd.get("pw") })); M.recovery = null; M.pwDone = Date.now(); T.render(); }
+        catch (ex) { msg.className = "note warn"; msg.textContent = err(ex); }
+      });
+      return;
+    }
+    view.innerHTML = `<div class="auth-wrap"><div class="panel auth"><h3>Mot de passe oublié</h3>
+      ${linkError ? `<div class="banner" style="margin:0">Ce lien n'est plus valable (${T.esc(linkError)}). Demande-en un nouveau.</div>` : ""}
+      <p class="sec" style="margin:0">Indique l'adresse de ton compte : tu recevras un lien pour choisir un nouveau mot de passe.</p>
+      <form id="rpform" class="aform"><label>E-mail<input type="email" name="email" required autocomplete="email"></label>
+        <button class="btn primary" type="submit">Envoyer le lien</button><div class="note" id="rpmsg"></div></form>
+      <a href="#/compte" class="muted" style="font-size:12px">Retour à la connexion</a></div></div>`;
+    T.$("#rpform").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = T.$("#rpmsg"); msg.className = "note"; msg.textContent = "…";
+      try {
+        // the link returns to the site root: the fragment is reserved for the session Supabase adds to it
+        await must(M.sb.auth.resetPasswordForEmail(new FormData(e.target).get("email").trim(), { redirectTo: location.origin + location.pathname }));
+        msg.className = "note up"; msg.textContent = "Si un compte existe pour cette adresse, un e-mail vient de partir. Pense à regarder les indésirables.";
+      } catch (ex) {
+        const m = err(ex);
+        msg.className = "note warn";
+        msg.textContent = /not authorized|smtp|sending/i.test(m) ? "L'envoi d'e-mails n'est pas encore configuré sur ce site. Contacte l'administrateur pour réinitialiser ton mot de passe."
+          : /rate limit/i.test(m) ? "Trop de demandes pour l'instant. Réessaie dans une heure." : m;
+      }
+    });
+  });
+
   function authForms(view) {
     view.innerHTML = `<div class="auth-wrap"><div class="panel auth">
       <img src="assets/brand/archer-lockup.png" alt="Archer" class="auth-logo">
@@ -101,6 +168,7 @@
         <button class="btn primary" type="submit" id="asubmit">Se connecter</button>
         <div class="note" id="amsg"></div>
       </form>
+      <a href="#/compte/mot-de-passe" class="muted" style="font-size:12px;align-self:center">Mot de passe oublié ?</a>
       <p class="note">Bêta fermée : l'inscription demande un code d'invitation donné par un membre administrateur. Portefeuilles fictifs uniquement, aucun argent réel. Pas un conseil en investissement.</p>
     </div></div>`;
     let mode = "in";
