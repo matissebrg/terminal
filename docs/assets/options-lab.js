@@ -55,6 +55,7 @@
     const sk = OL.skew(o);
     const wrap = document.createElement("div");
     wrap.innerHTML = `
+      <div class="panel" style="margin-top:14px" data-sec="greeks"><h3>Surface de volatilité <span class="hint">strike × échéance × volatilité implicite</span></h3><div id="ovs"></div></div>
       <div class="grid g2" style="margin-top:14px" data-sec="greeks">
         <div class="panel"><h3>Skew par échéance <span class="hint">risk reversal et butterfly 25 delta</span></h3><div class="chart" id="oskew"></div>
           <p class="note"><b>Risk reversal</b> = IV call 25Δ - IV put 25Δ : négatif quand les puts (protection) sont plus chers, cas habituel des actions. <b>Butterfly</b> = prime payée pour les ailes (queues épaisses).</p></div>
@@ -73,6 +74,7 @@
       el.insertBefore(link, el.firstChild);
     }
     while (wrap.firstElementChild) el.appendChild(wrap.firstElementChild);   // sections stay direct children (the Options page shows them one at a time)
+    if (T.volSurface) { try { T.volSurface.mount(T.$("#ovs"), o); } catch (e) { console.error(e); T.$("#ovs").innerHTML = '<div class="empty">La surface n\'a pas pu être tracée.</div>'; } }
     // skew chart
     const ok = sk.filter((s) => T.isNum(s.rr));
     if (ok.length) T.ec(T.$("#oskew"), {

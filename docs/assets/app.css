@@ -1015,3 +1015,22 @@ body.landing main { padding: 0; }
 }
 html.fx-off .sc-dash, html.fx-off .lp-hero h1 i { animation: none; }
 html.fx-off .lp-spec .lp-live, html.fx-off .lp-also dl > div, html.fx-off .lp-not li { animation: none; }
+
+/* ---------------------------------------------------------------- volatility surface (vol-surface.js) */
+.vs-stage { position: relative; height: 470px; overflow: hidden; cursor: grab; touch-action: pan-y; outline-offset: -2px;
+  background: radial-gradient(ellipse at 50% 62%, rgba(110, 150, 255, .10), transparent 62%); }
+.vs-stage.grab { cursor: grabbing; }
+.vs-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vs-labels span { position: absolute; left: 0; top: 0; translate: -50% -50%; white-space: nowrap; font: 10px var(--mono); color: var(--muted); pointer-events: none; will-change: transform; }
+.vs-labels span.l { translate: 0 -50%; } .vs-labels span.r { translate: -100% -50%; }
+.vs-labels span.on { color: var(--text); }
+.vs-dot { position: absolute; left: 0; top: 0; translate: -50% -50%; width: 11px; height: 11px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--panel), 0 0 14px #fff; pointer-events: none; }
+.vs-tip { position: absolute; left: 0; top: 0; z-index: 2; display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; font-size: 11.5px; color: var(--text-2); white-space: nowrap; pointer-events: none;
+  background: rgba(14, 18, 27, .96); border: 1px solid #3a445c; box-shadow: 0 12px 40px rgba(0, 0, 0, .6); }
+.vs-tip b { font-size: 15px; color: var(--text); font-weight: 600; }
+.vs-hint { position: absolute; right: 8px; top: 6px; font-size: 11px; color: var(--muted); pointer-events: none; }
+.vs-legend { display: flex; align-items: center; gap: 8px; font-size: 11.5px; flex-wrap: wrap; margin-top: 6px; }
+.vs-legend i { width: 130px; height: 6px; background: linear-gradient(90deg, rgb(18, 28, 61), rgb(41, 84, 184), rgb(107, 158, 250), rgb(230, 240, 255)); }
+.vs-table { margin-top: 10px; } .vs-table summary { cursor: pointer; } .vs-table .tbl-wrap { margin-top: 8px; }
+.vs [hidden] { display: none; }
+@media (max-width: 600px) { .vs-stage { height: 330px; } .vs-hint { display: none; } }
