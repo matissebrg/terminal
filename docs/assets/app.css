@@ -850,6 +850,10 @@ td .tlogo { margin-right: 4px; }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 /* header, figures strip and tabs of a page are tagged by fx.js: unchanged ones stay put instead of blinking */
 ::view-transition-group(vt-head), ::view-transition-group(vt-kpis), ::view-transition-group(vt-tabs) { animation-duration: .25s; }
+/* the price that flies from the watchlist to the header */
+::view-transition-group(vt-px) { animation-duration: .5s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+::view-transition-old(vt-px), ::view-transition-new(vt-px) { height: 100%; width: auto; object-fit: contain; }
+::view-transition-old(vt-px) { animation-duration: .2s; }
 ::view-transition-old(view) { animation: vt-out .14s ease-in both; }
 ::view-transition-new(view) { animation: vt-in .3s var(--ease) both; }
 @keyframes vt-out { to { opacity: 0; filter: blur(3px); } }

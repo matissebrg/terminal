@@ -166,6 +166,30 @@ void main() {
       const el = document.querySelector(sel); if (el) el.style.viewTransitionName = name; });
   }
 
+  // Shared element: clicking a stock in the watchlist sends its price across the screen into the page header.
+  // The same transition name must sit on one element per snapshot: on the list price before, on the header price after.
+  let flight = null;
+  const headPx = () => document.querySelector("#view > .thead .quote .px");
+  const clearFlight = () => { if (flight) { flight.src.style.viewTransitionName = ""; clearTimeout(flight.t); flight = null; } };
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest ? e.target.closest("a.wl-item[data-tk]") : null;
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    clearFlight();
+    if (!FX.on() || !document.startViewTransition || a.getAttribute("href") === location.hash) return;
+    const px = a.querySelector(".px"), old = headPx();
+    if (!px) return;
+    if (old) old.style.viewTransitionName = "";
+    px.style.viewTransitionName = "vt-px";
+    flight = { src: px, tk: a.dataset.tk, t: setTimeout(clearFlight, 1500) };   // no navigation followed: put things back
+  }, true);
+  function land() {
+    if (!flight) return;
+    const tk = flight.tk; clearFlight();
+    const dst = headPx();
+    if (dst && location.hash.indexOf("#/t/" + tk) === 0) dst.style.viewTransitionName = "vt-px";
+  }
+  const settle = () => { const p = headPx(); if (p) p.style.viewTransitionName = ""; };
+
   // ------------------------------------------------------------------ route changes
   if (T && T.render) {
     const raw = T.render;
@@ -173,10 +197,10 @@ void main() {
     T.render = () => {
       const plain = first || !FX.on() || !document.startViewTransition;
       first = false;
-      if (plain) return raw().then(() => { tag(); afterRender(); }, afterRender);
+      if (plain) { clearFlight(); return raw().then(() => { tag(); afterRender(); }, afterRender); }
       try {
-        const vt = document.startViewTransition(() => raw().then(tag, tag));
-        vt.finished.catch(() => {});
+        const vt = document.startViewTransition(() => raw().then(() => { tag(); land(); }, () => { tag(); clearFlight(); }));
+        vt.finished.then(settle, settle);
         vt.ready.catch(() => {});
         return vt.updateCallbackDone.then(afterRender, afterRender);
       } catch (e) { return raw().then(afterRender, afterRender); }

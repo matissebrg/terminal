@@ -227,3 +227,25 @@ Outil personnel d'étude - pas un conseil en investissement.
   une image fixe.
 - Les couleurs des graphiques viennent des variables CSS (`T.C` dans `core.js`) : changer une teinte se fait dans `:root`
   de `app.css`.
+
+## Ajouts du 11-12 novembre 2026
+
+- **Page de présentation** (`#/bienvenue`, `docs/assets/views-landing.js`) en français et en anglais : tout ce qu'elle montre
+  vient des mêmes fichiers JSON que le terminal. Un visiteur sans compte qui ouvre la racine du site y arrive une fois
+  (clé `archer-seen` dans `localStorage`) ; ensuite la racine est le tableau de bord.
+- **Demandes d'invitation** (`supabase/migrations/0008_invite_requests.sql`) : formulaire sans compte sur la page de
+  présentation, plafonné à 50 demandes par jour ; la table n'est lisible que par les administrateurs, via la page
+  Membres (créer un code à usage unique, supprimer l'adresse). L'envoi du code reste manuel.
+- **Mot de passe oublié** (`#/compte/mot-de-passe`) : le lien de l'e-mail revient avec la session dans le fragment
+  d'adresse ; les jetons sont lus au chargement, retirés de l'adresse, puis transmis à Supabase. Pour que l'e-mail parte
+  vers un membre, il faut un SMTP personnalisé dans Supabase (Authentication → Emails) : le service par défaut n'écrit
+  qu'aux membres de l'équipe du projet. L'adresse du site doit figurer dans Authentication → URL Configuration.
+- **Capex convergent** (`capex_pct_revenue_target`, `capex_years_to_target` dans les hypothèses) : le capex passe en
+  ligne droite du niveau actuel à une cible ; `auto` = amortissements + NOPAT × croissance terminale / ROIC terminal.
+  Sans la clé, rien ne change. Appliqué à AMZN.
+- **Surface de volatilité** (`docs/assets/vol-surface.js`, WebGL sans bibliothèque) dans Options → Grecques et skew :
+  options hors de la monnaie seulement, cotations vides ou à écart de plus de 60 % écartées, échéances à moins de
+  3 jours ignorées, aucune extrapolation au-delà des strikes cotés, variance totale interpolée entre deux échéances.
+  Un tableau des valeurs accompagne le dessin.
+- **Transition partagée** (`fx.js`) : en cliquant une valeur de la liste de gauche, son cours traverse l'écran jusqu'à
+  l'en-tête de la fiche.

@@ -91,8 +91,11 @@
     const step = (D.max - D.min) > 0.4 ? 0.2 : (D.max - D.min) > 0.16 ? 0.1 : 0.05;
     const y0 = Math.floor(D.min / step) * step, y1 = Math.ceil(D.max / step) * step;
     const X = (m) => -1 + (2 * (m - D.lo)) / (D.hi - D.lo), Z = (days) => -1 + (2 * (Math.sqrt(days) - zmin)) / (zmax - zmin || 1), Y = (iv) => ((iv - y0) / (y1 - y0 || 1)) * 1.05;   // nearest expiry at the back: its tall smile hides nothing
-    const mTicks = [0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3].filter((m) => m >= D.lo - 1e-9 && m <= D.hi + 1e-9);
-    const real = D.grid.filter((g) => g.real), eTicks = real.length <= 6 ? real : real.filter((_, i) => i % Math.ceil(real.length / 6) === 0 || i === real.length - 1);
+    const narrow = window.innerWidth < 640;                                      // phone: fewer labels, they would collide
+    const mTicks = (narrow ? [0.8, 1, 1.2] : [0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3]).filter((m) => m >= D.lo - 1e-9 && m <= D.hi + 1e-9);
+    const real = D.grid.filter((g) => g.real);
+    // expiry labels: short expiries crowd together on a square-root time axis, so keep only those far enough apart
+    const eTicks = []; for (let i = real.length - 1; i >= 0; i--) { const g = real[i]; if (!eTicks.length || Z(eTicks[eTicks.length - 1].days) - Z(g.days) >= (narrow ? 0.5 : 0.2)) eTicks.push(g); }
     const yTicks = []; for (let v = y0; v <= y1 + 1e-9; v += step) yTicks.push(+v.toFixed(4));
     const cols = [0.8, 0.9, 0.95, 1, 1.05, 1.1, 1.2].filter((m) => m >= D.lo - 1e-9 && m <= D.hi + 1e-9);
     const ivAt = (g, m) => { const u = ((m - D.lo) / (D.hi - D.lo)) * (NX - 1), i = Math.min(NX - 2, Math.floor(u)); return g.ok[i] && g.ok[i + 1] ? g.iv[i] + (g.iv[i + 1] - g.iv[i]) * (u - i) : null; };
@@ -152,8 +155,8 @@
     // labels follow their 3D anchors
     const lab = [];
     const addLab = (p, text, cls) => { const s = document.createElement("span"); s.textContent = text; s.className = cls || ""; labels.appendChild(s); lab.push([p, s]); };
-    mTicks.forEach((m) => addLab([X(m), 0, 1.14], m === 1 ? `${F.n(D.spot, 0)} $ · au cours` : `${F.n(m * D.spot, 0)} $`, m === 1 ? "on" : ""));
-    eTicks.forEach((g) => addLab([1.1, 0, Z(g.days)], `${new Date(g.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} · ${F.n(g.days, 0)} j`, "l"));
+    mTicks.forEach((m) => addLab([X(m), 0, 1.14], m === 1 && !narrow ? `${F.n(D.spot, 0)} $ · au cours` : `${F.n(m * D.spot, 0)} $`, m === 1 ? "on" : ""));
+    eTicks.forEach((g) => addLab([1.1, 0, Z(g.days)], `${new Date(g.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}${narrow ? "" : ` · ${F.n(g.days, 0)} j`}`, "l"));
     yTicks.forEach((v) => addLab([-1.07, Y(v), -1], pctS(v, 0), "r"));
 
     const cam = { yaw: -0.58, pitch: 0.44, dist: 4.25 }, base = { yaw: cam.yaw };
