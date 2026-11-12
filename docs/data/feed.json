@@ -1,6 +1,101 @@
 {
  "events": [
   {
+   "id": "381ab2c4f546",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T21:00:00Z",
+   "ticker": "NVDA",
+   "type": "price",
+   "title": "NVDA -5,3 % sur la séance",
+   "detail": "Clôture à 164,53 $.",
+   "values": {
+    "change": -0.052955735912047386,
+    "close": 164.53
+   }
+  },
+  {
+   "id": "59d3dd24d333",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -8,8 % sur la séance",
+   "detail": "Clôture à 15,18 $.",
+   "values": {
+    "change": -0.08774038461538469,
+    "close": 15.18
+   }
+  },
+  {
+   "id": "a9bebc0c48dc",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR -9,7 % sur la séance",
+   "detail": "Clôture à 10,13 $.",
+   "values": {
+    "change": -0.09670231729055268,
+    "close": 10.135
+   }
+  },
+  {
+   "id": "0a0a4f460fa1",
+   "date": "2026-11-12",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : nouvel essai Phase 2 enregistré (NCT07933328)",
+   "detail": "Study to Evaluate ALN-CIDEB in Adults With Fibrotic Alcohol-Associated Liver Disease (ALD)",
+   "url": "https://clinicaltrials.gov/study/NCT07933328",
+   "values": {
+    "nct": "NCT07933328",
+    "kind": "new"
+   }
+  },
+  {
+   "id": "a8636a9b05ef",
+   "date": "2026-11-12",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "warn",
+   "title": "REGN : fin principale de OLYMPIA-1 repoussée (2028-02-07 → 2028-02-29)",
+   "detail": "Phase 3 · A Trial to Learn if Odronextamab is Safe and Well-Tolerated and How Well it Works Compared to Rituximab Combined With Different Types of Chemotherapy for Adult Participants With Previously Untreated Follicular Lymphoma.",
+   "url": "https://clinicaltrials.gov/study/NCT06091254",
+   "values": {
+    "nct": "NCT06091254",
+    "kind": "date"
+   }
+  },
+  {
+   "id": "4165937d3328",
+   "date": "2026-11-12",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NASHGEN-2 en cours, recrutement terminé",
+   "detail": "Phase 2 · A Precision Medicine Approach Using Gene Silencing to Treat a Chronic Liver Disease Called Metabolic Dysfunction-Associated Steatohepatitis (MASH) in Adult Participants at Increased Genetic Risk for This Condition (avant : recrutement en cours).",
+   "url": "https://clinicaltrials.gov/study/NCT05519475",
+   "values": {
+    "nct": "NCT05519475",
+    "kind": "status"
+   }
+  },
+  {
+   "id": "575a9abbf4a7",
+   "date": "2026-11-12",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai COURAGE terminé",
+   "detail": "Phase 2 · A Study to Test if Trevogrumab or Trevogrumab With Garetosmab When Taken With Semaglutide is Safe and How Well They Work in Adult Patients With Obesity for Weight Loss, Fat Loss, and Lean Mass Preservation (avant : en cours, recrutement terminé).",
+   "url": "https://clinicaltrials.gov/study/NCT06299098",
+   "values": {
+    "nct": "NCT06299098",
+    "kind": "status"
+   }
+  },
+  {
    "id": "22b3f2cad29c",
    "date": "2026-11-12",
    "ts": "2026-11-12T02:29:06Z",
