@@ -114,6 +114,15 @@ jobs:
             if [[ $ok != 1 ]]; then echo "::error::Impossible d'enregistrer les données dans le repo"; exit 1; fi
           fi
 
+      # Les navigateurs gardent les fichiers du site dix minutes : sans numéro de version, une mise à jour pouvait
+      # servir un moment la nouvelle page avec d'anciens scripts. Le numéro change avec chaque commit de code ;
+      # seule la copie publiée est modifiée (rien n'est enregistré dans le repo).
+      - name: Numéroter les scripts et la feuille de style publiés
+        run: |
+          sed -E -i "s#((src|href)=\"assets/[A-Za-z0-9_./-]+\.(js|css))\"#\1?v=${GITHUB_SHA::8}\"#g" docs/index.html
+          n=$(grep -c "?v=${GITHUB_SHA::8}" docs/index.html || true)
+          if [[ "$n" -lt 10 ]]; then echo "::warning::Numérotation des fichiers du site incomplète ($n références)"; fi
+
       - uses: actions/configure-pages@v6
 
       - uses: actions/upload-pages-artifact@v5
