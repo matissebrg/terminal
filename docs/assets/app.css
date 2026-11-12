@@ -912,7 +912,7 @@ body.landing main { padding: 0; }
   min-height: calc(100vh - var(--top)); padding: 26px 0 56px; }
 .lp-top { grid-column: 1 / -1; align-self: start; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 11px; }
 .lp-head { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; }
-.lp-hero h1 { margin: 0; font: 700 clamp(46px, 8.4vw, 132px)/.9 var(--display); letter-spacing: -.035em; }
+.lp-hero h1 { margin: 0; font: 700 clamp(40px, 7vw, 110px)/.9 var(--display); letter-spacing: -.035em; white-space: nowrap; }
 .lp-hero h1 span { display: block; overflow: hidden; padding-bottom: .08em; }
 .lp-hero h1 i { display: block; font-style: normal; animation: lp-line .9s var(--ease) both; animation-delay: calc(.08s + var(--k) * .11s); }
 /* the last line is drawn in outline: the score has not been given yet */
