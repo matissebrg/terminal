@@ -36,6 +36,15 @@ const R = VS.build(rag, now), mid40 = R.grid.find((g) => g.date === day(40));
 near(R.lo, 0.7); assert(!mid40.ok[0] && !mid40.ok[R.xs.length - 1] && mid40.ok[R.atmI], "outside its quoted strikes an expiry is empty");
 assert(R.grid[0].ok.every(Boolean) && !R.grid[2].ok[0], "the hole narrows gradually between the two expiries");
 assert(R.grid[1].ok.filter(Boolean).length > R.grid[2].ok.filter(Boolean).length && R.grid[2].ok.filter(Boolean).length > mid40.ok.filter(Boolean).length);
+assert.strictEqual(D.quoted, 1);
+// market closed: quotes are gone (bid = ask = 0). Strikes that traded keep their last-trade vol, the others are dropped, and it is flagged
+const shut = JSON.parse(JSON.stringify(o));
+Object.values(shut.chains).forEach((rows) => rows.forEach((r) => { r.c_bid = r.c_ask = r.p_bid = r.p_ask = 0; r.c_mid = r.p_mid = 1; r.c_vol = r.p_vol = r.strike === 70 ? 0 : 10; }));
+const C = VS.build(shut, now);
+assert.strictEqual(C.quoted, 0); near(C.lo, 0.8); assert.strictEqual(C.rows[0].pts.length, 8);
+// a stale last trade far from the rest of the smile is rejected
+shut.chains[day(10)][7].c_iv = 2.9;
+assert.strictEqual(VS.build(shut, now).rows[0].pts.length, 7);
 // too few expiries, or a smile that does not straddle the spot: no surface rather than a made-up one
 assert.strictEqual(VS.build({ spot: 100, chains: { [day(10)]: chain(0.6, 0.5), [day(40)]: chain(0.5, 0.4) } }, now), null);
 assert.strictEqual(VS.build({ spot: 300, chains: o.chains }, now), null);

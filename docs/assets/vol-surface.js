@@ -12,17 +12,26 @@
     const S = o && o.spot;
     if (!S || !o.chains) return null;
     const rows = [];
+    let nLive = 0, nLast = 0;
     Object.keys(o.chains).sort().forEach((date) => {
       const days = (new Date(date + "T21:00:00Z").getTime() - now) / DAY;       // 16:00 New York
       if (days < 3) return;                                                      // the last days before expiry: wings are noise
       const pts = [];
       (o.chains[date] || []).forEach((r) => {
         const k = r.strike, side = k < S ? "p" : "c", iv = r[side + "_iv"], bid = r[side + "_bid"], ask = r[side + "_ask"];
-        if (!(iv >= 0.05 && iv <= 3) || !(bid > 0) || !(ask > bid)) return;
-        if ((ask - bid) / ((ask + bid) / 2) > 0.6) return;                       // quote too wide to mean anything
-        pts.push([k / S, iv]);
+        if (!(iv >= 0.05 && iv <= 3)) return;
+        if (bid > 0 && ask > bid) {
+          if ((ask - bid) / ((ask + bid) / 2) > 0.6) return;                     // quote too wide to mean anything
+          pts.push([k / S, iv, 1]);
+        } else if (!bid && !ask && r[side + "_mid"] > 0 && r[side + "_vol"] > 0) {
+          pts.push([k / S, iv, 0]);                                              // market closed: no quote left, vol from the last trade of a strike that did trade
+        }
       });
       pts.sort((a, b) => a[0] - b[0]);
+      // a last trade can be stale: drop points far from the expiry's median (more than 2.5 times away)
+      const med = pts.map((x) => x[1]).sort((a, b) => a - b)[Math.floor(pts.length / 2)];
+      for (let i = pts.length - 1; i >= 0; i--) if (pts[i][1] > med * 2.5 || pts[i][1] < med / 2.5) pts.splice(i, 1);
+      pts.forEach((x) => { if (x[2]) nLive++; else nLast++; });
       if (pts.length >= 4 && pts[0][0] <= 0.97 && pts[pts.length - 1][0] >= 1.03) rows.push({ date, days, pts, lo: pts[0][0], hi: pts[pts.length - 1][0] });
     });
     if (rows.length < 3) return null;
@@ -60,7 +69,7 @@
     let mn = Infinity, mx = -Infinity;
     grid.forEach((g) => g.iv.forEach((v, i) => { if (!g.ok[i]) return; if (v < mn) mn = v; if (v > mx) mx = v; }));
     const atmI = xs.reduce((b, m, i) => (Math.abs(m - 1) < Math.abs(xs[b] - 1) ? i : b), 0);
-    return { spot: S, xs, grid, rows, lo, hi, min: mn, max: mx, atmI, asof: o.asof };
+    return { spot: S, xs, grid, rows, lo, hi, min: mn, max: mx, atmI, asof: o.asof, quoted: nLive / (nLive + nLast || 1) };
   };
 
   // ------------------------------------------------------------------ tiny matrix kit (column-major, like WebGL)
@@ -108,6 +117,7 @@
       <details class="vs-table"><summary class="sec">Voir les valeurs en tableau</summary><div class="tbl-wrap"><table class="t"><thead><tr><th>Échéance</th><th class="n">Jours</th>
         ${cols.map((m) => `<th class="n">${m === 1 ? "Au cours" : F.n(m * 100, 0) + " %"}<span class="yoy muted">${F.n(m * D.spot, 0)} $</span></th>`).join("")}</tr></thead><tbody>
         ${real.map((g) => `<tr><td>${F.date(g.date)}</td><td class="n">${F.n(g.days, 0)}</td>${cols.map((m) => { const v = ivAt(g, m); return `<td class="n">${v == null ? '<span class="muted">-</span>' : pctS(v)}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>
+      ${D.quoted < 0.5 ? `<p class="note warn">Marché fermé au moment du relevé : il n'y a plus de cotations, la volatilité est calculée sur le dernier échange de chaque strike. C'est moins fiable qu'en séance, surtout loin du cours.</p>` : ""}
       <p class="note">Options hors de la monnaie uniquement (puts sous le cours, calls au-dessus) ; les cotations vides ou à écart trop large sont écartées. Entre deux échéances, la variance totale est interpolée linéairement. Strike en % du cours (${F.px(D.spot)}).</p></div>`;
     const stage = el.querySelector(".vs-stage"), cv = el.querySelector("canvas"), tip = el.querySelector(".vs-tip"), dot = el.querySelector(".vs-dot"), labels = el.querySelector(".vs-labels");
     const gl = cv.getContext("webgl", { antialias: true, alpha: true, premultipliedAlpha: false });
