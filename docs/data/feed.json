@@ -1,6 +1,35 @@
 {
  "events": [
   {
+   "id": "22b3f2cad29c",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T02:29:06Z",
+   "ticker": "NVDA",
+   "type": "valuation",
+   "title": "NVDA : valeur DCF 145,46 $ → 143,78 $ (-1,2 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 168,89 $, potentiel -14,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.6771
+    }
+   ],
+   "values": {
+    "from": 145.45693317553935,
+    "to": 143.7798421462092,
+    "change": -0.01152981155807958,
+    "price": 168.89
+   }
+  },
+  {
    "id": "c519812dc324",
    "date": "2026-11-11",
    "ts": "2026-11-11T22:37:47Z",
@@ -175,6 +204,19 @@
    "values": {
     "change": -0.08121827411167504,
     "close": 9.05
+   }
+  },
+  {
+   "id": "fad2da2f07b1",
+   "date": "2026-11-10",
+   "ts": "2026-11-10T21:00:00Z",
+   "ticker": "COGT",
+   "type": "price",
+   "title": "COGT -5,7 % sur la séance",
+   "detail": "Clôture à 31,64 $.",
+   "values": {
+    "change": -0.0566487775790101,
+    "close": 31.64
    }
   },
   {
@@ -2628,5 +2670,5 @@
    }
   }
  ],
- "updated": "2026-11-11"
+ "updated": "2026-11-12"
 }
