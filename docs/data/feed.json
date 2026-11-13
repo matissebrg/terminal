@@ -1,13 +1,26 @@
 {
  "events": [
   {
+   "id": "d0d2a18deca2",
+   "date": "2026-11-13",
+   "ts": "2026-11-13T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR -7,3 % sur la séance",
+   "detail": "Clôture à 9,49 $.",
+   "values": {
+    "change": -0.0732421875,
+    "close": 9.49
+   }
+  },
+  {
    "id": "983eafaa6000",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:07:00Z",
+   "ts": "2026-11-13T20:28:16Z",
    "ticker": "VEEV",
    "type": "valuation",
-   "title": "VEEV : valeur DCF 156,69 $ → 154,82 $ (-1,2 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 304,77 $, potentiel -49,2 %.",
+   "title": "VEEV : valeur DCF 156,69 $ → 154,57 $ (-1,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 302,18 $, potentiel -48,8 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -19,24 +32,24 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -1.8672
+     "delta": -2.1145
     }
    ],
    "values": {
     "from": 156.6893247559459,
-    "to": 154.82211990708421,
-    "change": -0.011916605370340231,
-    "price": 304.77
+    "to": 154.57480523444514,
+    "change": -0.01349498138941037,
+    "price": 302.18
    }
   },
   {
    "id": "a2183e6d7338",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:06:56Z",
+   "ts": "2026-11-13T20:28:13Z",
    "ticker": "REGN",
    "type": "valuation",
-   "title": "REGN : valeur DCF 631,23 $ → 623,11 $ (-1,3 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 959,41 $, potentiel -35,1 %.",
+   "title": "REGN : valeur DCF 631,23 $ → 623,10 $ (-1,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 959,98 $, potentiel -35,1 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -48,24 +61,53 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -8.1258
+     "delta": -8.1331
     }
    ],
    "values": {
     "from": 631.2344467842566,
-    "to": 623.1086002107336,
-    "change": -0.012872945408665753,
-    "price": 959.41
+    "to": 623.1013698303661,
+    "change": -0.012884399758795535,
+    "price": 959.98
+   }
+  },
+  {
+   "id": "8fa3516c4174",
+   "date": "2026-11-13",
+   "ts": "2026-11-13T20:27:59Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 95,94 $ → 94,65 $ (-1,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 265,71 $, potentiel -64,4 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.2933
+    }
+   ],
+   "values": {
+    "from": 95.94046025193157,
+    "to": 94.64718647355,
+    "change": -0.013479962207660326,
+    "price": 265.71
    }
   },
   {
    "id": "38b2a731fd28",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:06:33Z",
+   "ts": "2026-11-13T20:27:54Z",
    "ticker": "XOM",
    "type": "valuation",
-   "title": "XOM : valeur DCF 123,75 $ → 122,22 $ (-1,2 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 166,71 $, potentiel -26,7 %.",
+   "title": "XOM : valeur DCF 123,75 $ → 122,14 $ (-1,3 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 170,11 $, potentiel -28,2 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -77,24 +119,24 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -1.523
+     "delta": -1.6035
     }
    ],
    "values": {
     "from": 123.74509879282849,
-    "to": 122.22213534901084,
-    "change": -0.012307262741511556,
-    "price": 166.71
+    "to": 122.14164593505578,
+    "change": -0.01295770800956874,
+    "price": 170.11
    }
   },
   {
    "id": "bdf40d30eea5",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:06:26Z",
+   "ts": "2026-11-13T20:27:48Z",
    "ticker": "GOOG",
    "type": "valuation",
-   "title": "GOOG : valeur DCF 124,52 $ → 123,20 $ (-1,1 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 290,63 $, potentiel -57,6 %.",
+   "title": "GOOG : valeur DCF 124,52 $ → 122,45 $ (-1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 292,21 $, potentiel -58,1 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -106,24 +148,24 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -1.3115
+     "delta": -2.0646
     }
    ],
    "values": {
     "from": 124.51588685014804,
-    "to": 123.20437246944266,
-    "change": -0.010532907999794054,
-    "price": 290.63
+    "to": 122.45132674351383,
+    "change": -0.016580696318043767,
+    "price": 292.21
    }
   },
   {
    "id": "660f6d761062",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:06:20Z",
+   "ts": "2026-11-13T20:27:43Z",
    "ticker": "WMT",
    "type": "valuation",
-   "title": "WMT : valeur DCF 57,50 $ → 56,25 $ (-2,2 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 125,67 $, potentiel -55,2 %.",
+   "title": "WMT : valeur DCF 57,50 $ → 55,69 $ (-3,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 127,61 $, potentiel -56,4 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -135,24 +177,24 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -1.2476
+     "delta": -1.8089
     }
    ],
    "values": {
     "from": 57.496003229522486,
-    "to": 56.2484340188285,
-    "change": -0.021698364070868132,
-    "price": 125.67
+    "to": 55.68709779411308,
+    "change": -0.031461411816544986,
+    "price": 127.605
    }
   },
   {
    "id": "f6639bd9ac1a",
    "date": "2026-11-13",
-   "ts": "2026-11-13T02:06:12Z",
+   "ts": "2026-11-13T20:27:35Z",
    "ticker": "NVDA",
    "type": "valuation",
-   "title": "NVDA : valeur DCF 146,38 $ → 143,88 $ (-1,7 %)",
-   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 173,73 $, potentiel -17,2 %.",
+   "title": "NVDA : valeur DCF 146,38 $ → 143,94 $ (-1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 162,46 $, potentiel -11,4 %.",
    "bridge": [
     {
      "label": "Nouvelles données financières",
@@ -164,14 +206,14 @@
     },
     {
      "label": "Paramètres de marché (taux sans risque, bêta, poids)",
-     "delta": -2.5015
+     "delta": -2.4356
     }
    ],
    "values": {
     "from": 146.3789315748435,
-    "to": 143.87744569276947,
-    "change": -0.017089111494129377,
-    "price": 173.73
+    "to": 143.94336354676386,
+    "change": -0.01663878812255395,
+    "price": 162.46
    }
   },
   {
