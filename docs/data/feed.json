@@ -1,6 +1,209 @@
 {
  "events": [
   {
+   "id": "21c771fd21c3",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:51Z",
+   "ticker": "VEEV",
+   "type": "valuation",
+   "title": "VEEV : valeur DCF 154,57 $ → 152,42 $ (-1,4 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 302,42 $, potentiel -49,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -2.1505
+    }
+   ],
+   "values": {
+    "from": 154.57480523444514,
+    "to": 152.42431094917077,
+    "change": -0.013912320846936773,
+    "price": 302.42
+   }
+  },
+  {
+   "id": "83a7daf6a60b",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:47Z",
+   "ticker": "REGN",
+   "type": "valuation",
+   "title": "REGN : valeur DCF 623,10 $ → 613,85 $ (-1,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 955,47 $, potentiel -35,8 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -9.2476
+    }
+   ],
+   "values": {
+    "from": 623.1013698303661,
+    "to": 613.8537343456571,
+    "change": -0.01484130180491594,
+    "price": 955.47
+   }
+  },
+  {
+   "id": "dd9fde363a62",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:31Z",
+   "ticker": "AMZN",
+   "type": "valuation",
+   "title": "AMZN : valeur DCF 94,65 $ → 93,01 $ (-1,7 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 266,66 $, potentiel -65,1 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.6333
+    }
+   ],
+   "values": {
+    "from": 94.64718647355,
+    "to": 93.01390250472707,
+    "change": -0.017256550666504583,
+    "price": 266.66
+   }
+  },
+  {
+   "id": "b7cad8c33f6a",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:26Z",
+   "ticker": "XOM",
+   "type": "valuation",
+   "title": "XOM : valeur DCF 122,14 $ → 120,26 $ (-1,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 170,59 $, potentiel -29,5 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.8772
+    }
+   ],
+   "values": {
+    "from": 122.14164593505578,
+    "to": 120.26446323505176,
+    "change": -0.015368899654440014,
+    "price": 170.59
+   }
+  },
+  {
+   "id": "4d0db3824b28",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:20Z",
+   "ticker": "GOOG",
+   "type": "valuation",
+   "title": "GOOG : valeur DCF 122,45 $ → 119,40 $ (-2,5 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 295,35 $, potentiel -59,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -3.0518
+    }
+   ],
+   "values": {
+    "from": 122.45132674351383,
+    "to": 119.39954216990004,
+    "change": -0.024922429627945525,
+    "price": 295.35
+   }
+  },
+  {
+   "id": "eebae3362e42",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:16Z",
+   "ticker": "WMT",
+   "type": "valuation",
+   "title": "WMT : valeur DCF 55,69 $ → 53,96 $ (-3,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 128,09 $, potentiel -57,9 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.7238
+    }
+   ],
+   "values": {
+    "from": 55.68709779411308,
+    "to": 53.96327948469722,
+    "change": -0.03095543452074268,
+    "price": 128.09
+   }
+  },
+  {
+   "id": "e7eaa9d25a32",
+   "date": "2026-11-14",
+   "ts": "2026-11-14T01:43:08Z",
+   "ticker": "NVDA",
+   "type": "valuation",
+   "title": "NVDA : valeur DCF 143,94 $ → 142,37 $ (-1,1 %)",
+   "detail": "Moteur principal : Paramètres de marché (taux sans risque, bêta, poids). Cours 162,85 $, potentiel -12,6 %.",
+   "bridge": [
+    {
+     "label": "Nouvelles données financières",
+     "delta": 0.0
+    },
+    {
+     "label": "Hypothèses modifiées",
+     "delta": 0.0
+    },
+    {
+     "label": "Paramètres de marché (taux sans risque, bêta, poids)",
+     "delta": -1.5777
+    }
+   ],
+   "values": {
+    "from": 143.94336354676386,
+    "to": 142.36567024835927,
+    "change": -0.010960514326817444,
+    "price": 162.85
+   }
+  },
+  {
    "id": "d0d2a18deca2",
    "date": "2026-11-13",
    "ts": "2026-11-13T21:00:00Z",
@@ -253,6 +456,32 @@
    "values": {
     "change": -0.09670231729055268,
     "close": 10.135
+   }
+  },
+  {
+   "id": "61088bf0fb53",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T21:00:00Z",
+   "ticker": "SVRA",
+   "type": "price",
+   "title": "SVRA -5,4 % sur la séance",
+   "detail": "Clôture à 4,72 $.",
+   "values": {
+    "change": -0.054108216432865786,
+    "close": 4.72
+   }
+  },
+  {
+   "id": "bf7a1d4c6cf2",
+   "date": "2026-11-12",
+   "ts": "2026-11-12T21:00:00Z",
+   "ticker": "PRAX",
+   "type": "price",
+   "title": "PRAX -6,2 % sur la séance",
+   "detail": "Clôture à 324,76 $.",
+   "values": {
+    "change": -0.061956615926749614,
+    "close": 324.76
    }
   },
   {
@@ -2981,5 +3210,5 @@
    }
   }
  ],
- "updated": "2026-11-13"
+ "updated": "2026-11-14"
 }
