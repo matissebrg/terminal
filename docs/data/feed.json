@@ -1,6 +1,58 @@
 {
  "events": [
   {
+   "id": "2541a278fa97",
+   "date": "2026-11-16",
+   "ts": "2026-11-16T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -16,5 % sur la séance",
+   "detail": "Clôture à 11,82 $.",
+   "values": {
+    "change": -0.16466431095406364,
+    "close": 11.82
+   }
+  },
+  {
+   "id": "69a84501cf80",
+   "date": "2026-11-16",
+   "ts": "2026-11-16T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR -12,9 % sur la séance",
+   "detail": "Clôture à 8,30 $.",
+   "values": {
+    "change": -0.1290661070304301,
+    "close": 8.3
+   }
+  },
+  {
+   "id": "4a30a8b96d1d",
+   "date": "2026-11-16",
+   "ts": "2026-11-16T21:00:00Z",
+   "ticker": "MLYS",
+   "type": "price",
+   "title": "MLYS -5,2 % sur la séance",
+   "detail": "Clôture à 14,53 $.",
+   "values": {
+    "change": -0.05218525766470972,
+    "close": 14.53
+   }
+  },
+  {
+   "id": "0695a09473fa",
+   "date": "2026-11-16",
+   "ts": "2026-11-16T21:00:00Z",
+   "ticker": "PRAX",
+   "type": "price",
+   "title": "PRAX -5,4 % sur la séance",
+   "detail": "Clôture à 310,27 $.",
+   "values": {
+    "change": -0.05442964678633477,
+    "close": 310.27
+   }
+  },
+  {
    "id": "b75cf9ad000c",
    "date": "2026-11-16",
    "ticker": "CAPR",
