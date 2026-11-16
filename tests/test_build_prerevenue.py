@@ -41,8 +41,14 @@ def test_prerevenue_biotech_builds(tmp_path, monkeypatch):
     assert not [e for e in status["errors"] if e.startswith("PRE:")], status["errors"]
     uni = json.loads((out / "universe.json").read_text())
     pre = uni["tickers"][0]
-    assert pre["method"] == "rnpv" and pre["value_base"] > 0
+    assert pre["method"] == "rnpv" and "value_base" not in pre
     val = json.loads((out / "PRE" / "valuation.json").read_text())
-    assert val["dcf"]["inputs"]["base_revenue"] == 0.0           # DCF of today's business = net cash
+    assert val["dcf"]["inputs"]["base_revenue"] == 0.0           # no revenue: the DCF calculator is not offered
+    # the site publishes no DCF value: only the calculator inputs are written
+    assert set(val["dcf"]) == {"inputs", "sources"}
+    assert not {"scenarios", "sensitivity", "reverse_dcf", "history"} & set(val)
+    assert not [r for r in val["football_field"] if "DCF" in r["label"]]
+    bio = json.loads((out / "PRE" / "biotech.json").read_text())
+    assert bio["rnpv"]["value_per_share"] > 0                      # the pipeline value stays, in its own file
     cal = json.loads((out / "biotech.json").read_text())["calendar"]
     assert cal[0]["id"] == "lead-pdufa" and cal[0]["p_base"] > 0.9

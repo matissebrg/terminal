@@ -1,7 +1,7 @@
 /* Ticker pages: Synthèse, Financiers, Ratios, Valorisation, Secteur, Performance, Dépôts. */
 (function () {
   "use strict";
-  const T = window.T, F = T.fmt, C = () => T.C;
+  const T = window.T, F = T.fmt, C = () => T.C, MyDCF = window.MyDCF;
 
   const TABS = [
     ["synthese", "Synthèse"], ["financiers", "États financiers"], ["ratios", "Ratios"], ["valorisation", "Valorisation"],
@@ -16,12 +16,15 @@
     const [co, val, status, bio] = await Promise.all([T.get(`${tk}/company.json`), T.get(`${tk}/valuation.json`),
       T.get("status.json").catch(() => null), T.getBio ? T.getBio(tk) : null]);
     const p = co.perf || {};
-    const sc = val.scenarios || {};
+    // The site publishes no DCF value. Biotechs keep their pipeline rNPV; everything else shows the visitor's
+    // own saved model, if there is one (my-dcf.js).
     const rn = bio && bio.rnpv && bio.rnpv.primary ? bio.rnpv : null;
-    const w = rn ? rn.value_per_share : sc.weighted_value_per_share, base = val.dcf.result.value_per_share;
+    const mine = rn ? null : MyDCF.mine(tk, val.dcf.inputs, co.price);
+    const tg = val.target || {};
     const tabs = bio ? [...TABS.slice(0, 4), ["biotech", "Biotech"], ...TABS.slice(4)] : TABS;
-    const up = T.isNum(w) && T.isNum(co.price) ? w / co.price - 1 : null;
-    const ev = val.target ? val.target.enterprise_value : null;
+    const up = rn && T.isNum(rn.value_per_share) && T.isNum(co.price) ? rn.value_per_share / co.price - 1 : null;
+    const ev = tg.enterprise_value;
+    const fcfY = T.isNum(tg.fcf_ttm) && co.market_cap > 0 ? tg.fcf_ttm / co.market_cap : null;
     view.innerHTML = `${T.banner(co.meta, status)}
       <div class="thead">
         <div class="id"><h1>${T.esc(co.name)} <span class="tag">${tk}</span><span class="tag">${T.esc((co.profile.exchanges || [])[0] || "")}</span></h1>
@@ -33,10 +36,11 @@
       ${provisionalBanner(co)}
       <div class="kpis">
         <div class="kpi"><div class="l">Capitalisation</div><div class="v">${F.usd(co.market_cap)}</div><div class="s">VE ${F.usd(ev)}</div></div>
-        <div class="kpi hl"><div class="l">${rn ? `<a href="#/t/${tk}/biotech">Valeur rNPV (pipeline)</a>` : "Valeur pondérée (scénarios)"}</div><div class="v">${F.px(w)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>
-        <div class="kpi"><div class="l">DCF scénario base${rn ? " (référence)" : ""}</div><div class="v">${F.px(base)}</div><div class="s">WACC ${F.pct(val.dcf.inputs.wacc, 2)}</div></div>
-        <div class="kpi"><div class="l">Comparables (médiane)</div><div class="v">${F.px((val.comps.implied_summary || {}).median)}</div><div class="s">${F.px((val.comps.implied_summary || {}).low, 0)} - ${F.px((val.comps.implied_summary || {}).high, 0)}</div></div>
-        <div class="kpi"><div class="l">P/E · VE/CA (TTM)</div><div class="v">${F.x(val.target.pe)} · ${F.x(val.target.ev_sales)}</div><div class="s">VE/EBITDA ${F.x(val.target.ev_ebitda)}</div></div>
+        ${rn ? `<div class="kpi hl"><div class="l"><a href="#/t/${tk}/biotech">Valeur rNPV (pipeline)</a></div><div class="v">${F.px(rn.value_per_share)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>`
+          : myKpi(tk, mine)}
+        ${T.isNum(tg.revenue_growth_ttm) ? `<div class="kpi"><div class="l">Croissance du CA (TTM)</div><div class="v ${T.cls(tg.revenue_growth_ttm)}">${F.pct(tg.revenue_growth_ttm, 0, true)}</div><div class="s">marge opé. ${F.pct(tg.operating_margin_ttm, 0)} · FCF / capi. ${F.pct(fcfY, 1)}</div></div>` : ""}
+        ${T.isNum((val.comps.implied_summary || {}).median) ? `<div class="kpi"><div class="l">Comparables (médiane)</div><div class="v">${F.px((val.comps.implied_summary || {}).median)}</div><div class="s">${F.px((val.comps.implied_summary || {}).low, 0)} - ${F.px((val.comps.implied_summary || {}).high, 0)}</div></div>` : ""}
+        <div class="kpi"><div class="l">P/E · VE/CA (TTM)</div><div class="v">${F.x(tg.pe)} · ${F.x(tg.ev_sales)}</div><div class="s">VE/EBITDA ${F.x(tg.ev_ebitda)}</div></div>
         <div class="kpi"><div class="l">52 semaines</div><div class="v">${F.n(p.low_52w, 0)} - ${F.n(p.high_52w, 0)}</div><div class="s">1 an <span class="${T.cls(p.r_1y)}">${F.pct(p.r_1y, 0, true)}</span> · β ${F.n((co.beta || {}).adjusted, 2)}</div></div>
       </div>
       <nav class="tabs">${tabs.map(([k, l]) => `<a href="#/t/${tk}/${k}" class="${k === tab ? "active" : ""}">${l}</a>`).join("")}</nav>
@@ -48,10 +52,17 @@
     const el = T.$("#tab");
     const fn = { synthese, financiers, ratios, valorisation, secteur, performance, depots,
       predictions: T.tabPredictions, options: T.tabOptions, biotech: T.tabBiotech }[tab] || synthese;
-    await fn(el, tk, co, val);
+    await fn(el, tk, co, val, bio);
   });
 
   // ================================================================== helpers
+  // header tile of the visitor's saved DCF (nothing when there is none)
+  const myKpi = (tk, mine) => (mine ? `<div class="kpi hl" id="myKpi"><div class="l"><a href="#/t/${tk}/valorisation">Ta valeur (ton DCF)</a></div><div class="v">${F.px(mine.value)}</div><div class="s ${T.cls(mine.upside)}">${F.pct(mine.upside, 1, true)} vs cours</div></div>` : "");
+  function refreshMyKpi(tk, I, price) {
+    const old = T.$("#myKpi"), html = myKpi(tk, MyDCF.mine(tk, I, price));
+    if (old) old.outerHTML = html;
+    else if (html) { const first = T.$("#view .kpis .kpi"); if (first) first.insertAdjacentHTML("afterend", html); }
+  }
   function priceChart(el, bars, { mode = "area", range = "1A", benchmarks = null, benchNames = {}, tk = "" } = {}) {
     const chart = T.lw(el, { rightPriceScale: { borderColor: C().border, mode: mode === "cmp" ? 2 : 0 } });
     if (mode === "candles") {
@@ -139,18 +150,14 @@
       <div class="muted" style="margin-top:3px">Provisoire : le communiqué n'est pas balisé en XBRL. Les états financiers, la valorisation et la vérification des prédictions se mettent à jour automatiquement au dépôt du 10-Q (en général 1 à 5 jours après).${v ? " Source des chiffres : Yahoo Finance." : ""}</div></div></div>`;
   }
 
-  async function synthese(el, tk, co, val) {
+  async function synthese(el, tk, co, val, bio) {
     const [px, fin, feed] = await Promise.all([T.get(`${tk}/prices.json`), T.get(`${tk}/financials.json`), T.get("feed.json")]);
     const ttm = fin.ttm;
-    const sc = val.scenarios.cases || {};
     const price = co.price;
-    const rev = val.reverse_dcf || {};
-    const order = ["bear", "base", "bull"].filter((k) => sc[k]);
-    const vals = order.map((k) => sc[k].value_per_share).concat([price]).filter(T.isNum);
-    const lo = Math.min(...vals) * 0.9, hi = Math.max(...vals) * 1.05;
-    const pos = (v) => ((v - lo) / (hi - lo)) * 100;
-    const w = val.scenarios.weighted_value_per_share;
-    const up = T.isNum(w) && T.isNum(price) ? w / price - 1 : null;
+    const rn = bio && bio.rnpv && bio.rnpv.primary ? bio.rnpv : null;
+    const canDcf = !rn && MyDCF.usable(val.dcf.inputs);
+    const mine = canDcf ? MyDCF.mine(tk, val.dcf.inputs, price) : null;
+    const cm = Object.values((val.comps || {}).multiples || {}).filter((m) => T.isNum(m.target));
     const g = (k) => ttm[k];
     const yoy = (k) => (T.isNum(ttm[k]) && T.isNum(ttm[k + "_prev"]) && ttm[k + "_prev"] > 0 ? ttm[k] / ttm[k + "_prev"] - 1 : null);
     const events = T.sortEvents((feed.events || []).filter((e) => e.ticker === tk)).slice(0, 6);
@@ -164,38 +171,44 @@
             <div>Trésorerie nette</div><div>${F.usd(g("net_cash"))}</div>
             <div>Rachats + dividendes</div><div>${F.usd((g("buybacks") || 0) + (g("dividends_paid") || 0))}</div>
           </div></div>`;
-    const lowS = Math.min(...order.map((k) => sc[k].value_per_share)), highS = Math.max(...order.map((k) => sc[k].value_per_share));
+    // what the site says about value: nothing of its own. A biotech shows its pipeline rNPV, the others the
+    // visitor's saved DCF or an invitation to build one, then the market multiples against peers.
+    const up = (v) => (T.isNum(v) && T.isNum(price) ? v / price - 1 : null);
+    const big = (v, sub) => `<div class="row" style="align-items:baseline"><span class="big-val">${F.px(v)}</span>
+              <span class="chg ${T.cls(up(v))}" style="font:600 14px var(--mono);padding:3px 8px">${F.pct(up(v), 1, true)}</span></div><div class="muted">${sub}</div>`;
+    const head = rn ? big(rn.value_per_share, `Valeur rNPV du portefeuille de médicaments, à régler dans l'onglet <a href="#/t/${tk}/biotech">Biotech</a>`)
+      : mine ? big(mine.value, `Ta valeur par action, d'après ton modèle enregistré le ${F.date(mine.at.slice(0, 10))} et les derniers comptes`)
+      : canDcf ? `<p class="sec" style="margin:0">Archer ne publie pas d'objectif de cours. Le calculateur DCF part de ce que le cours actuel suppose : à toi de régler les hypothèses.</p>
+            <div><a class="btn primary" href="#/t/${tk}/valorisation">Construire mon modèle</a></div>`
+      : `<p class="sec" style="margin:0">Pas assez de chiffre d'affaires publié pour un DCF sur cette société.</p>`;
+    const valo = `<div class="panel verdict"><h3>Valorisation <a class="hint" href="#/t/${tk}/${rn ? "biotech" : "valorisation"}">${rn ? "pipeline" : mine ? "ton modèle" : "calculateur"} →</a></h3>
+            ${head}
+            ${cm.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Multiple (TTM)</th><th class="n">${tk}</th><th class="n">Pairs</th><th class="n">Prime</th></tr></thead><tbody>
+              ${cm.map((m) => `<tr><td>${T.esc(m.label)}</td><td class="n">${F.x(m.target)}</td><td class="n">${F.x(m.median)}</td><td class="n ${T.cls(m.premium_vs_median)}">${F.pct(m.premium_vs_median, 0, true)}</td></tr>`).join("")}
+              </tbody></table></div><div class="note" style="margin:0">Prime ou décote face à la médiane des pairs. Un repère de marché, pas un objectif.</div>` : ""}
+          </div>`;
     el.innerHTML = `
       <div class="grid g-main">
         <div class="panel" style="display:flex;flex-direction:column"><h3>Cours <span class="row">${seg("rng", [["1M", "1M"], ["3M", "3M"], ["6M", "6M"], ["YTD", "YTD"], ["1A", "1A"], ["5A", "5A"]], "1A")}</span></h3>
           <div class="chart lg" id="pc" style="flex:1;min-height:420px"></div></div>
         <div class="stack">
-          <div class="panel verdict"><h3>Verdict du modèle <a class="hint" href="#/t/${tk}/valorisation">détail →</a></h3>
-            <div class="row" style="align-items:baseline"><span class="big-val">${F.px(w)}</span>
-              <span class="chg ${T.cls(up)}" style="font:600 14px var(--mono);padding:3px 8px;border-radius:6px">${F.pct(up, 1, true)}</span></div>
-            <div class="muted">Valeur par action pondérée par les probabilités des scénarios</div>
-            <div class="meter" style="margin-top:28px">
-              <div class="fill" style="left:${pos(lowS)}%;right:${100 - pos(highS)}%;background:linear-gradient(90deg,rgba(150,180,255,.16),rgba(190,212,255,.6));box-shadow:0 0 12px rgba(140,175,255,.25)"></div>
-              ${order.map((k) => `<div class="mk" style="left:${pos(sc[k].value_per_share)}%;background:${C().series[0]}"><span>${k}</span></div>`).join("")}
-              <div class="mk" style="left:${pos(price)}%;background:${C().text};height:22px;top:-7px"><span style="top:-17px;color:var(--text)">cours</span></div>
-            </div>
-            <div class="kv">${order.map((k) => `<div>${({ bear: "Bear", base: "Base", bull: "Bull" })[k]} · ${F.pct(sc[k].probability, 0)}</div><div>${F.px(sc[k].value_per_share)} <span class="${T.cls(sc[k].value_per_share / price - 1)}">${F.pct(sc[k].value_per_share / price - 1, 0, true)}</span></div>`).join("")}</div>
-            <div class="note">${rev && T.isNum(rev.implied_growth)
-              ? `<b>DCF reverse :</b> le cours actuel suppose une croissance du CA de <b>${F.pct(rev.implied_growth, 1)}</b> par an pendant ${rev.years} ans, contre <b>${F.pct(rev.assumed_growth_cagr, 1)}</b> dans le scénario base.`
-              : "DCF reverse non calculable avec ces hypothèses."}</div>
-          </div>
+          ${valo}
           ${keyFigs}
         </div>
       </div>
       <div class="grid g-main" style="margin-top:14px">
-        <div class="panel"><h3>Football field <span class="hint">fourchettes de valeur par action ($)</span></h3><div class="chart" id="ff" style="height:250px"></div></div>
+        <div class="panel"><h3>Repères de prix <span class="hint">$ par action</span></h3><div class="chart" id="ff" style="height:250px"></div></div>
         <div class="panel"><h3>Thèse</h3><p class="sec" style="margin:0">${T.esc(co.thesis || "-")}</p>
-          <p class="note">Hypothèses : <code>config/assumptions/${tk}.yaml</code> · <a href="${T.repoUrl(`edit/main/config/assumptions/${tk}.yaml`)}" target="_blank" rel="noopener">modifier sur GitHub ↗</a></p></div>
+          <p class="note">Texte de la fiche : <code>config/assumptions/${tk}.yaml</code> · <a href="${T.repoUrl(`edit/main/config/assumptions/${tk}.yaml`)}" target="_blank" rel="noopener">modifier sur GitHub ↗</a></p></div>
       </div>
       <div class="panel" style="margin-top:14px"><h3>Feed ${tk} <a class="hint" href="#/feed">tout voir →</a></h3><div class="feed">${events.map((e) => T.renderEvent(e, { hideTicker: true })).join("") || '<div class="empty">Aucun événement.</div>'}</div></div>`;
     const chart = priceChart(T.$("#pc"), px.bars, { range: "1A" });
     onSeg("rng", (k) => setRange(chart, px.bars, k));
-    footballField(T.$("#ff"), val.football_field, price);
+    // rows written before the house DCF was removed are dropped; the visitor's own value is added
+    const ff = (val.football_field || []).filter((r) => !/^DCF/.test(r.label));
+    if (mine) ff.unshift({ label: "Ton DCF - modèle enregistré", low: mine.value, high: mine.value, mid: mine.value });
+    if (rn && T.isNum(rn.value_per_share)) ff.unshift({ label: "rNPV du pipeline", low: rn.value_per_share, high: rn.value_per_share, mid: rn.value_per_share });
+    footballField(T.$("#ff"), ff, price);
   }
 
   // ================================================================== Financiers
@@ -333,34 +346,50 @@
   }
 
   // ================================================================== Valorisation
-  async function valorisation(el, tk, co, val) {
-    const D = val.dcf, I = D.inputs, R = D.result, sc = val.scenarios.cases || {};
+  // No house value here: a DCF calculator that starts from what today's price assumes, and that the visitor
+  // can save as their own model (my-dcf.js, this browser only). Then the peer multiples.
+  async function valorisation(el, tk, co, val, bio) {
+    const D = val.dcf, I = D.inputs;
     const price = co.price;
-    const rv = val.reverse_dcf || {};
-    el.innerHTML = `
-      <div class="kpis">
-        <div class="kpi hl"><div class="l">DCF base</div><div class="v">${F.px(R.value_per_share)}</div><div class="s ${T.cls(R.upside)}">${F.pct(R.upside, 1, true)}</div></div>
-        <div class="kpi"><div class="l">Valeur d'entreprise</div><div class="v">${F.usd(R.enterprise_value)}</div><div class="s">fonds propres ${F.usd(R.equity_value)}</div></div>
-        <div class="kpi"><div class="l">WACC</div><div class="v">${F.pct(I.wacc, 2)}</div><div class="s">ke ${F.pct(I.wacc_detail.cost_of_equity, 2)} · β ${F.n(I.wacc_detail.beta, 2)}</div></div>
-        <div class="kpi"><div class="l">Poids de la valeur terminale</div><div class="v">${F.pct(R.terminal_value_share_of_ev, 0)}</div><div class="s">g = ${F.pct(I.terminal_growth, 1)}</div></div>
-        <div class="kpi"><div class="l">VE/EBITDA de sortie implicite</div><div class="v">${F.x(R.implied_exit_ev_ebitda)}</div><div class="s">contrôle de cohérence de la VT</div></div>
-        <div class="kpi"><div class="l">Croissance implicite (reverse)</div><div class="v">${F.pct(rv.implied_growth, 1)}</div><div class="s">/an sur ${rv.years || "-"} ans vs ${F.pct(rv.assumed_growth_cagr, 1)} modèle</div></div>
-      </div>
-      <div class="panel" style="margin-bottom:14px"><h3>Scénarios <span class="hint">valeur pondérée : <b class="num" style="color:var(--text)">${F.px(val.scenarios.weighted_value_per_share)}</b></span></h3>
-        <div class="scen">${["bear", "base", "bull"].filter((k) => sc[k]).map((k) => `<div class="c">
-          <div class="h"><span>${k}</span><span>probabilité ${F.pct(sc[k].probability, 0)}</span></div>
-          <div class="v">${F.px(sc[k].value_per_share)} <span class="${T.cls(sc[k].value_per_share / price - 1)}" style="font-size:13px">${F.pct(sc[k].value_per_share / price - 1, 0, true)}</span></div>
-          <div class="muted num" style="font-size:11.5px">croissance a1-a5 : ${sc[k].growth_path.slice(0, 5).map((x) => F.pct(x, 0)).join(" · ")}<br>marge EBIT cible ${F.pct(sc[k].ebit_margin_target, 0)} · CA an ${I.years} : ${F.usd(sc[k].revenue_year_n)}</div>
-          <p>${T.esc(sc[k].narrative || "")}</p></div>`).join("")}</div></div>
+    const rn = bio && bio.rnpv && bio.rnpv.primary ? bio.rnpv : null;
+    const canDcf = !rn && MyDCF.usable(I);
+    const compsPanel = `<div class="panel" style="margin-bottom:14px"><h3>Comparables boursiers <span class="hint">multiples TTM · ${T.esc((val.target || {}).period || "")}</span></h3><div class="tbl-wrap" id="comps"></div>
+          <p class="note"><b>Attention :</b> des multiples passés de pairs qui croissent moins vite sous-évaluent mécaniquement une entreprise en forte croissance. À lire comme un repère, pas comme un objectif.</p></div>`;
+    const comps = () => {
+      const cm = val.comps.multiples || {}, imp = val.comps.implied || {};
+      T.$("#comps").innerHTML = `<table class="t"><thead><tr><th>Multiple</th><th class="n">${tk}</th><th class="n">Médiane pairs</th><th class="n">Min - max</th><th class="n">Prime / décote</th><th class="n">Valeur implicite / action</th></tr></thead><tbody>
+        ${Object.entries(cm).map(([k, m]) => `<tr><td>${T.esc(m.label)}</td><td class="n">${F.x(m.target)}</td><td class="n">${F.x(m.median)}</td>
+          <td class="n muted">${F.x(m.low)} - ${F.x(m.high)}</td><td class="n ${T.cls(m.premium_vs_median)}">${F.pct(m.premium_vs_median, 0, true)}</td>
+          <td class="n"><b>${F.px(imp[k])}</b> <span class="${T.cls(imp[k] / price - 1)}">${F.pct(imp[k] / price - 1, 0, true)}</span></td></tr>`).join("")}
+        </tbody></table>${val.comps.growth_regression ? `<p class="note">Régression VE/CA ~ croissance des pairs (n = ${val.comps.growth_regression.n}) : VE/CA « attendu » pour la croissance de ${tk} = <b>${F.x(val.comps.growth_regression.implied_ev_sales_for_target)}</b> vs ${F.x((cm.ev_sales || {}).target)} réel. ${T.esc(val.comps.growth_regression.warning)}.</p>` : ""}`;
+    };
+    if (!canDcf) {
+      el.innerHTML = `<div class="panel" style="margin-bottom:14px"><h3>DCF</h3>
+          <p class="sec" style="margin:0">${rn
+            ? `Cette société se valorise par son portefeuille de médicaments, pas par un DCF de ses comptes actuels. Le simulateur rNPV (probabilités de succès, pics de ventes, dates de lancement) est dans l'onglet <a href="#/t/${tk}/biotech">Biotech</a>.`
+            : "Pas assez de chiffre d'affaires publié pour faire tourner un DCF sur cette société."}</p></div>
+        ${compsPanel}`;
+      comps();
+      return;
+    }
 
-      <div class="panel" style="margin-bottom:14px"><h3>Simulateur DCF <span class="row">
-          <button class="btn" id="reset">Réinitialiser</button><button class="btn" id="yaml">Copier en YAML</button>
-          <a class="btn primary" href="${T.repoUrl(`edit/main/config/assumptions/${tk}.yaml`)}" target="_blank" rel="noopener">Enregistrer sur GitHub ↗</a></span></h3>
+    const base = MyDCF.start(I, price);                    // where "Réinitialiser" goes back to
+    const defs = MyDCF.fields(I);
+    let saved = MyDCF.load(tk);
+    let st = MyDCF.apply(MyDCF.start(I, price), I, saved);
+    const n = I.revenue_growth.length;
+    el.innerHTML = `
+      <div class="panel" style="margin-bottom:14px"><h3>Ton modèle DCF <span class="row">
+          <button class="btn" id="reset">Réinitialiser</button><button class="btn" id="forget" hidden>Effacer</button>
+          <button class="btn primary" id="save">Enregistrer</button></span></h3>
+        <p class="sec" style="margin:0 0 12px;max-width:92ch">Archer ne publie pas de valeur DCF : celle-ci est la tienne. ${T.isNum(base.implied)
+          ? `Le point de départ reproduit le cours actuel : avec les marges, les investissements et le coût du capital tirés des comptes, ${F.px(price)} suppose une croissance du chiffre d'affaires de <b>${F.pct(base.implied, 1)}</b> par an pendant ${n} ans. Règle chaque hypothèse selon ta lecture : l'écart avec le cours qui apparaît est ton opinion.`
+          : "Aucune croissance ne permet de retrouver le cours actuel avec les marges tirées des comptes : le point de départ est une simple prolongation des chiffres actuels, à régler selon ta lecture."}</p>
         <div class="grid g-main">
           <div><div class="controls" id="ctl"></div>
-            <p class="note">Les curseurs ne modifient rien de façon permanente. Pour changer le modèle officiel (et déclencher un événement dans le feed), copie le YAML et colle-le dans <code>config/assumptions/${tk}.yaml</code> sur GitHub.</p></div>
+            <p class="note" id="simState" role="status"></p></div>
           <div class="stack">
-            <div><div class="muted">Valeur par action (simulée)</div><div class="row" style="align-items:baseline"><span class="big-val" id="simV">-</span><span id="simU" class="num"></span></div>
+            <div><div class="muted">Ta valeur par action</div><div class="row" style="align-items:baseline"><span class="big-val" id="simV">-</span><span id="simU" class="num"></span></div>
               <div class="kv" style="margin-top:10px" id="simKv"></div></div>
             <div class="chart" id="simChart" style="height:220px"></div>
           </div>
@@ -369,72 +398,73 @@
       </div>
 
       <div class="grid g2" style="margin-bottom:14px">
-        <div class="panel"><h3>Sensibilité - WACC × croissance terminale <span class="hint">$ par action</span></h3><div class="tbl-wrap" id="h1"></div></div>
-        <div class="panel"><h3>Sensibilité - marge cible × croissance <span class="hint">$ par action</span></h3><div class="tbl-wrap" id="h2"></div></div>
+        <div class="panel"><h3>Sensibilité - WACC × croissance terminale <span class="hint">$ par action, autour de ton modèle</span></h3><div class="tbl-wrap" id="h1"></div></div>
+        <div class="panel"><h3>Sensibilité - marge cible × croissance <span class="hint">$ par action, autour de ton modèle</span></h3><div class="tbl-wrap" id="h2"></div></div>
       </div>
 
-      <div class="grid g-main" style="margin-bottom:14px">
-        <div class="panel"><h3>Comparables boursiers <span class="hint">multiples TTM · ${T.esc((val.target || {}).period || "")}</span></h3><div class="tbl-wrap" id="comps"></div>
-          <p class="note"><b>Attention :</b> des multiples passés de pairs qui croissent moins vite sous-évaluent mécaniquement une entreprise en forte croissance. À lire comme un repère, pas comme un objectif.</p></div>
-        <div class="panel"><h3>Historique valeur vs cours</h3><div class="chart" id="hist" style="height:240px"></div></div>
-      </div>
+      ${compsPanel}
 
-      <div class="panel"><h3>D'où viennent les hypothèses</h3><div class="tbl-wrap" id="srcs"></div></div>`;
+      <div class="panel"><h3>D'où viennent les chiffres de départ</h3><div class="tbl-wrap" id="srcs"></div></div>`;
 
-    // ---------------- simulator
-    const base = JSON.parse(JSON.stringify(I));
-    const W = Object.assign({}, I.wacc_detail);
-    let sim = JSON.parse(JSON.stringify(I));
-    const ctlDefs = [
-      ...base.revenue_growth.map((_, i) => [`g${i}`, `Croissance CA année ${i + 1}`, -0.3, 1.2, 0.01, "pct", (s) => s.revenue_growth[i], (s, v) => { s.revenue_growth[i] = v; }]),
-      ["mt", "Marge EBIT cible", 0, 0.8, 0.005, "pct", (s) => s.ebit_margin_target, (s, v) => { s.ebit_margin_target = v; }],
-      ["my", "Années pour l'atteindre", 1, 10, 1, "int", (s) => s.margin_years_to_target, (s, v) => { s.margin_years_to_target = v; }],
-      ["tg", "Croissance terminale", 0, 0.05, 0.0025, "pct", (s) => s.terminal_growth, (s, v) => { s.terminal_growth = v; }],
-      ["tx", "Taux d'impôt", 0, 0.35, 0.005, "pct", (s) => s.tax_rate, (s, v) => { s.tax_rate = v; }],
-      ["nw", "BFR / CA additionnel", 0, 0.5, 0.01, "pct", (s) => s.nwc_pct_incremental_revenue, (s, v) => { s.nwc_pct_incremental_revenue = v; }],
-      ["da", "D&A / CA", 0, 0.2, 0.0025, "pct", (s) => s.d_and_a_pct_revenue, (s, v) => { s.d_and_a_pct_revenue = v; }],
-      ["cx", "Capex / CA", 0, 0.3, 0.0025, "pct", (s) => s.capex_pct_revenue, (s, v) => { s.capex_pct_revenue = v; }],
-      ...(base.capex_pct_revenue_target != null ? [
-        ["cxt", "Capex / CA cible", 0, 0.3, 0.0025, "pct", (s) => s.capex_pct_revenue_target, (s, v) => { s.capex_pct_revenue_target = v; }],
-        ["cxy", "Années pour l'atteindre (capex)", 1, 10, 1, "int", (s) => s.capex_years_to_target, (s, v) => { s.capex_years_to_target = v; }]] : []),
-      ["rf", "Taux sans risque", 0, 0.08, 0.0005, "pct", () => W.risk_free, (s, v) => { W.risk_free = v; }],
-      ["bt", "Bêta", 0.3, 3, 0.01, "num", () => W.beta, (s, v) => { W.beta = v; }],
-      ["erp", "Prime de risque actions", 0.02, 0.08, 0.0025, "pct", () => W.equity_risk_premium, (s, v) => { W.equity_risk_premium = v; }],
-    ];
+    // ---------------- calculator
     const ctl = T.$("#ctl");
     const fmtC = (t, v) => (t === "pct" ? F.pct(v, 1) : t === "int" ? F.n(v, 0) : F.n(v, 2));
+    const changed = (f) => Math.abs(f.get(st) - f.get(base)) > 1e-9;
     function buildCtl() {
-      ctl.innerHTML = ctlDefs.map(([id, l, mn, mx, stp, t, get]) => `<div class="ctl" data-id="${id}"><label>${l}<span class="num" id="v_${id}">${fmtC(t, get(sim))}</span></label>
-        <input type="range" id="c_${id}" min="${mn}" max="${mx}" step="${stp}" value="${get(sim)}"></div>`).join("");
-      ctlDefs.forEach(([id, , , , , t, get, set]) => {
-        const inp = T.$("#c_" + id);
+      ctl.innerHTML = defs.map((f) => `<div class="ctl${changed(f) ? " changed" : ""}" data-id="${f.id}"><label for="c_${f.id}">${f.label}<span class="num" id="v_${f.id}">${fmtC(f.type, f.get(st))}</span></label>
+        <input type="range" id="c_${f.id}" min="${f.min}" max="${f.max}" step="${f.step}" value="${f.get(st)}"></div>`).join("");
+      defs.forEach((f) => {
+        const inp = T.$("#c_" + f.id);
         inp.addEventListener("input", () => {
-          const v = t === "int" ? parseInt(inp.value, 10) : parseFloat(inp.value);
-          set(sim, v);
-          T.$("#v_" + id).textContent = fmtC(t, v);
-          inp.closest(".ctl").classList.toggle("changed", Math.abs(v - get(base, true)) > 1e-9);
-          run();
+          const v = f.type === "int" ? parseInt(inp.value, 10) : parseFloat(inp.value);
+          f.set(st, v);
+          T.$("#v_" + f.id).textContent = fmtC(f.type, v);
+          inp.closest(".ctl").classList.toggle("changed", changed(f));
+          dirty = true; run();
         });
       });
     }
+    let dirty = false;
+    function state() {
+      const any = defs.some(changed);
+      T.$("#forget").hidden = !saved;
+      T.$("#save").disabled = !any || (!!saved && !dirty);
+      T.$("#simState").textContent = saved && !dirty ? `Modèle enregistré dans ce navigateur le ${F.date(saved.at.slice(0, 10))}. Il est recalculé sur les derniers comptes à chaque visite et s'affiche en tête de la fiche.`
+        : any ? "Modifications non enregistrées. Enregistre pour retrouver ta valeur en tête de la fiche (dans ce navigateur uniquement)."
+        : "Les curseurs orange sont ceux que tu as déplacés. Rien n'est enregistré tant que tu ne le demandes pas.";
+    }
+    function heat(id, g, fr, fc) {
+      const vals = g.values.flat().filter(T.isNum);
+      const span = Math.max(...vals.map((v) => Math.abs(v / price - 1)), 0.01);
+      const color = (v) => {
+        if (!T.isNum(v)) return "";
+        const u = v / price - 1, a = Math.min(1, Math.abs(u) / span) * 0.55 + 0.05;
+        return `background:${u >= 0 ? `rgba(57,135,229,${a})` : `rgba(230,103,103,${a})`}`;
+      };
+      // centre = the model itself: row 3 of 7 (WACC) / 3 of 5 (margin), column 2 of 5 (g / ×1.0)
+      const baseRow = 3, baseCol = 2;
+      T.$("#" + id).innerHTML = `<div class="note" style="margin:0 0 6px">Lignes : ${g.row_label.toLowerCase()} · colonnes : ${g.col_label.toLowerCase()}</div><table class="t heat"><thead><tr><th></th>${g.cols.map((c) => `<th class="n">${fc(c)}</th>`).join("")}</tr></thead><tbody>
+        ${g.rows.map((rw, i) => `<tr><td class="num">${fr(rw)}</td>${g.values[i].map((v, j) => `<td class="n ${i === baseRow && j === baseCol ? "base" : ""}" style="${color(v)}" title="${T.isNum(v) ? F.pct(v / price - 1, 1, true) + " vs cours" : ""}">${T.isNum(v) ? F.n(v, 0) : "-"}</td>`).join("")}</tr>`).join("")}
+        </tbody></table><div class="legend" style="margin-top:8px"><span><i style="background:rgba(57,135,229,.6)"></i>au-dessus du cours</span><span><i style="background:rgba(230,103,103,.6)"></i>en dessous du cours</span><span>case encadrée = ton modèle</span></div>`;
+    }
     let simChart;
     function run() {
-      const ww = DCF.wacc(W, sim.tax_rate);
-      sim.wacc = W.method === "fixed" ? I.wacc : ww.wacc;
-      let res;
-      try { res = DCF.dcf(Object.assign({}, sim, { price })); } catch (e) {
-        T.$("#simV").textContent = "-"; T.$("#simU").textContent = "WACC ≤ g"; return;
+      state();
+      const c = MyDCF.compute(st, I, price);
+      if (!c.ok) {
+        T.$("#simV").textContent = "-"; T.$("#simU").textContent = "Le WACC doit dépasser la croissance terminale";
+        T.$("#simKv").innerHTML = ""; T.$("#h1").innerHTML = T.$("#h2").innerHTML = '<div class="empty">Non calculable avec ces hypothèses.</div>';
+        return;
       }
+      const res = c.res, sim = st.s;
       T.$("#simV").textContent = F.px(res.value_per_share);
-      const u = res.upside;
-      T.$("#simU").innerHTML = `<span class="${T.cls(u)}">${F.pct(u, 1, true)} vs cours</span>`;
-      const rvs = DCF.reverseDcf(Object.assign({}, sim, { price }));
-      T.$("#simKv").innerHTML = `<div>WACC</div><div>${F.pct(sim.wacc, 2)}</div>
+      T.$("#simU").innerHTML = Math.abs(res.upside) < 0.0005 ? '<span class="muted">= cours actuel</span>' : `<span class="${T.cls(res.upside)}">${F.pct(res.upside, 1, true)} vs cours</span>`;
+      T.$("#simKv").innerHTML = `<div>WACC</div><div>${F.pct(c.wacc, 2)}</div>
         <div>Valeur d'entreprise</div><div>${F.usd(res.enterprise_value)}</div>
         <div>Part de la valeur terminale</div><div>${F.pct(res.terminal_value_share_of_ev, 0)}</div>
         <div>VE/EBITDA de sortie implicite</div><div>${F.x(res.implied_exit_ev_ebitda)}</div>
         <div>CA année ${sim.years}</div><div>${F.usd(res.rows[res.rows.length - 1].revenue)}</div>
-        <div>Croissance implicite au cours</div><div>${F.pct(rvs && rvs.implied_growth, 1)}</div>`;
+        <div>Croissance qui justifie le cours</div><div>${F.pct(c.reverse && c.reverse.implied_growth, 1)}</div>`;
       const yrs = res.rows.map((r) => "A" + r.year);
       const opt = {
         legend: { data: ["FCFF", "Valeur actuelle"] },
@@ -452,61 +482,20 @@
            ["+ D&A", "d_and_a", 1e9], ["- Capex", "capex", 1e9], ["- ΔBFR", "delta_nwc", 1e9], ["FCFF", "fcff", 1e9], ["Facteur d'actualisation", "discount_factor", "f"], ["Valeur actuelle", "pv", 1e9]]
           .map(([l, k, d]) => `<tr class="${k === "fcff" ? "total" : ""}"><td class="lbl">${l}</td>${res.rows.map((r) => `<td class="n">${d === "pct" ? F.pct(r[k], 1) : d === "f" ? F.n(r[k], 3) : F.n(r[k] / d, 1)}</td>`).join("")}</tr>`).join("")}
         </tbody></table><p class="note">Valeur terminale ${F.usd(res.terminal_value)} → actualisée ${F.usd(res.pv_terminal_value)}. VE ${F.usd(res.enterprise_value)} + trésorerie et placements ${F.usd(res.cash)} + participations ${F.usd(res.investments)} - dette ${F.usd(res.debt)}${res.minority ? ` - intérêts minoritaires ${F.usd(res.minority)}` : ""} = ${F.usd(res.equity_value)} / ${F.n(res.shares / 1e9, 2)} Md actions.</p>`;
+      const g = MyDCF.sensitivity(c.inputs);
+      heat("h1", g.wacc_x_g, (x) => F.pct(x, 1), (x) => F.pct(x, 1));
+      heat("h2", g.margin_x_growth, (x) => F.pct(x, Math.abs(x * 100 - Math.round(x * 100)) > 0.01 ? 1 : 0), (x) => "×" + F.n(x, 1));
     }
-    // For the "changed" marker, WACC inputs are compared with the original (pipeline) values
-    ctlDefs.forEach((d) => { const g = d[6]; d[6] = (s, isBase) => (isBase && ["rf", "bt", "erp"].includes(d[0]) ? I.wacc_detail[{ rf: "risk_free", bt: "beta", erp: "equity_risk_premium" }[d[0]]] : g(s)); });
     buildCtl(); run();
-    T.$("#reset").addEventListener("click", () => { sim = JSON.parse(JSON.stringify(I)); Object.assign(W, I.wacc_detail); buildCtl(); run(); });
-    T.$("#yaml").addEventListener("click", async () => {
-      const S0 = D.sources || {};
-      const r3 = (x) => +(+x).toFixed(4);
-      const same = (a, b) => Math.abs(a - b) < 1e-9;  // untouched slider -> keep "auto" (recomputed each run)
-      const y = `dcf:\n  years: ${sim.years}\n  base_revenue: ttm\n  revenue_growth: [${sim.revenue_growth.map(r3).join(", ")}]\n  ebit_margin_start: auto\n  ebit_margin_target: ${r3(sim.ebit_margin_target)}\n  margin_years_to_target: ${sim.margin_years_to_target}\n  tax_rate: ${r3(sim.tax_rate)}\n  d_and_a_pct_revenue: ${same(sim.d_and_a_pct_revenue, I.d_and_a_pct_revenue) ? "auto" : r3(sim.d_and_a_pct_revenue)}\n  capex_pct_revenue: ${same(sim.capex_pct_revenue, I.capex_pct_revenue) ? "auto" : r3(sim.capex_pct_revenue)}${sim.capex_pct_revenue_target != null ? `\n  capex_pct_revenue_target: ${same(sim.capex_pct_revenue_target, I.capex_pct_revenue_target) && S0.capex_pct_revenue_target !== "hypothèse" ? "auto" : r3(sim.capex_pct_revenue_target)}\n  capex_years_to_target: ${sim.capex_years_to_target}` : ""}\n  nwc_pct_incremental_revenue: ${r3(sim.nwc_pct_incremental_revenue)}\n  terminal_growth: ${r3(sim.terminal_growth)}\n  terminal_roic: ${sim.terminal_roic || "null"}\n  mid_year: ${sim.mid_year}\n  include_equity_investments: ${(I.investments || 0) > 0}\n\nwacc:\n  method: capm\n  risk_free: ${same(W.risk_free, I.wacc_detail.risk_free) ? "auto" : r3(W.risk_free)}\n  beta: ${same(W.beta, I.wacc_detail.beta) ? "auto" : r3(W.beta)}\n  equity_risk_premium: ${r3(W.equity_risk_premium)}\n  pre_tax_cost_of_debt: ${r3(W.pre_tax_cost_of_debt)}\n  debt_weight: auto\n`;
-      try { await navigator.clipboard.writeText(y); T.$("#yaml").textContent = "Copié ✓"; }
-      catch (e) { window.prompt("Copie ce YAML :", y); }
-      setTimeout(() => { T.$("#yaml").textContent = "Copier en YAML"; }, 1800);
+    T.$("#reset").addEventListener("click", () => { st = MyDCF.start(I, price); dirty = !!saved; buildCtl(); run(); });
+    T.$("#save").addEventListener("click", () => {
+      const o = MyDCF.save(tk, st, I);
+      if (!o) { T.$("#simState").textContent = "Enregistrement impossible : ce navigateur bloque le stockage local (navigation privée ?)."; return; }
+      saved = o; dirty = false; state(); refreshMyKpi(tk, I, price);
     });
+    T.$("#forget").addEventListener("click", () => { MyDCF.clear(tk); saved = null; dirty = false; state(); refreshMyKpi(tk, I, price); });
 
-    // ---------------- heatmaps
-    function heat(id, g, fr, fc) {
-      const vals = g.values.flat().filter(T.isNum);
-      const span = Math.max(...vals.map((v) => Math.abs(v / price - 1)), 0.01);
-      const color = (v) => {
-        if (!T.isNum(v)) return "";
-        const u = v / price - 1, a = Math.min(1, Math.abs(u) / span) * 0.55 + 0.05;
-        return `background:${u >= 0 ? `rgba(57,135,229,${a})` : `rgba(230,103,103,${a})`}`;
-      };
-      // base case = 0 offset: row 3 of 7 (WACC) / 3 of 5 (margin), column 2 of 5 (g / ×1.0)
-      const baseRow = 3, baseCol = 2;
-      T.$("#" + id).innerHTML = `<div class="note" style="margin:0 0 6px">Lignes : ${g.row_label.toLowerCase()} · colonnes : ${g.col_label.toLowerCase()}</div><table class="t heat"><thead><tr><th></th>${g.cols.map((c) => `<th class="n">${fc(c)}</th>`).join("")}</tr></thead><tbody>
-        ${g.rows.map((rw, i) => `<tr><td class="num">${fr(rw)}</td>${g.values[i].map((v, j) => `<td class="n ${i === baseRow && j === baseCol ? "base" : ""}" style="${color(v)}" title="${T.isNum(v) ? F.pct(v / price - 1, 1, true) + " vs cours" : ""}">${T.isNum(v) ? F.n(v, 0) : "-"}</td>`).join("")}</tr>`).join("")}
-        </tbody></table><div class="legend" style="margin-top:8px"><span><i style="background:rgba(57,135,229,.6)"></i>au-dessus du cours</span><span><i style="background:rgba(230,103,103,.6)"></i>en dessous du cours</span><span>case encadrée = scénario base</span></div>`;
-    }
-    heat("h1", val.sensitivity.wacc_x_g, (x) => F.pct(x, 1), (x) => F.pct(x, 1));
-    heat("h2", val.sensitivity.margin_x_growth, (x) => F.pct(x, Math.abs(x * 100 - Math.round(x * 100)) > 0.01 ? 1 : 0), (x) => "×" + F.n(x, 1));
-
-    // ---------------- comps
-    const cm = val.comps.multiples, imp = val.comps.implied;
-    T.$("#comps").innerHTML = `<table class="t"><thead><tr><th>Multiple</th><th class="n">${tk}</th><th class="n">Médiane pairs</th><th class="n">Min - max</th><th class="n">Prime / décote</th><th class="n">Valeur implicite / action</th></tr></thead><tbody>
-      ${Object.entries(cm).map(([k, m]) => `<tr><td>${T.esc(m.label)}</td><td class="n">${F.x(m.target)}</td><td class="n">${F.x(m.median)}</td>
-        <td class="n muted">${F.x(m.low)} - ${F.x(m.high)}</td><td class="n ${T.cls(m.premium_vs_median)}">${F.pct(m.premium_vs_median, 0, true)}</td>
-        <td class="n"><b>${F.px(imp[k])}</b> <span class="${T.cls(imp[k] / price - 1)}">${F.pct(imp[k] / price - 1, 0, true)}</span></td></tr>`).join("")}
-      </tbody></table>${val.comps.growth_regression ? `<p class="note">Régression VE/CA ~ croissance des pairs (n = ${val.comps.growth_regression.n}) : VE/CA « attendu » pour la croissance de ${tk} = <b>${F.x(val.comps.growth_regression.implied_ev_sales_for_target)}</b> vs ${F.x((cm.ev_sales || {}).target)} réel. ${T.esc(val.comps.growth_regression.warning)}.</p>` : ""}`;
-
-    // ---------------- history
-    const h = (val.history || []).filter((x) => T.isNum(x.value_base));
-    if (h.length < 2) T.$("#hist").innerHTML = `<div class="empty" style="margin-top:40px">L'historique se construit à chaque exécution du pipeline (${h.length} point${h.length > 1 ? "s" : ""} pour l'instant).</div>`;
-    else T.ec(T.$("#hist"), {
-      legend: { data: ["Cours", "DCF base", "DCF pondéré"] },
-      tooltip: { trigger: "axis", valueFormatter: (v) => F.px(v) },
-      xAxis: T.axis({ type: "category", data: h.map((x) => x.date), splitLine: { show: false } }),
-      yAxis: T.axis({ type: "value", scale: true }),
-      series: [
-        { name: "Cours", type: "line", data: h.map((x) => x.price), showSymbol: false, lineStyle: { width: 2, color: C().text }, itemStyle: { color: C().text } },
-        { name: "DCF base", type: "line", data: h.map((x) => x.value_base), showSymbol: false, lineStyle: { width: 2, color: C().series[0] }, itemStyle: { color: C().series[0] } },
-        { name: "DCF pondéré", type: "line", data: h.map((x) => x.value_weighted), showSymbol: false, lineStyle: { width: 2, color: C().series[2] }, itemStyle: { color: C().series[2] } },
-      ],
-    });
+    comps();
 
     // ---------------- sources
     const S = D.sources || {};
@@ -515,15 +504,16 @@
       ["Marge EBIT cible", F.pct(I.ebit_margin_target, 1), "hypothèse"], ["D&A / CA", F.pct(I.d_and_a_pct_revenue, 2), S.d_and_a_pct_revenue],
       ["Capex / CA", F.pct(I.capex_pct_revenue, 2), S.capex_pct_revenue], ...(I.capex_pct_revenue_target != null ? [["Capex / CA cible (en " + I.capex_years_to_target + " ans)", F.pct(I.capex_pct_revenue_target, 2), S.capex_pct_revenue_target]] : []), ["BFR / CA additionnel", F.pct(I.nwc_pct_incremental_revenue, 1), "hypothèse"],
       ["Taux d'impôt", F.pct(I.tax_rate, 1), "hypothèse"], ["Croissance terminale", F.pct(I.terminal_growth, 2), "hypothèse"],
+      ["Croissance du CA, années 1 à " + n, T.isNum(base.implied) ? F.pct(base.implied, 1) : I.revenue_growth.map((x) => F.pct(x, 0)).join(" · "), T.isNum(base.implied) ? "celle qui justifie le cours actuel" : "hypothèse"],
       ["Taux sans risque", F.pct(I.wacc_detail.risk_free, 2), S.risk_free], ["Bêta", F.n(I.wacc_detail.beta, 2), S.beta],
       ["Prime de risque actions", F.pct(I.wacc_detail.equity_risk_premium, 2), "hypothèse"],
       ["Poids de la dette", F.pct(I.wacc_detail.debt_weight, 2), S.debt_weight], ["Trésorerie + placements", F.usd(I.cash), "données (dernier bilan)"],
       ["Participations en actions", F.usd(I.investments), S.investments],
       ["Dette financière (y c. location-financement)", F.usd(I.debt), "données (dernier bilan)"], ["Intérêts minoritaires", F.usd(I.minority || 0), S.minority || "aucun"], ["Nombre d'actions", F.n(I.shares / 1e9, 3) + " Md", "SEC (page de garde du dernier dépôt)"],
     ];
-    T.$("#srcs").innerHTML = `<table class="t"><thead><tr><th>Paramètre</th><th class="n">Valeur</th><th>Source</th></tr></thead><tbody>
+    T.$("#srcs").innerHTML = `<table class="t"><thead><tr><th>Paramètre</th><th class="n">Valeur de départ</th><th>Source</th></tr></thead><tbody>
       ${rowsSrc.map(([a, b, c]) => `<tr><td>${a}</td><td class="n">${b}</td><td><span class="src-tag ${/hypoth/.test(c || "") ? "" : "auto"}">${T.esc(c || "-")}</span></td></tr>`).join("")}</tbody></table>
-      <p class="note">${T.esc(D.result.terminal_method || "")} · convention mi-année : ${I.mid_year ? "oui" : "non"}.</p>`;
+      <p class="note">Les lignes marquées « hypothèse » sont des valeurs de départ neutres, pas une opinion : elles sont toutes réglables ci-dessus. Convention mi-année : ${I.mid_year ? "oui" : "non"}.</p>`;
   }
 
   // ================================================================== Secteur

@@ -75,10 +75,10 @@
         <td><b>${t.ticker}</b> <span class="muted">${T.esc(t.name)}</span></td>
         <td class="n">${F.px(t.price)}</td>
         <td class="n ${T.cls(t.chg_1d)}">${F.pct(t.chg_1d, 2, true)}</td>
+        <td class="n ${T.cls(t.r_1y)}">${F.pct(t.r_1y, 0, true)}</td>
         <td class="n">${F.usd(t.market_cap)}</td>
-        <td class="n">${F.px(t.value_base)}${t.method === "rnpv" ? ' <span class="tag" title="Valeur par la rNPV du portefeuille de médicaments">rNPV</span>' : ""}</td>
-        <td class="n">${F.px(t.value_weighted)}</td>
-        <td class="n ${T.cls(t.upside_weighted)}"><b>${F.pct(t.upside_weighted, 1, true)}</b></td>
+        <td class="n">${F.x(t.ev_sales)}</td>
+        <td class="n">${F.x(t.pe)}</td>
         <td style="width:140px">${T.spark(t.spark, 140, 24)}</td>
         <td class="muted">${T.esc(t.latest_period || "")}</td></tr>`).join("");
     const benches = Object.entries(u.benchmarks || {}).map(([k, b]) => `
@@ -93,15 +93,15 @@
           <div class="s">${T.esc(rf ? rf.source : "")}${rf && rf.as_of ? " · " + F.date(rf.as_of) : ""}</div></div></div>
       <div class="grid g-main">
         <div class="stack">
-          <div class="panel"><h3>Valeurs suivies <span class="hint">potentiel = valeur pondérée (scénarios DCF, ou rNPV pour les biotechs) vs cours</span></h3>
+          <div class="panel"><h3>Valeurs suivies <span class="hint">multiples sur 12 mois glissants · clic sur une ligne pour ouvrir la fiche</span></h3>
             <div class="tbl-wrap"><table class="t" id="wlTable"><thead><tr><th>Valeur</th><th class="n">Cours</th><th class="n">1 j</th>
-              <th class="n">Capi.</th><th class="n">Valeur base</th><th class="n">Valeur pondérée</th><th class="n">Potentiel</th><th>60 j</th><th>Dernier trim.</th></tr></thead>
+              <th class="n">1 an</th><th class="n">Capi.</th><th class="n">VE/CA</th><th class="n">P/E</th><th>60 j</th><th>Dernier trim.</th></tr></thead>
               <tbody>${rows}</tbody></table></div></div>
           <div class="panel"><h3>Comment ça marche</h3>
             <div class="grid g3">
               <div><b>1 · Données</b><p class="sec" style="margin:6px 0 0">Chaque jour ouvré, GitHub Actions récupère les états financiers XBRL (SEC) et les cours, puis recalcule tout.</p></div>
-              <div><b>2 · Tes hypothèses</b><p class="sec" style="margin:6px 0 0">Le modèle lit <code>config/assumptions/&lt;TICKER&gt;.yaml</code>. Modifie-le sur GitHub : le site se recalcule.</p></div>
-              <div><b>3 · Le feed</b><p class="sec" style="margin:6px 0 0">Nouvelle publication ou valeur qui bouge → un événement, avec la décomposition données / hypothèses / marché.</p></div>
+              <div><b>2 · Ton modèle</b><p class="sec" style="margin:6px 0 0">Archer ne publie pas d'objectif de cours. Dans l'onglet Valorisation de chaque fiche, un calculateur DCF part de ce que le cours suppose : à toi de régler les hypothèses.</p></div>
+              <div><b>3 · Le feed</b><p class="sec" style="margin:6px 0 0">Nouvelle publication, séance à plus de 5 %, catalyseur biotech, résultat d'une prédiction : un événement daté.</p></div>
             </div></div>
         </div>
         <div class="stack">
@@ -121,7 +121,7 @@
     const types = [...new Set(ev.map((e) => e.type))];
     const tks = [...new Set(ev.map((e) => e.ticker))];
     const st = { type: null, tk: null };
-    view.innerHTML = `<div class="thead"><div class="id"><h1>Feed</h1><div class="sub">${ev.length} événement(s) · publications, réévaluations, mouvements</div></div></div>
+    view.innerHTML = `<div class="thead"><div class="id"><h1>Feed</h1><div class="sub">${ev.length} événement(s) · publications, mouvements de cours, catalyseurs</div></div></div>
       <div class="panel"><div class="row" id="filters" style="margin-bottom:8px">
         ${types.map((t) => `<button class="chip" data-type="${t}">${ICON[t] || ""} ${TYPE_LABEL[t] || t}</button>`).join("")}
         <span class="spacer"></span>${tks.map((t) => `<button class="chip" data-tk="${t}">${t}</button>`).join("")}</div>
@@ -163,8 +163,10 @@
           <li>une même période apparaît dans plusieurs dépôts → on garde la valeur <b>la plus récemment déposée</b> (retraitements) ;</li>
           <li>les entreprises changent d'étiquette XBRL au fil du temps → chaque ligne a une liste ordonnée d'étiquettes candidates.</li>
         </ul></div>
-      <div class="panel"><h3>DCF (FCFF, deux phases)</h3>
+      <div class="panel"><h3>Calculateur DCF (FCFF, deux phases)</h3>
+        <p class="sec" style="margin-top:0">Archer ne publie <b>aucune valeur DCF</b> : un DCF vaut ce que valent ses hypothèses, et celles d'un modèle automatique ne valent pas grand-chose. L'onglet Valorisation de chaque fiche propose le calcul, à toi de fournir les hypothèses. Ton modèle s'enregistre dans ton navigateur et se recalcule sur les derniers comptes.</p>
         <div class="kv">
+          <div>Point de départ</div><div>la croissance constante du CA qui justifie le cours actuel (DCF inversé), le reste tiré des comptes : marge, D&A, capex, trésorerie, dette, nombre d'actions</div>
           <div>Flux disponible</div><div>EBIT × (1 - t) + D&A - capex - ΔBFR</div>
           <div>Capex</div><div>part constante du CA, ou convergence vers un régime de croisière (amortissements + NOPAT × g / ROIC) quand l'entreprise est en plein cycle d'investissement</div>
           <div>Croissance</div><div>années explicites puis fondu linéaire vers g</div>
@@ -175,7 +177,7 @@
           <div>Bêta</div><div>2 ans hebdo vs SPY, ajusté Blume</div>
           <div>Valeur des fonds propres</div><div>VE + trésorerie & placements + participations - dette (y c. location-financement) - intérêts minoritaires</div>
         </div>
-        <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le DCF reverse cherche la croissance constante qui justifie le cours, toutes autres hypothèses égales.</p></div>
+        <p class="note">La rémunération en actions n'est <b>pas</b> réintégrée : c'est un vrai coût pour l'actionnaire (dilution). Le point de départ n'est pas une opinion : il dit seulement ce qu'il faut croire pour payer le cours actuel, et dépend lui-même des autres hypothèses.</p></div>
       <div class="panel"><h3>Comparables & limites</h3>
         <p class="sec" style="margin-top:0">Multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF) des pairs, médiane appliquée aux agrégats de la valeur suivie. Les multiples négatifs ou absurdes (&gt; 500x) sont exclus.</p>
         <p class="sec"><b>Limite majeure :</b> des multiples <i>passés</i> appliqués à une entreprise en très forte croissance sous-estiment sa valeur. Les comparables bruts ne sont pas ajustés de la croissance : c'est un point de repère, pas un objectif de cours.</p>

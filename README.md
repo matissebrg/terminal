@@ -9,11 +9,11 @@ Première valeur couverte : **NVIDIA (NVDA)**, comparée à AMD, Broadcom, Qualc
 
 | Page | Contenu |
 |---|---|
-| Tableau de bord | valeurs suivies, potentiel vs cours, indices, taux sans risque, feed |
-| Synthèse | cours, verdict du modèle (scénarios), football field, chiffres clés TTM, thèse |
+| Tableau de bord | valeurs suivies (cours, performance, multiples), indices, taux sans risque, feed |
+| Synthèse | cours, multiples face aux pairs, ta valeur si tu as enregistré un modèle, repères de prix, chiffres clés TTM, thèse |
 | États financiers | compte de résultat, bilan, flux - annuel / trimestriel, variations N-1, liens EDGAR, export CSV |
 | Ratios | 25 ratios (rentabilité, rendement du capital, croissance, coûts, bilan, efficacité, allocation) |
-| Valorisation | DCF FCFF + simulateur interactif, scénarios bear/base/bull, sensibilités, DCF reverse, comparables, historique |
+| Valorisation | calculateur DCF personnel (aucune valeur publiée par le site), sensibilités autour de ton modèle, comparables |
 | **Prédictions** | registre de prévisions horodatées par Git, vérifiées automatiquement contre le réel, le consensus, la guidance et un modèle naïf |
 | Options | volatilité implicite (30/90 j, structure par terme, smile), open interest, put/call, choc de résultats implicite vs réactions passées |
 | Secteur | table des pairs, VE/CA vs croissance, marges, CA indexé, performance relative |
@@ -40,9 +40,9 @@ pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.j
                                                           └─ history.json = la « base de données » (un instantané par jour)
 ```
 
-- **`config/assumptions/NVDA.yaml` est ton modèle.** Modifie-le sur GitHub (icône crayon → *Commit*) : le workflow se relance, recalcule, et publie un événement dans le feed si la valeur bouge.
-- Chaque événement de valorisation est **décomposé** : effet des nouvelles données financières, effet de tes hypothèses, effet des paramètres de marché (taux, bêta).
-- Le simulateur de la page *Valorisation* recalcule le DCF dans le navigateur. Bouton *Copier en YAML* → coller dans le fichier d'hypothèses pour le rendre officiel.
+- **Le site ne publie aucune valeur DCF** (depuis le 16 novembre 2026, voir la dernière section). L'onglet *Valorisation* est un calculateur : il part de la croissance qui justifie le cours actuel et chaque visiteur règle ses hypothèses. Son modèle s'enregistre dans son navigateur (`localStorage`, clé `archer-dcf-<TICKER>`) et se recalcule sur les derniers comptes.
+- `config/assumptions/<TICKER>.yaml` garde la thèse, les pairs, les valeurs de départ du calculateur (bloc `dcf:`) et, pour les biotechs, le modèle rNPV et les catalyseurs. Modifie-le sur GitHub (icône crayon → *Commit*) : le workflow se relance.
+- Pour les biotechs, chaque variation de la rNPV est **décomposée** dans le feed : effet des nouvelles données financières, effet de tes hypothèses, effet des paramètres de marché.
 
 ## Prédictions : s'entraîner à prévoir
 
@@ -120,7 +120,8 @@ un bloc `rnpv:`, `catalysts:` ou `trials:`) et page **Biotech** du menu (calendr
   = flux (montée vers le pic de ventes, plateau, chute après la perte d'exclusivité, marge, impôt, coûts de
   développement restants) × probabilité d'arriver sur le marché, actualisés ; + trésorerie nette - frais centraux.
   Probabilités par défaut : taux historiques de passage de phase par aire thérapeutique (BIO, Informa, QLS,
-  2011-2020). Avec `primary: true`, la rNPV remplace le DCF comme valeur affichée (BBIO).
+  2011-2020). Avec `primary: true`, la rNPV est la valeur affichée en tête de fiche (BBIO) : c'est la seule valeur
+  que le site publie lui-même.
 - **Catalyseurs** : date, type (PDUFA, résultats, comité...), programme lié. Calculés : saut du cours en cas de
   succès / d'échec, probabilité impliquée par le cours, mouvement anticipé par les options (volatilité ordinaire
   retirée via l'échéance précédente), comparaison au mouvement attendu par le modèle. Une fois l'événement passé,
@@ -132,8 +133,8 @@ un bloc `rnpv:`, `catalysts:` ou `trials:`) et page **Biotech** du menu (calendr
 
 Modèle de bloc : `config/assumptions/BBIO.yaml`. Les pics de ventes y sont des hypothèses de départ à retravailler.
 
-- **Biotechs sans chiffre d'affaires** (stade clinique) : acceptées par « Ajouter une valeur ». Le DCF vaut alors la
-  trésorerie nette et la valeur affichée vient du bloc `rnpv:` à ajouter (le workflow le rappelle en avertissement).
+- **Biotechs sans chiffre d'affaires** (stade clinique) : acceptées par « Ajouter une valeur ». Le calculateur DCF n'est
+  pas proposé (pas de chiffre d'affaires) et la valeur affichée vient du bloc `rnpv:` à ajouter (le workflow le rappelle en avertissement).
 - **Autonomie financière** : trésorerie / consommation moyenne des 4 derniers trimestres.
 - **Bilan des catalyseurs passés** : la veille de chaque événement, probabilités, sauts attendus et mouvement des
   options sont figés (`docs/data/<T>/catalyst_history.json`) ; après, le site affiche la réaction réelle du cours.
@@ -147,11 +148,12 @@ retraitements → valeur la plus récemment déposée ; changements d'étiquette
 exercices de 52/53 semaines → tolérance sur les dates. Toutes les lignes sont converties dans un **schéma canonique interne**
 (`revenue`, `operating_income`, `fcf`…) : c'est ce qui permettra d'ajouter plus tard des sources IFRS/ESEF (Europe).
 
-**DCF** (`pipeline/valuation.py`, jumeau JS `docs/assets/dcf.js`) - FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR ;
+**Calculateur DCF** (`docs/assets/dcf.js` et `docs/assets/my-dcf.js` ; `pipeline/valuation.py` en est le jumeau Python et
+ne sert plus qu'à préparer les chiffres de départ et aux tests de parité) - FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR ;
 croissance explicite puis fondu linéaire vers g ; marge qui converge vers une cible ; valeur terminale de Gordon (option :
 réinvestissement = g / ROIC terminal) ; convention mi-année ; WACC CAPM (rf FRED, bêta 2 ans hebdo vs SPY ajusté Blume,
-écarté si R² < 0,05). La rémunération en actions n'est pas réintégrée (c'est un coût réel). DCF reverse : croissance constante
-qui justifie le cours.
+écarté si R² < 0,05). La rémunération en actions n'est pas réintégrée (c'est un coût réel). DCF inversé : croissance constante
+qui justifie le cours, utilisée comme point de départ du calculateur.
 
 **Prédictions** (`pipeline/predictions.py`) - date de publication = premier 8-K 2.02 / 10-Q / 10-K déposé après la fin de
 période ; date limite = 00:00 New York ce jour-là (prudent : impossible de compter une prévision faite après les chiffres) ;
@@ -174,7 +176,7 @@ Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 151 tests (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
+python -m pytest -q                                   # 198 tests, dont 41 demandent une base (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
 
 # Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
 python tests/fixtures/make_fixtures.py
@@ -249,3 +251,43 @@ Outil personnel d'étude - pas un conseil en investissement.
   Un tableau des valeurs accompagne le dessin.
 - **Transition partagée** (`fx.js`) : en cliquant une valeur de la liste de gauche, son cours traverse l'écran jusqu'à
   l'en-tête de la fiche.
+
+## Retrait du DCF maison (16 novembre 2026)
+
+Le site ne publie plus de valeur DCF ni de modèle DCF. Un modèle automatique donnait des valeurs très éloignées
+des cours (Walmart 54 $ pour un cours de 128 $, Alphabet 119 $ pour 295 $) et produisait chaque jour des
+événements « valeur DCF -1,4 % » sans information. Un DCF vaut ce que valent ses hypothèses : elles reviennent
+à celui qui lit.
+
+**Retiré** : la tuile « Valeur pondérée (scénarios) » et « DCF scénario base » en tête de fiche, le panneau
+« Verdict du modèle », les scénarios bear / base / bull, les colonnes « Valeur base / Valeur pondérée / Potentiel »
+du tableau de bord, l'indicateur « Potentiel DCF pondéré » des portefeuilles, la fourchette de scénarios de la page
+de présentation, l'historique « valeur vs cours », les événements de réévaluation DCF du feed (49 anciens
+événements supprimés) et les boutons « Copier en YAML / Enregistrer sur GitHub ».
+
+**À la place** :
+
+- **Onglet Valorisation = « Ton modèle DCF »** (`docs/assets/my-dcf.js`, testé par `tests/js/my_dcf.test.js`).
+  Le point de départ est le cours lui-même : la croissance constante du chiffre d'affaires qui le justifie
+  (DCF inversé), toutes les autres entrées venant des comptes. L'écart avec le cours n'apparaît que lorsque le
+  visiteur déplace un curseur. *Enregistrer* garde les valeurs des curseurs dans le navigateur ; chiffre
+  d'affaires, trésorerie, dette et nombre d'actions viennent toujours des dernières données, donc le modèle suit
+  les nouvelles publications. Les deux tables de sensibilité sont calculées dans le navigateur autour de ce modèle
+  (parité avec `valuation.sensitivity` vérifiée par `tests/test_dcf_parity.py`).
+- **En tête de fiche et en synthèse** : « Ta valeur (ton DCF) » si un modèle est enregistré, sinon une invitation
+  à le construire. S'ajoutent une tuile « Croissance du CA (TTM) » et le tableau des multiples face aux pairs.
+- **Tableau de bord** : colonnes 1 an, VE/CA, P/E à la place des trois colonnes de valeur.
+- **Page de présentation** : un curseur du calculateur, en direct (« le cours suppose 18,9 % par an. Et toi ? »).
+- **Pipeline** : `valuation.json` ne contient plus que les entrées du calculateur (`dcf.inputs`, `dcf.sources`),
+  les comparables et les repères de prix. `universe.json` perd `value_base`, `value_weighted`, `upside`,
+  `upside_weighted` et gagne `r_1y`, `pe`, `ev_sales`. `feed.py` ne crée d'événements de valorisation et de
+  franchissement que pour les rNPV.
+
+**Conservé, à trancher** : la rNPV des biotechs (seule valeur encore publiée par le site, avec des pics de ventes
+qui restent des hypothèses de départ), et la valeur implicite des comparables (« Comparables (médiane) »), qui est
+un repère de marché mais souffre du même défaut mécanique pour les sociétés en forte croissance. Les blocs
+`scenarios:` des fichiers d'hypothèses ne sont plus lus.
+
+**Limites** : le modèle personnel vit dans un seul navigateur (pas de synchronisation avec le compte membre). Le
+point de départ dépend lui-même des entrées tirées des comptes : pour Walmart, « le cours suppose 17 % de
+croissance par an » dit surtout que la marge et le coût du capital de départ sont à régler.

@@ -1,26 +1,31 @@
-"""Event feed + valuation history (the 'database' of the terminal).
+"""Event feed + history (the 'database' of the terminal).
 
 Every run appends a dated snapshot to docs/data/<T>/history.json. Comparing the
 new snapshot with the previous one produces feed events:
 
   * filing     - a new 10-K / 10-Q / results 8-K appeared on EDGAR
-  * valuation  - the DCF value moved, with a bridge explaining *why*:
+  * price      - a daily move of ±5 % or more
+  * coverage   - first run for a ticker
+  * valuation  - biotechs only: the pipeline rNPV moved, with a bridge explaining *why*:
                    data effect        new financials, same assumptions, same market inputs
                    assumption effect  you edited config/assumptions/<T>.yaml
-                   market effect      risk-free rate, beta, market-weighted cost of capital
-  * price      - a daily move of ±5 % or more
-  * cross      - the price crossed the DCF value (upside changed sign)
-  * coverage   - first run for a ticker
+                   market effect      share count, price
+  * cross      - biotechs only: the price crossed the rNPV (upside changed sign)
+
+The site publishes no DCF value (each visitor builds their own in the browser), so a company without a
+primary rNPV model has no valuation or cross event. Events of that kind written by earlier versions are
+removed from the feed by merge_feed.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-VALUE_EVENT_THRESHOLD = 0.01        # 1 % move in DCF value -> event
+VALUE_EVENT_THRESHOLD = 0.01        # 1 % move in rNPV -> event
 VALUE_EVENT_THRESHOLD_CAUSED = 0.001  # when a filing or an assumption edit explains it
 PRICE_EVENT_THRESHOLD = 0.05
 
@@ -66,9 +71,9 @@ def rel_change(v0: float, v1: float) -> float:
 
 def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings: list[dict],
            perf: dict, recompute: Callable[[dict, dict], float | None], ts: str | None = None) -> list[dict]:
-    """snapshot: {price, value_base, value_weighted, assumptions, assumptions_hash, market,
-                  data_asof, latest_period}
-    recompute(assumptions, market) -> value per share using the *current* financials."""
+    """snapshot: {price, value_base, value_weighted, method, assumptions, assumptions_hash, market,
+                  data_asof, latest_period}. value_base is the rNPV per share when method == "rnpv", else None.
+    recompute(assumptions, market) -> rNPV per share using the *current* financials."""
     store = load_json(hist_path, {"snapshots": [], "seen_filings": []})
     snaps = store["snapshots"]
     seen = set(store.get("seen_filings", []))
@@ -80,9 +85,8 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
         events.append({
             "id": _eid(ticker, "coverage", today), "date": today, "ts": ts, "ticker": ticker, "type": "coverage",
             "title": f"{ticker} : couverture initiée",
-            "detail": "Premier calcul de valorisation à partir des données SEC.",
-            "values": {"price": snapshot["price"], "value_base": snapshot["value_base"],
-                       "value_weighted": snapshot["value_weighted"]},
+            "detail": "Premiers comptes reconstruits à partir des données SEC.",
+            "values": {"price": snapshot["price"]},
         })
 
     # ---- new filings (on the first run, just mark everything as seen)
@@ -104,23 +108,23 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
             })
     seen |= {f["accession"] for f in filings}
 
-    # ---- valuation change + bridge
-    if prev and prev.get("value_base") and snapshot.get("value_base"):
-        v0, v3 = prev["value_base"], snapshot["value_base"]
+    # ---- rNPV change + bridge (biotechs with a primary rNPV model only)
+    label = "rNPV"
+    v3 = snapshot.get("value_base") if snapshot.get("method") == "rnpv" else None
+    v0 = prev.get("value_base") if prev and prev.get("method") == "rnpv" else None
+    if v3 and prev and not v0:
+        events.append({
+            "id": _eid(ticker, "valuation", today), "date": today, "ts": ts, "ticker": ticker, "type": "valuation",
+            "title": f"{ticker} : modèle {label} publié ({fr(v3)} $ par action)",
+            "detail": (f"Cours {fr(snapshot['price'])} $, potentiel {frp(v3 / snapshot['price'] - 1)}."
+                       if snapshot.get("price") else ""),
+            "bridge": [], "values": {"to": v3, "price": snapshot.get("price"), "method": label},
+        })
+    elif v3 and v0:
         chg = rel_change(v0, v3)
         assump_changed = prev.get("assumptions_hash") != snapshot["assumptions_hash"]
         threshold = VALUE_EVENT_THRESHOLD_CAUSED if (filing_caused or assump_changed) else VALUE_EVENT_THRESHOLD
-        label = "rNPV" if snapshot.get("method") == "rnpv" else "DCF"
-        switched = (prev.get("method") or "dcf") != (snapshot.get("method") or "dcf")
-        if switched:
-            events.append({
-                "id": _eid(ticker, "valuation", today), "date": today, "ts": ts, "ticker": ticker, "type": "valuation",
-                "title": f"{ticker} : valorisation passée en {label} ({fr(v3)} $ par action)",
-                "detail": (f"Changement de méthode (avant : {fr(v0)} $). Cours {fr(snapshot['price'])} $, potentiel "
-                           f"{frp(v3 / snapshot['price'] - 1)}.") if snapshot.get("price") else "Changement de méthode.",
-                "bridge": [], "values": {"from": v0, "to": v3, "change": chg, "price": snapshot.get("price"), "method": label},
-            })
-        elif abs(chg) >= threshold:
+        if abs(chg) >= threshold:
             prev_market = {**prev["market"], "shares": snapshot["market"]["shares"]}
             v1 = recompute(prev["assumptions"], prev_market)          # new data only
             v2 = recompute(snapshot["assumptions"], prev_market)      # + new assumptions
@@ -129,7 +133,7 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
                 bridge = [
                     {"label": "Nouvelles données financières", "delta": v1 - v0},
                     {"label": "Hypothèses modifiées", "delta": v2 - v1},
-                    {"label": "Paramètres de marché (taux sans risque, bêta, poids)", "delta": v3 - v2},
+                    {"label": "Paramètres de marché (nombre d'actions, cours)", "delta": v3 - v2},
                 ]
             main = max(bridge, key=lambda b: abs(b["delta"]))["label"] if bridge else "-"
             events.append({
@@ -139,22 +143,22 @@ def update(*, ticker: str, today: str, hist_path: Path, snapshot: dict, filings:
                 "title": f"{ticker} : valeur {label} {fr(v0)} $ → {fr(v3)} $ ({frp(chg)})",
                 "detail": (f"Moteur principal : {main}. Cours {fr(snapshot['price'])} $, potentiel "
                            f"{frp(v3 / snapshot['price'] - 1)}.") if snapshot.get("price") and v3 > 0 else
-                (f"Valeur {label} négative : le modèle ne capte pas cette société (pré-rentable ?)." if v3 <= 0 else ""),
+                (f"Valeur {label} négative : la trésorerie ne couvre pas les coûts prévus." if v3 <= 0 else ""),
                 "bridge": [{**b, "delta": round(b["delta"], 4)} for b in bridge],
-                "values": {"from": v0, "to": v3, "change": chg, "price": snapshot.get("price")},
+                "values": {"from": v0, "to": v3, "change": chg, "price": snapshot.get("price"), "method": label},
             })
 
-        # price crossing the value
-        if prev.get("price") and snapshot.get("price") and not switched:
-            up_prev = prev["value_base"] - prev["price"]
-            up_now = snapshot["value_base"] - snapshot["price"]
+        # price crossing the rNPV
+        if prev.get("price") and snapshot.get("price"):
+            up_prev = v0 - prev["price"]
+            up_now = v3 - snapshot["price"]
             if up_prev * up_now < 0:
                 above = up_now < 0
                 events.append({
                     "id": _eid(ticker, "cross", today), "date": today, "ts": ts, "ticker": ticker, "type": "cross",
                     "title": f"{ticker} : le cours passe {'au-dessus' if above else 'en dessous'} de la valeur {label}",
-                    "detail": f"Cours {fr(snapshot['price'])} $ vs valeur {label} {fr(snapshot['value_base'])} $.",
-                    "values": {"price": snapshot["price"], "value": snapshot["value_base"]},
+                    "detail": f"Cours {fr(snapshot['price'])} $ vs valeur {label} {fr(v3)} $.",
+                    "values": {"price": snapshot["price"], "value": v3},
                 })
 
     # ---- big daily move
@@ -198,7 +202,7 @@ def merge_feed(feed_path: Path, new_events: list[dict], cap: int = 400,
             continue
         keep_old.append(e)
     ids = {e["id"] for e in keep_old}
-    feed = keep_old + [e for e in new_events if e["id"] not in ids]
+    feed = drop_house_dcf(keep_old + [e for e in new_events if e["id"] not in ids])
     feed = dedupe_same_day_valuations(feed, _snapshot_values(feed_path.parent, feed))
     feed.sort(key=sort_key, reverse=True)
     feed = feed[:cap]
@@ -207,8 +211,27 @@ def merge_feed(feed_path: Path, new_events: list[dict], cap: int = 400,
     return feed
 
 
+def drop_house_dcf(feed: list[dict]) -> list[dict]:
+    """The site no longer publishes a DCF value: remove the DCF revaluation and crossing events written by
+    earlier versions (rNPV ones stay), and the value attached to old coverage events."""
+    out = []
+    for e in feed:
+        if e.get("type") in ("valuation", "cross") and "rNPV" not in (e.get("title") or ""):
+            continue
+        if e.get("type") == "valuation" and "valorisation passée en rNPV" in (e.get("title") or ""):
+            # the switch from the house DCF to the rNPV quoted the old DCF value
+            e = {**e, "title": e["title"].replace("valorisation passée en rNPV", "modèle rNPV publié"),
+                 "detail": re.sub(r"^Changement de méthode(?: \(avant : [^)]*\))?\.\s*", "", e.get("detail") or ""),
+                 "values": {k: v for k, v in (e.get("values") or {}).items() if k not in ("from", "change")}}
+        if e.get("type") == "coverage" and "value_base" in (e.get("values") or {}):
+            e = {**e, "detail": "Premiers comptes reconstruits à partir des données SEC.",
+                 "values": {k: v for k, v in e["values"].items() if k not in ("value_base", "value_weighted")}}
+        out.append(e)
+    return out
+
+
 def _snapshot_values(data_dir: Path, feed: list[dict]) -> dict[tuple, float]:
-    """{(ticker, date): base DCF value kept in history.json} - the value that day ended with."""
+    """{(ticker, date): rNPV kept in history.json} - the value that day ended with."""
     out = {}
     for tk in {e["ticker"] for e in feed if e.get("type") == "valuation"}:
         for snp in load_json(data_dir / tk / "history.json", {"snapshots": []}).get("snapshots", []):
@@ -244,6 +267,6 @@ def dedupe_same_day_valuations(feed: list[dict], final: dict | None = None) -> l
             if v["from"] < 0 and v.get("to") is not None:
                 chg = rel_change(v["from"], v["to"])
                 e = {**e, "values": {**v, "change": chg},
-                     "title": f"{e['ticker']} : valeur DCF {fr(v['from'])} $ → {fr(v['to'])} $ ({frp(chg)})"}
+                     "title": f"{e['ticker']} : valeur rNPV {fr(v['from'])} $ → {fr(v['to'])} $ ({frp(chg)})"}
         out.append(e)
     return out

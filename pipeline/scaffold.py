@@ -13,8 +13,9 @@ What it does
      - working capital: operating NWC / revenue of the last fiscal year (negative for retailers
        paid by customers before they pay suppliers)
      - bull / bear: growth ±3 pts and margin ±15 % of its size (better / worse, also when negative)
-   These are deliberately mechanical: they describe the past, not a view. Writing the view
-   (thesis, growth, margins, scenarios, guidance) is the exercise.
+   These are deliberately mechanical: they describe the past, not a view. The site publishes no DCF
+   value: they are only the starting figures of the calculator each visitor adjusts in the browser
+   (the scenarios block is written for reference and no longer read by the site).
 3. Writes config/assumptions/<TICKER>.yaml (never overwrites an existing file without --force)
    and adds the stock, its peers and their SEC identifiers to config/universe.yaml, keeping the
    comments of that file.
@@ -389,7 +390,7 @@ def scaffold(ticker: str, peers: list[str], src, root: Path = ROOT, sector: str 
         raise SystemExit(f"{ticker} : états financiers XBRL inexploitables (aucun trimestre reconstruit).")
     pre_revenue = not (fin["ttm"].get("revenue") or 0) > 0
     if pre_revenue:
-        print(f"::warning title={ticker} pré-commercial::pas de chiffre d'affaires : le DCF vaut la trésorerie nette ; "
+        print(f"::warning title={ticker} pré-commercial::pas de chiffre d'affaires : le calculateur DCF n'est pas proposé ; "
               f"ajoute un bloc rnpv: (programmes, probabilités, pics de ventes) dans config/assumptions/{ticker}.yaml "
               f"(modèle : BBIO.yaml)")
 

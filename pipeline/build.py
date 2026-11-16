@@ -339,15 +339,13 @@ def run(src, only: list[str] | None = None) -> int:
             b = market.beta(bars, bench_bars.get(universe.get("beta_benchmark", "SPY"), []))
             mkt = {"price": price, "shares": shares, "mcap": mcap, "rf": list(rf), "beta": b}
 
-            # Pre-revenue companies (clinical-stage biotechs): the DCF of today's business is its net cash
-            # (revenue 0); their value comes from the rNPV block.
+            # The site publishes no DCF value: only the *inputs* of the calculator of the Valorisation tab
+            # (starting figures read from the accounts), which each visitor turns into their own model in the
+            # browser. Pre-revenue companies (clinical-stage biotechs) get revenue 0: no DCF, their value
+            # comes from the rNPV block.
             pre_revenue = not (fin["ttm"].get("revenue") or 0) > 0
             fin_v = {**fin, "ttm": {**fin["ttm"], "revenue": 0.0}} if pre_revenue else fin
             resolved = valuation.resolve(assump, fin_v, mkt)
-            base = valuation.dcf(resolved)
-            sens = valuation.sensitivity(resolved)
-            rev_dcf = valuation.reverse_dcf(resolved)
-            scen = valuation.scenarios(assump, fin_v, mkt)
 
             # ---- comparables
             target_snap = valuation.company_snapshot(t, cfg["name"], fin, price, shares)
@@ -445,9 +443,9 @@ def run(src, only: list[str] | None = None) -> int:
                 biotech_all[t] = bio
             use_rnpv = bool(bio and bio.get("rnpv") and bio["rnpv"].get("primary") and bio["rnpv"].get("value_per_share") is not None)
 
-            # ---- history, feed, bridge
-            value_base = bio["rnpv"]["value_per_share"] if use_rnpv else base["value_per_share"]
-            value_weighted = value_base if use_rnpv else scen["weighted_value_per_share"]
+            # ---- history, feed, bridge. The only value the site publishes is the pipeline rNPV of a biotech.
+            value = bio["rnpv"]["value_per_share"] if use_rnpv else None
+            method = "rnpv" if use_rnpv else None
 
             def recompute(a, m):
                 try:
@@ -455,14 +453,13 @@ def run(src, only: list[str] | None = None) -> int:
                         nc, _ = biotech.net_cash_from(fin, a["rnpv"])
                         return rnpv.value(a["rnpv"], net_cash=nc, shares=m.get("shares"), price=m.get("price"),
                                           valuation_date=date.fromisoformat(today))["value_per_share"]
-                    return valuation.dcf(valuation.resolve(a, fin_v, m))["value_per_share"]
                 except Exception:  # noqa: BLE001
-                    return None
+                    pass
+                return None
 
             snapshot = {
-                "price": price, "value_base": value_base, "value_weighted": value_weighted, "method": "rnpv" if use_rnpv else "dcf",
+                "price": price, "value_base": value, "value_weighted": value, "method": method,
                 "comps_median": (comp.get("implied_summary") or {}).get("median"),
-                "scenarios": {k: v["value_per_share"] for k, v in scen["cases"].items()},
                 "wacc": resolved["wacc"], "assumptions": assump,
                 "assumptions_hash": feed.assumptions_hash(assump), "market": mkt,
                 "latest_period": fin["periods"]["quarterly"][-1]["label"] if fin["periods"]["quarterly"] else None,
@@ -470,7 +467,6 @@ def run(src, only: list[str] | None = None) -> int:
             events = feed.update(ticker=t, today=today, hist_path=OUT / t / "history.json",
                                  snapshot=snapshot, filings=filings, perf=perf, recompute=recompute)
             all_events += events
-            hist = feed.load_json(OUT / t / "history.json", {"snapshots": []})["snapshots"]
 
             # ---- write site data
             write(OUT / t / "company.json", {
@@ -490,28 +486,22 @@ def run(src, only: list[str] | None = None) -> int:
                                             "benchmark_names": universe.get("benchmarks", {})})
             write(OUT / t / "valuation.json", {
                 "meta": meta, "ticker": t, "price": price,
+                # calculator inputs only (docs/assets/my-dcf.js): no result, no scenarios, no sensitivity
                 "dcf": {"inputs": {k: v for k, v in resolved.items() if not k.startswith("_")},
-                        "sources": resolved["_sources"], "result": base, "growth_path": valuation.growth_path(resolved)},
-                "sensitivity": sens, "reverse_dcf": rev_dcf, "scenarios": scen,
+                        "sources": resolved["_sources"]},
                 "comps": comp, "target": target_snap,
                 "assumptions_raw": assump,
-                "football_field": _football(base, scen, sens, comp, perf),
-                "history": [{"date": s["date"], "price": s.get("price"), "value_base": s.get("value_base"),
-                             "value_weighted": s.get("value_weighted"), "comps_median": s.get("comps_median")}
-                            for s in hist],
+                "football_field": _football(comp, perf),
             })
             write(OUT / t / "peers.json", {"meta": meta, "target": {**target_snap,
                                                                     "quarterly": peer_quarterly(fin)},
                                            "peers": peers_out})
             index.append({"ticker": t, "name": cfg["name"], "sector": cfg.get("sector"), "price": price,
-                          "chg_1d": perf.get("chg_1d"), "market_cap": mcap, "value_base": value_base,
-                          "value_weighted": value_weighted, "method": "rnpv" if use_rnpv else "dcf",
-                          "family": (universe.get("families") or {}).get(t),
-                          "upside": (value_base / price - 1) if value_base and price else None,
-                          "upside_weighted": (value_weighted / price - 1) if value_weighted and price else None,
+                          "chg_1d": perf.get("chg_1d"), "r_1y": perf.get("r_1y"), "market_cap": mcap,
+                          "pe": target_snap.get("pe"), "ev_sales": target_snap.get("ev_sales"),
+                          "method": method, "family": (universe.get("families") or {}).get(t),
                           "spark": [x["c"] for x in bars[-60:]], "latest_period": snapshot["latest_period"]})
-            print(f"  valeur {'rNPV' if use_rnpv else 'DCF'} {value_base:.2f} $ | pondérée {value_weighted:.2f} $ | "
-                  f"cours {price}")
+            print(f"  cours {price}" + (f" | rNPV {value:.2f} $" if value is not None else ""))
         except Exception as exc:  # noqa: BLE001
             traceback.print_exc()
             status["errors"].append(f"{t}: {exc}")
@@ -588,19 +578,10 @@ def run(src, only: list[str] | None = None) -> int:
     return 0
 
 
-def _football(base, scen, sens, comp, perf):
-    """Ranges for the 'football field' chart (classic banker summary of a valuation)."""
+def _football(comp, perf):
+    """Price markers of the summary page: peer multiples and the 52-week range. No DCF row: the visitor's own
+    model, when there is one, is added in the browser."""
     rows = []
-    cases = scen["cases"]
-    vals = [v["value_per_share"] for v in cases.values() if v.get("value_per_share")]
-    if vals:
-        rows.append({"label": "DCF - scénarios bear → bull", "low": min(vals), "high": max(vals),
-                     "mid": scen["weighted_value_per_share"]})
-    g = sens["wacc_x_g"]["values"]
-    core = [v for row in g[1:6] for v in row[1:4] if v]
-    if core:
-        rows.append({"label": "DCF base - WACC ±1 pt, g ±0,5 pt", "low": min(core), "high": max(core),
-                     "mid": base["value_per_share"]})
     s = comp.get("implied_summary")
     if s:
         rows.append({"label": "Comparables - multiples médians des pairs", "low": s["low"], "high": s["high"],

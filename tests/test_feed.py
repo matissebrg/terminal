@@ -1,10 +1,12 @@
-"""Feed / history: events and the valuation bridge."""
+"""Feed / history: events and the rNPV bridge. The site publishes no DCF value, so only a company valued by
+its pipeline (method "rnpv") gets valuation and crossing events."""
 import json
 from pipeline import feed
 
 
-def snap(value, price=100.0, ahash="a", assumptions=None, market=None):
-    return {"price": price, "value_base": value, "value_weighted": value, "assumptions": assumptions or {"x": 1},
+def snap(value, price=100.0, ahash="a", assumptions=None, market=None, method="rnpv"):
+    return {"price": price, "value_base": value, "value_weighted": value, "method": method,
+            "assumptions": assumptions or {"x": 1},
             "assumptions_hash": ahash, "market": market or {"rf": [0.04, "t", None], "shares": 10},
             "latest_period": "Q1"}
 
@@ -81,9 +83,9 @@ def test_feed_order_and_one_valuation_per_day(tmp_path):
     from pipeline import feed
     p = tmp_path / "feed.json"
     base = {"ticker": "AMZN", "type": "valuation", "date": "2026-10-30", "detail": ""}
-    legacy = [{**base, "id": "a", "title": "x", "values": {"from": 44.05, "to": 14.08}},
-              {**base, "id": "b", "title": "y", "values": {"from": 44.05, "to": 13.80}},
-              {"id": "c", "ticker": "BBIO", "type": "valuation", "date": "2026-10-30", "title": "z", "detail": "",
+    legacy = [{**base, "id": "a", "title": "valeur rNPV x", "values": {"from": 44.05, "to": 14.08}},
+              {**base, "id": "b", "title": "valeur rNPV y", "values": {"from": 44.05, "to": 13.80}},
+              {"id": "c", "ticker": "BBIO", "type": "valuation", "date": "2026-10-30", "title": "valeur rNPV z", "detail": "",
                "values": {"from": -116.06, "to": -141.83, "change": 0.222}},
               {"id": "f", "ticker": "XOM", "type": "filing", "date": "2026-10-30", "ts": "2026-10-30T13:31:00Z", "title": "8-K"},
               {"id": "q", "ticker": "NVDA", "type": "price", "date": "2026-10-30", "ts": "2026-10-30T20:00:00Z", "title": "-5 %"},
@@ -96,7 +98,7 @@ def test_feed_order_and_one_valuation_per_day(tmp_path):
     assert bbio["values"]["change"] < 0 and "-22" in bbio["title"]
     assert [e["id"] for e in out][:2] == ["q", "f"] and out[-1]["id"] == "old"
     # a re-run the same day replaces the valuation event instead of adding one
-    new = {**base, "id": feed._eid("AMZN", "valuation", "2026-10-30"), "ts": "2026-10-30T21:40:00Z", "title": "new",
+    new = {**base, "id": feed._eid("AMZN", "valuation", "2026-10-30"), "ts": "2026-10-30T21:40:00Z", "title": "valeur rNPV new",
            "values": {"from": 44.05, "to": 13.5}}
     out = feed.merge_feed(p, [new])
     out = feed.merge_feed(p, [{**new, "values": {"from": 44.05, "to": 13.4}}])
@@ -110,10 +112,49 @@ def test_rel_change_signed_base():
     assert round(feed.rel_change(100, 120), 3) == 0.2
 
 
-def test_method_switch_is_one_clear_event(tmp_path):
+def test_new_rnpv_model_is_one_clear_event(tmp_path):
     hist = tmp_path / "h.json"
-    feed.update(ticker="X", today="2026-10-30", hist_path=hist, snapshot={**snap(1.0, price=20.0), "method": "dcf"},
-                filings=[], perf={}, recompute=lambda a, m: 1.0)
-    ev = feed.update(ticker="X", today="2026-10-31", hist_path=hist, snapshot={**snap(40.0, price=20.0), "method": "rnpv"},
+    feed.update(ticker="X", today="2026-10-30", hist_path=hist, snapshot=snap(None, price=20.0, method=None),
+                filings=[], perf={}, recompute=lambda a, m: None)
+    ev = feed.update(ticker="X", today="2026-10-31", hist_path=hist, snapshot=snap(40.0, price=20.0),
                      filings=[], perf={}, recompute=lambda a, m: 40.0)
-    assert [e["type"] for e in ev] == ["valuation"] and "passée en rNPV" in ev[0]["title"] and ev[0]["bridge"] == []
+    assert [e["type"] for e in ev] == ["valuation"] and "modèle rNPV publié" in ev[0]["title"] and ev[0]["bridge"] == []
+
+
+def test_no_valuation_event_without_rnpv(tmp_path):
+    """A company without a pipeline model has no published value: nothing to revalue, nothing to cross,
+    even when the previous snapshot still holds a DCF value written by an earlier version."""
+    hist = tmp_path / "h.json"
+    feed.update(ticker="T", today="2026-10-01", hist_path=hist, snapshot=snap(100, price=95, method="dcf"), filings=[],
+                perf={}, recompute=lambda a, m: 100)
+    ev = feed.update(ticker="T", today="2026-10-02", hist_path=hist, snapshot=snap(None, price=106, method=None),
+                     filings=[], perf={"chg_1d": 0.116, "date": "2026-10-02", "last": 106}, recompute=lambda a, m: None)
+    assert [e["type"] for e in ev] == ["price"]
+    ev = feed.update(ticker="T", today="2026-10-03", hist_path=hist, snapshot=snap(None, price=90, method=None),
+                     filings=[], perf={}, recompute=lambda a, m: None)
+    assert ev == []
+    first = feed.update(ticker="N", today="2026-10-03", hist_path=tmp_path / "n.json", snapshot=snap(None, method=None),
+                        filings=[], perf={}, recompute=lambda a, m: None)
+    assert [e["type"] for e in first] == ["coverage"] and first[0]["values"] == {"price": 100.0}
+
+
+def test_merge_feed_drops_house_dcf_events(tmp_path):
+    p = tmp_path / "feed.json"
+    old = [{"id": "1", "ticker": "NVDA", "type": "valuation", "date": "2026-11-14", "title": "NVDA : valeur DCF 143,94 $ → 142,37 $ (-1,1 %)",
+            "values": {"from": 143.94, "to": 142.37}},
+           {"id": "2", "ticker": "NVDA", "type": "cross", "date": "2026-11-13", "title": "NVDA : le cours passe au-dessus de la valeur DCF"},
+           {"id": "3", "ticker": "CAPR", "type": "valuation", "date": "2026-11-11", "title": "CAPR : valeur rNPV 4,16 $ → 3,47 $ (-16,6 %)",
+            "values": {"from": 4.16, "to": 3.47}},
+           {"id": "4", "ticker": "COGT", "type": "cross", "date": "2026-11-10", "title": "COGT : le cours passe en dessous de la valeur rNPV"},
+           {"id": "5", "ticker": "SMMT", "type": "valuation", "date": "2026-10-31", "title": "SMMT : valorisation passée en rNPV (8,11 $ par action)",
+            "detail": "Changement de méthode (avant : 1,02 $). Cours 20,00 $, potentiel -59,5 %.", "values": {"from": 1.02, "to": 8.11, "change": 6.9}},
+           {"id": "6", "ticker": "NVDA", "type": "coverage", "date": "2026-10-28", "title": "NVDA : couverture initiée",
+            "values": {"price": 150.0, "value_base": 140.0, "value_weighted": 141.0}},
+           {"id": "7", "ticker": "NVDA", "type": "filing", "date": "2026-10-29", "title": "NVDA a publié son 10-Q"}]
+    p.write_text(json.dumps({"events": old}))
+    out = {e["id"]: e for e in feed.merge_feed(p, [])}
+    assert sorted(out) == ["3", "4", "5", "6", "7"]
+    assert out["5"]["title"] == "SMMT : modèle rNPV publié (8,11 $ par action)"
+    assert out["5"]["detail"] == "Cours 20,00 $, potentiel -59,5 %." and out["5"]["values"] == {"to": 8.11}
+    assert out["6"]["values"] == {"price": 150.0}
+    assert "DCF" not in json.dumps(list(out.values()), ensure_ascii=False)

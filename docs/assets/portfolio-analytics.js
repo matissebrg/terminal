@@ -99,14 +99,9 @@
     const F = T.fmt, C = () => T.C;
     const st = PA.stats(ctx.values);
     const led = PA.ledger(ctx.trades);
-    const uni = Object.fromEntries(((ctx.universe || {}).tickers || []).map((t) => [t.ticker, t]));
     const book = ctx.rows.filter((r) => r.val > 0);
     const optVal = ctx.orows.reduce((a, r) => a + (r.val || 0), 0);
     const conc = PA.concentration(book.map((r) => r.val));
-    // DCF upside of the covered holdings, weighted by position value
-    const cov = book.filter((r) => uni[r.tk] && T.isNum(uni[r.tk].upside_weighted) && uni[r.tk].value_weighted > 0);
-    const covVal = cov.reduce((a, r) => a + r.val, 0);
-    const upside = covVal ? cov.reduce((a, r) => a + r.val * uni[r.tk].upside_weighted, 0) / covVal : null;
     // sector allocation (cash and options as their own lines)
     const alloc = {};
     book.forEach((r) => { const f = PA.familyLabel((ctx.px[r.tk] || {}).family); alloc[f] = (alloc[f] || 0) + r.val; });
@@ -130,7 +125,7 @@
         ${k("Sharpe" + ind, T.isNum(st.sharpe) ? F.n(st.sharpe, 2) : "-", T.isNum(st.sortino) ? `Sortino ${F.n(st.sortino, 2)}` : "annualisé")}
         ${k("Bêta vs S&P 500" + ind, T.isNum(st.beta) ? F.n(st.beta, 2) : "-", T.isNum(st.corr) ? `corrélation ${F.n(st.corr, 2)}` : "régression des rendements journaliers")}
         ${k("Perte max. (drawdown)", F.pct(st.maxDD, 1), T.isNum(st.curDD) ? `actuel ${F.pct(st.curDD, 1)}` : "", T.cls(st.maxDD))}
-        ${k("Potentiel DCF pondéré", upside != null ? F.pct(upside, 1, true) : "-", covVal ? `${F.pct(covVal / (book.reduce((a, r) => a + r.val, 0) || 1), 0)} du portefeuille couvert` : "aucune valeur couverte", T.cls(upside))}
+        ${k("Liquidités", ctx.total > 0 ? F.pct(ctx.cash / ctx.total, 0) : "-", `${F.usd(ctx.cash)} non investis`)}
         ${k("Lignes effectives", conc.nEff ? F.n(conc.nEff, 1) : "-", conc.top3 != null ? `concentration · top 3 : ${F.pct(conc.top3, 0)} des actions` : "1 / somme des poids²")}
       </div></div>
       <div class="grid g2" style="margin-top:14px">

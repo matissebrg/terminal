@@ -42,3 +42,22 @@ console.log(JSON.stringify({{dcf: D.dcf(r), rev: D.reverseDcf(r)}}));
     rv = V.reverse_dcf(r)
     if rv and rv.get("implied_growth") is not None:
         assert out["rev"]["implied_growth"] == pytest.approx(rv["implied_growth"], abs=1e-9)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="node non installé")
+@pytest.mark.parametrize("r", CASES[:3] + [base_r(ebit_margin_target=0.05), base_r(ebit_margin_target=0.6)])
+def test_js_sensitivity_matches_python(r):
+    """The grids of the Valorisation tab are now computed in the browser (docs/assets/my-dcf.js), around the
+    visitor's own model: same axes and same values as valuation.sensitivity."""
+    script = f"""
+const M = require({json.dumps(str(JS.with_name("my-dcf.js")))});
+console.log(JSON.stringify(M.sensitivity({json.dumps(r)})));
+"""
+    out = json.loads(subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout)
+    py = V.sensitivity(r)
+    for name in ("wacc_x_g", "margin_x_growth"):
+        assert out[name]["rows"] == pytest.approx(py[name]["rows"], abs=1e-12)
+        assert out[name]["cols"] == pytest.approx(py[name]["cols"], abs=1e-12)
+        for a, b in zip(out[name]["values"], py[name]["values"]):
+            assert [x is None for x in a] == [x is None for x in b]
+            assert [x for x in a if x is not None] == pytest.approx([x for x in b if x is not None], rel=1e-12)
