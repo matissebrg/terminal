@@ -1,6 +1,47 @@
 {
  "events": [
   {
+   "id": "6ade3931ca6a",
+   "date": "2026-11-17",
+   "ticker": "NVDA",
+   "type": "filing",
+   "ts": "2026-11-18T02:20:51Z",
+   "title": "NVDA a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-17.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000088/nvda-20261117.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001045810-26-000088"
+   }
+  },
+  {
+   "id": "e3c24cc38dd7",
+   "date": "2026-11-17",
+   "ts": "2026-11-17T21:00:00Z",
+   "ticker": "SMMT",
+   "type": "price",
+   "title": "SMMT -9,7 % sur la séance",
+   "detail": "Clôture à 10,67 $.",
+   "values": {
+    "change": -0.09729272419627755,
+    "close": 10.67
+   }
+  },
+  {
+   "id": "07203b8db969",
+   "date": "2026-11-17",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : résultats publiés sur ClinicalTrials.gov (OPTIMA)",
+   "detail": "Phase 3 · A Study to Assess Safety, Tolerability and Efficacy of Garetosmab Versus Placebo Administered Intravenously (IV) in Adult Participants With Fibrodysplasia Ossificans Progressiva (FOP).",
+   "url": "https://clinicaltrials.gov/study/NCT05394116",
+   "values": {
+    "nct": "NCT05394116",
+    "kind": "results"
+   }
+  },
+  {
    "id": "2541a278fa97",
    "date": "2026-11-16",
    "ts": "2026-11-16T21:00:00Z",
