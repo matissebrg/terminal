@@ -1,6 +1,33 @@
 {
  "events": [
   {
+   "id": "91eda52617c9",
+   "date": "2026-11-18",
+   "ts": "2026-11-18T21:00:00Z",
+   "ticker": "SVRA",
+   "type": "price",
+   "title": "SVRA +5,4 % sur la séance",
+   "detail": "Clôture à 4,72 $.",
+   "values": {
+    "change": 0.05357142857142838,
+    "close": 4.72
+   }
+  },
+  {
+   "id": "dd698929b772",
+   "date": "2026-11-18",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : essai NCT07863024 recrutement en cours",
+   "detail": "Phase 1/Phase 2 · Safety and Efficacy Study in Adults With Advanced Solid Tumors Receiving REGN13089-M404-M2980, an Antibody-drug Conjugate That Targets MET Protein on Tumors (avant : pas encore de recrutement).",
+   "url": "https://clinicaltrials.gov/study/NCT07863024",
+   "values": {
+    "nct": "NCT07863024",
+    "kind": "status"
+   }
+  },
+  {
    "id": "6ade3931ca6a",
    "date": "2026-11-17",
    "ticker": "NVDA",
