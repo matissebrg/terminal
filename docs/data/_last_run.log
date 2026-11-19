@@ -1,143 +1,143 @@
 == NVDA
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.3s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001045810.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000804328.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.0s)
-  cours 150.96
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json (0.1s)
+  cours 145.98
 == WMT
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.4s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000104169.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000909832.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000027419.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000056873.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001531152.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000029534.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json (0.0s)
-  cours 127.36
+  cours 126.04
 == GOOG
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001652044.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.0s)
   [calendrier] GOOG: date Yahoo périmée (2026-10-28), consensus ignoré jusqu'à sa mise à jour
-  cours 279.2
+  cours 271.02
 == XOM
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0002115436.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000034088.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0002115436.json (0.0s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0000034088.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000093410.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.0s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0000034088.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000093410.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001163165.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000821189.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000797468.json (0.0s)
-  cours 160.58
+  cours 158.93
 == AMZN
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001018724.json (0.0s)
   [calendrier] AMZN: date Yahoo périmée (2026-10-29), consensus ignoré jusqu'à sa mise à jour
-  cours 267.74
+  cours 257.37
 == BBIO
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001743881.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001743881.json (0.0s)
     [http] sec 200 https://www.sec.gov/files/company_tickers.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001178670.json (0.5s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001048477.json (0.4s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000873303.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001178670.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001048477.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000873303.json (0.3s)
   [calendrier] BBIO: date Yahoo périmée (2026-10-29), consensus ignoré jusqu'à sa mise à jour
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 78.01 | rNPV 71.66 $
+  cours 78.18 | rNPV 71.66 $
 == REGN
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000872589.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0000872589.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.5s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000318154.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000217410.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.3s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0000872589.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000014272.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000318154.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000217410.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.2s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.7s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 945.53
+  cours 923.34
 == VEEV
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001393052.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001393052.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001108524.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001827090.json (0.2s)
-  cours 277.2
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001393052.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001108524.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001827090.json (0.0s)
+  cours 262.92
 == SMMT
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001599298.json (0.0s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001599298.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000078003.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001599298.json (0.2s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001599298.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000078003.json (0.3s)
   [calendrier] SMMT: date Yahoo périmée (2026-11-04), consensus ignoré jusqu'à sa mise à jour
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  cours 10.5 | rNPV 8.06 $
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
+  cours 10.57 | rNPV 8.06 $
 == CAPR
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001133869.json (0.3s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001133869.json (0.0s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001133869.json (0.2s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001133869.json (0.1s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001818794.json (0.1s)
   [calendrier] CAPR: date Yahoo périmée (2026-11-10), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 8.03 | rNPV 3.49 $
+  cours 7.53 | rNPV 3.49 $
 == SVRA
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001160308.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001160308.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001160308.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001104506.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001104506.json (0.2s)
   [calendrier] SVRA: date Yahoo périmée (2026-11-11), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 4.72 | rNPV 3.95 $
+  cours 5.21 | rNPV 3.95 $
 == COGT
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001622229.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001622229.json (0.1s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001622229.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000939767.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001676725.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000939767.json (0.2s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001676725.json (0.2s)
   [calendrier] COGT: date Yahoo périmée (2026-11-09), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 27.81 | rNPV 32.91 $
+  cours 27.74 | rNPV 32.91 $
 == MLYS
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001933414.json (0.2s)
-    [http] sec 200 https://data.sec.gov/submissions/CIK0001933414.json (0.2s)
+    [http] sec 200 https://data.sec.gov/submissions/CIK0001933414.json (0.1s)
   [calendrier] MLYS: date Yahoo périmée (2026-11-04), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 13.78 | rNPV 42.92 $
+  cours 14.16 | rNPV 42.92 $
 == PRAX
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001689548.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001689548.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001689548.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001582313.json (0.3s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000914475.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001582313.json (0.5s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000914475.json (0.3s)
   [calendrier] PRAX: date Yahoo périmée (2026-11-09), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.0s)
-  cours 305.19 | rNPV 198.96 $
+  cours 310.9 | rNPV 198.96 $
 == AGIO
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001439222.json (0.3s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001439222.json (0.2s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001439222.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000875320.json (0.0s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001070081.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000875320.json (0.4s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001070081.json (0.2s)
   [calendrier] AGIO: date Yahoo périmée (2026-11-05), consensus ignoré jusqu'à sa mise à jour
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-  cours 29.68 | rNPV 52.02 $
-  [membres] {'periods': 105, 'prices': 60, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0, 'partial': 0, 'expired': 0}, 'options': {'quotes': 4865, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 3, 'scored': 3, 'crowd_metrics': 12, 'by_status': {'partial': 2, 'resolved': 1}, 'by_period': {'XOM Q3 FY2026': {'partial': 1}, 'REGN Q3 FY2026': {'resolved': 1, 'partial': 1}}}, 'portfolios': 2, 'catalysts': 16, 'badges': 0}
+  cours 28.76 | rNPV 52.02 $
+  [membres] {'periods': 105, 'prices': 60, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0, 'partial': 0, 'expired': 0}, 'options': {'quotes': 4030, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 4, 'scored': 3, 'crowd_metrics': 12, 'by_status': {'partial': 2, 'resolved': 1}, 'by_period': {'XOM Q3 FY2026': {'partial': 1}, 'REGN Q3 FY2026': {'resolved': 1, 'partial': 1}}}, 'portfolios': 2, 'catalysts': 16, 'badges': 0}

@@ -1,6 +1,73 @@
 {
  "events": [
   {
+   "id": "dcbd932c34bb",
+   "date": "2026-11-19",
+   "ts": "2026-11-19T21:00:00Z",
+   "ticker": "VEEV",
+   "type": "price",
+   "title": "VEEV -5,2 % sur la séance",
+   "detail": "Clôture à 262,92 $.",
+   "values": {
+    "change": -0.0515151515151514,
+    "close": 262.92
+   }
+  },
+  {
+   "id": "5ed6189791c8",
+   "date": "2026-11-19",
+   "ts": "2026-11-19T21:00:00Z",
+   "ticker": "CAPR",
+   "type": "price",
+   "title": "CAPR -6,2 % sur la séance",
+   "detail": "Clôture à 7,53 $.",
+   "values": {
+    "change": -0.06226650062266492,
+    "close": 7.53
+   }
+  },
+  {
+   "id": "5ebb8b4a65ee",
+   "date": "2026-11-19",
+   "ts": "2026-11-19T21:00:00Z",
+   "ticker": "SVRA",
+   "type": "price",
+   "title": "SVRA +10,4 % sur la séance",
+   "detail": "Clôture à 5,21 $.",
+   "values": {
+    "change": 0.10381355932203395,
+    "close": 5.21
+   }
+  },
+  {
+   "id": "354481d1d000",
+   "date": "2026-11-19",
+   "ticker": "WMT",
+   "type": "filing",
+   "ts": "2026-11-19T16:58:52Z",
+   "title": "WMT a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-19.",
+   "url": "https://www.sec.gov/Archives/edgar/data/104169/000010416926000168/wmt-20261119.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0000104169-26-000168"
+   }
+  },
+  {
+   "id": "8699c633dbc3",
+   "date": "2026-11-19",
+   "ticker": "REGN",
+   "type": "trial",
+   "severity": "info",
+   "title": "REGN : résultats publiés sur ClinicalTrials.gov (NATRIX-BNP)",
+   "detail": "Phase 2 · REGN5381 in Adult Participants With Heart Failure With Reduced Ejection Fraction.",
+   "url": "https://clinicaltrials.gov/study/NCT06237309",
+   "values": {
+    "nct": "NCT06237309",
+    "kind": "results"
+   }
+  },
+  {
    "id": "91eda52617c9",
    "date": "2026-11-18",
    "ts": "2026-11-18T21:00:00Z",
