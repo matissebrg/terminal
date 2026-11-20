@@ -12,6 +12,7 @@
   // ================================================================== shell
   T.route(/^\/t\/([A-Za-z.\-]+)(?:\/(\w+))?$/, async (view, tk, tab) => {
     tk = tk.toUpperCase();
+    if (T.soon && T.soon(tk)) { T.renderSoon(view, tk); return; }
     tab = tab || "synthese";
     const [co, val, status, bio] = await Promise.all([T.get(`${tk}/company.json`), T.get(`${tk}/valuation.json`),
       T.get("status.json").catch(() => null), T.getBio ? T.getBio(tk) : null]);
@@ -39,7 +40,7 @@
         ${rn ? `<div class="kpi hl"><div class="l"><a href="#/t/${tk}/biotech">Valeur rNPV (pipeline)</a></div><div class="v">${F.px(rn.value_per_share)}</div><div class="s ${T.cls(up)}">${F.pct(up, 1, true)} vs cours</div></div>`
           : myKpi(tk, mine)}
         ${T.isNum(tg.revenue_growth_ttm) ? `<div class="kpi"><div class="l">Croissance du CA (TTM)</div><div class="v ${T.cls(tg.revenue_growth_ttm)}">${F.pct(tg.revenue_growth_ttm, 0, true)}</div><div class="s">marge opé. ${F.pct(tg.operating_margin_ttm, 0)} · FCF / capi. ${F.pct(fcfY, 1)}</div></div>` : ""}
-        ${T.isNum((val.comps.implied_summary || {}).median) ? `<div class="kpi"><div class="l">Comparables (médiane)</div><div class="v">${F.px((val.comps.implied_summary || {}).median)}</div><div class="s">${F.px((val.comps.implied_summary || {}).low, 0)} - ${F.px((val.comps.implied_summary || {}).high, 0)}</div></div>` : ""}
+        ${!T.compsSoon && T.isNum((val.comps.implied_summary || {}).median) ? `<div class="kpi"><div class="l">Comparables (médiane)</div><div class="v">${F.px((val.comps.implied_summary || {}).median)}</div><div class="s">${F.px((val.comps.implied_summary || {}).low, 0)} - ${F.px((val.comps.implied_summary || {}).high, 0)}</div></div>` : ""}
         <div class="kpi"><div class="l">P/E · VE/CA (TTM)</div><div class="v">${F.x(tg.pe)} · ${F.x(tg.ev_sales)}</div><div class="s">VE/EBITDA ${F.x(tg.ev_ebitda)}</div></div>
         <div class="kpi"><div class="l">52 semaines</div><div class="v">${F.n(p.low_52w, 0)} - ${F.n(p.high_52w, 0)}</div><div class="s">1 an <span class="${T.cls(p.r_1y)}">${F.pct(p.r_1y, 0, true)}</span> · β ${F.n((co.beta || {}).adjusted, 2)}</div></div>
       </div>
@@ -81,9 +82,9 @@
         l.setData(arr.map(([t, v]) => ({ time: t, value: v })));
       });
     } else {
-      const s = chart.addAreaSeries({ lineColor: "#dbe6ff", lineWidth: 2, priceLineColor: "#8fa3c9",
-        crosshairMarkerBackgroundColor: "#ffffff", crosshairMarkerBorderColor: "#04060a", crosshairMarkerRadius: 4,
-        topColor: "rgba(150,180,255,.26)", bottomColor: "rgba(150,180,255,0)" });
+      const s = chart.addAreaSeries({ lineColor: "#d4f5ec", lineWidth: 2, priceLineColor: "#86b5aa",
+        crosshairMarkerBackgroundColor: "#ffffff", crosshairMarkerBorderColor: "#040807", crosshairMarkerRadius: 4,
+        topColor: "rgba(120,225,200,.26)", bottomColor: "rgba(120,225,200,0)" });
       s.setData(bars.map((b) => ({ time: b.t, value: b.c })));
     }
     setRange(chart, bars, range);
@@ -178,12 +179,12 @@
               <span class="chg ${T.cls(up(v))}" style="font:600 14px var(--mono);padding:3px 8px">${F.pct(up(v), 1, true)}</span></div><div class="muted">${sub}</div>`;
     const head = rn ? big(rn.value_per_share, `Valeur rNPV du portefeuille de médicaments, à régler dans l'onglet <a href="#/t/${tk}/biotech">Biotech</a>`)
       : mine ? big(mine.value, `Ta valeur par action, d'après ton modèle enregistré le ${F.date(mine.at.slice(0, 10))} et les derniers comptes`)
-      : canDcf ? `<p class="sec" style="margin:0">Archer ne publie pas d'objectif de cours. Le calculateur DCF part de ce que le cours actuel suppose : à toi de régler les hypothèses.</p>
+      : canDcf ? `<p class="sec" style="margin:0">Mangrove ne publie pas d'objectif de cours. Le calculateur DCF part de ce que le cours actuel suppose : à toi de régler les hypothèses.</p>
             <div><a class="btn primary" href="#/t/${tk}/valorisation">Construire mon modèle</a></div>`
       : `<p class="sec" style="margin:0">Pas assez de chiffre d'affaires publié pour un DCF sur cette société.</p>`;
     const valo = `<div class="panel verdict"><h3>Valorisation <a class="hint" href="#/t/${tk}/${rn ? "biotech" : "valorisation"}">${rn ? "pipeline" : mine ? "ton modèle" : "calculateur"} →</a></h3>
             ${head}
-            ${cm.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Multiple (TTM)</th><th class="n">${tk}</th><th class="n">Pairs</th><th class="n">Prime</th></tr></thead><tbody>
+            ${T.compsSoon ? `<div class="note" style="margin:0">Multiples face aux pairs : <span class="soon-pill">Bientôt</span></div>` : cm.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Multiple (TTM)</th><th class="n">${tk}</th><th class="n">Pairs</th><th class="n">Prime</th></tr></thead><tbody>
               ${cm.map((m) => `<tr><td>${T.esc(m.label)}</td><td class="n">${F.x(m.target)}</td><td class="n">${F.x(m.median)}</td><td class="n ${T.cls(m.premium_vs_median)}">${F.pct(m.premium_vs_median, 0, true)}</td></tr>`).join("")}
               </tbody></table></div><div class="note" style="margin:0">Prime ou décote face à la médiane des pairs. Un repère de marché, pas un objectif.</div>` : ""}
           </div>`;
@@ -353,9 +354,10 @@
     const price = co.price;
     const rn = bio && bio.rnpv && bio.rnpv.primary ? bio.rnpv : null;
     const canDcf = !rn && MyDCF.usable(I);
-    const compsPanel = `<div class="panel" style="margin-bottom:14px"><h3>Comparables boursiers <span class="hint">multiples TTM · ${T.esc((val.target || {}).period || "")}</span></h3><div class="tbl-wrap" id="comps"></div>
+    const compsPanel = T.compsSoon ? T.soonComps() : `<div class="panel" style="margin-bottom:14px"><h3>Comparables boursiers <span class="hint">multiples TTM · ${T.esc((val.target || {}).period || "")}</span></h3><div class="tbl-wrap" id="comps"></div>
           <p class="note"><b>Attention :</b> des multiples passés de pairs qui croissent moins vite sous-évaluent mécaniquement une entreprise en forte croissance. À lire comme un repère, pas comme un objectif.</p></div>`;
     const comps = () => {
+      if (T.compsSoon) return;
       const cm = val.comps.multiples || {}, imp = val.comps.implied || {};
       T.$("#comps").innerHTML = `<table class="t"><thead><tr><th>Multiple</th><th class="n">${tk}</th><th class="n">Médiane pairs</th><th class="n">Min - max</th><th class="n">Prime / décote</th><th class="n">Valeur implicite / action</th></tr></thead><tbody>
         ${Object.entries(cm).map(([k, m]) => `<tr><td>${T.esc(m.label)}</td><td class="n">${F.x(m.target)}</td><td class="n">${F.x(m.median)}</td>
@@ -382,7 +384,7 @@
       <div class="panel" style="margin-bottom:14px"><h3>Ton modèle DCF <span class="row">
           <button class="btn" id="reset">Réinitialiser</button><button class="btn" id="forget" hidden>Effacer</button>
           <button class="btn primary" id="save">Enregistrer</button></span></h3>
-        <p class="sec" style="margin:0 0 12px;max-width:92ch">Archer ne publie pas de valeur DCF : celle-ci est la tienne. ${T.isNum(base.implied)
+        <p class="sec" style="margin:0 0 12px;max-width:92ch">Mangrove ne publie pas de valeur DCF : celle-ci est la tienne. ${T.isNum(base.implied)
           ? `Le point de départ reproduit le cours actuel : avec les marges, les investissements et le coût du capital tirés des comptes, ${F.px(price)} suppose une croissance du chiffre d'affaires de <b>${F.pct(base.implied, 1)}</b> par an pendant ${n} ans. Règle chaque hypothèse selon ta lecture : l'écart avec le cours qui apparaît est ton opinion.`
           : "Aucune croissance ne permet de retrouver le cours actuel avec les marges tirées des comptes : le point de départ est une simple prolongation des chiffres actuels, à régler selon ta lecture."}</p>
         <div class="grid g-main">
@@ -527,6 +529,7 @@
     return bits.length ? ` <span class="tag" title="Émetteur étranger (formulaire 20-F) : ${T.esc(bits.join(" · "))}. Multiples calculés sur le dernier exercice publié, convertis au cours de change du jour.">${T.esc(bits.join(" · "))}</span>` : "";
   }
   async function secteur(el, tk) {
+    if (T.compsSoon) { el.innerHTML = T.soonComps("Secteur et comparables"); return; }
     const [pe, px] = await Promise.all([T.get(`${tk}/peers.json`), T.get(`${tk}/prices.json`)]);
     const all = [pe.target, ...pe.peers];
     const order = all.map((x) => x.ticker);

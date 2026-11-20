@@ -1,23 +1,40 @@
-<p align="center"><img src="docs/assets/brand/archer-lockup.png" alt="Archer Terminal" width="360"></p>
+<p align="center"><img src="docs/assets/brand/mangrove-lockup.png" alt="Mangrove Terminal" width="420"></p>
 
-# Archer Terminal
+# Mangrove Terminal
 
-Terminal personnel d'analyse fondamentale et d'entraînement à la prévision, consultable partout (GitHub Pages) et mis à jour automatiquement (GitHub Actions).
-Première valeur couverte : **NVIDIA (NVDA)**, comparée à AMD, Broadcom, Qualcomm, Intel et Marvell.
+Terminal personnel de recherche **santé (pharma et biotech)** et d'entraînement à la prévision, consultable partout
+(GitHub Pages) et mis à jour automatiquement (GitHub Actions). Anciennement *Archer Terminal* : le moteur (pipeline,
+base Supabase, prédictions, portefeuilles fictifs) est le même, l'interface a été refondue et recentrée sur la santé.
 
 **Site :** `https://matissebrg.github.io/terminal/`
 
+### Périmètre santé (`docs/assets/config.js`, bloc `window.MANGROVE`)
+
+- **Affiché** : les valeurs de la famille `sante` de `config/universe.yaml`, plus Veeva (logiciels pour les laboratoires).
+- **Masqué, pas supprimé** : NVDA, WMT, GOOG, XOM, AMZN restent calculées par le pipeline pour que les prédictions déjà
+  ouvertes dessus continuent d'être notées. Pour les retirer complètement, les enlever de `config/universe.yaml`
+  une fois ces prédictions résolues.
+- **Bientôt** : Sanofi (SNY) et Regeneron (REGN) ont une fiche « bientôt » ; les **comparables boursiers** (onglet
+  Secteur, tableaux de multiples) sont en refonte pour la santé. Pour réactiver les comparables : `comparablesSoon: false`.
+  Le catalyseur FDA de REGN reste dans le calendrier Biotech (données publiques, prédictions de catalyseurs possibles).
+- **Page d'accueil** (`#/bienvenue`) : un manglier 3D en chrome liquide (`docs/assets/mangrove-scene.js`, WebGL) ; la caméra
+  descend avec le défilement : la canopée (valeurs suivies, feed), la ligne d'eau (catalyseurs, prédictions), les racines
+  (comptes SEC, ton modèle). Coupé si l'effet est désactivé ou « réduire les animations ».
+- Les clés de stockage du navigateur gardent le préfixe `archer-` (modèles DCF enregistrés, langue, effets) pour que
+  personne ne perde ses réglages. Les noms de succès stockés en base (ex. « Archer ») se changent dans Supabase.
+
 | Page | Contenu |
 |---|---|
-| Tableau de bord | valeurs suivies (cours, performance, multiples), indices, taux sans risque, feed |
-| Synthèse | cours, multiples face aux pairs, ta valeur si tu as enregistré un modèle, repères de prix, chiffres clés TTM, thèse |
+| Tableau de bord | valeurs suivies (cours, performance, multiples), indices santé, taux sans risque, prochains catalyseurs, feed |
+| Synthèse | cours, ta valeur si tu as enregistré un modèle (ou la rNPV pour une biotech), repères de prix, chiffres clés TTM, thèse |
 | États financiers | compte de résultat, bilan, flux - annuel / trimestriel, variations N-1, liens EDGAR, export CSV |
 | Ratios | 25 ratios (rentabilité, rendement du capital, croissance, coûts, bilan, efficacité, allocation) |
-| Valorisation | calculateur DCF personnel (aucune valeur publiée par le site), sensibilités autour de ton modèle, comparables |
+| Valorisation | calculateur DCF personnel (aucune valeur publiée par le site), sensibilités ; comparables : bientôt |
+| **Biotech** | rNPV, catalyseurs avec probabilités, essais ClinicalTrials.gov |
 | **Prédictions** | registre de prévisions horodatées par Git, vérifiées automatiquement contre le réel, le consensus, la guidance et un modèle naïf |
-| Options | volatilité implicite (30/90 j, structure par terme, smile), open interest, put/call, choc de résultats implicite vs réactions passées |
-| Secteur | table des pairs, VE/CA vs croissance, marges, CA indexé, performance relative |
-| Performance | chandeliers / aire / comparaison % vs SPY et SOXX, rendements, volatilité, drawdown, bêta |
+| Options | volatilité implicite (30/90 j, structure par terme, smile), open interest, put/call, choc implicite vs réactions passées |
+| Secteur | comparables : bientôt |
+| Performance | chandeliers / aire / comparaison % vs indices, rendements, volatilité, drawdown, bêta |
 | Dépôts SEC | 10-K, 10-Q, 8-K de résultats |
 | Feed | publications, réévaluations (avec décomposition), mouvements ±5 %, franchissement de la valeur, prédictions |
 

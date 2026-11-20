@@ -51,7 +51,7 @@ void main() {
   float major = mod(floor(k), 4.0) < 0.5 ? 1.0 : 0.38;         // every fourth level is brighter
   float vig = smoothstep(1.25, 0.25, distance(gl_FragCoord.xy / uRes, vec2(0.62, 0.55)));
   float a = line * major * (0.07 + 0.13 * vig) + uPa * 0.04 * exp(-d * d * 22.0);
-  vec3 col = mix(vec3(0.46, 0.60, 1.0), vec3(0.86, 0.92, 1.0), line * major);
+  vec3 col = mix(vec3(0.24, 0.80, 0.68), vec3(0.80, 0.97, 0.91), line * major);
   o = vec4(col * a, a);
 }`;
   const bg = { gl: null, raf: 0, t0: performance.now(), px: -9999, py: -9999, pa: 0, pTarget: 0, last: 0 };

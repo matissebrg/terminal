@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Archer Terminal</title>
-  <meta name="description" content="Archer Terminal : analyse fondamentale, valorisation, options et registre de prédictions.">
-  <meta name="theme-color" content="#04060a">
+  <title>Mangrove Terminal</title>
+  <meta name="description" content="Mangrove Terminal : recherche pharma et biotech. Comptes SEC, catalyseurs, rNPV, options et registre de prédictions.">
+  <meta name="theme-color" content="#040807">
   <link rel="icon" type="image/png" href="assets/brand/favicon.png">
   <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-title" content="Archer">
+  <meta name="apple-mobile-web-app-title" content="Mangrove">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="preload" href="assets/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/martian-mono-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/syne-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/app.css">
   <script>
     /* Decided before first paint: effects off (visitor's choice or "reduce motion"), and whether the once-per-session opening plays. */
@@ -30,7 +31,7 @@
   <div class="boot" aria-hidden="true">
     <div class="boot-core">
       <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" pathLength="100"/><circle cx="50" cy="50" r="39"/><path d="M50 0v7M50 93v7M0 50h7M93 50h7"/></svg>
-      <img src="assets/brand/archer-mark.png" alt="">
+      <img src="assets/brand/mangrove-mark.png" alt="">
     </div>
     <div class="boot-line">Synchronisation des marchés</div>
   </div>
@@ -38,9 +39,9 @@
     <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
-    <a class="brand" href="#/" aria-label="Archer Terminal">
-      <img class="brand-mark" src="assets/brand/archer-mark.png" alt="">
-      <img class="brand-word" src="assets/brand/archer-wordmark.png" alt="Archer">
+    <a class="brand" href="#/" aria-label="Mangrove Terminal">
+      <svg class="brand-mark" viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 25.5c0-5 3.6-8.4 8.6-8.1 1.6-4.8 6-7.9 11.2-7.4 2.6-2.4 7.6-2.4 10.6.4 4.4-.6 8.4 2.4 9.2 6.8 3.9.8 6.4 4 5.4 8.3Z" stroke="currentColor" stroke-width="3"/><path d="M32 25.5v7" stroke="currentColor" stroke-width="3"/><path d="M32 31.5c-8.5.6-16 7-19 20.5M32 31.5c8.5.6 16 7 19 20.5M32 32.5c-4 3.4-7 10-7.6 19.5M32 32.5c4 3.4 7 10 7.6 19.5" stroke="currentColor" stroke-width="2.7"/><path class="wl" d="M4 44h56" stroke-width="2.7"/></svg>
+      <span class="brand-word">Mangrove</span>
       <span class="brand-sub">Terminal</span>
     </a>
     <div class="search" id="searchBtn" role="button" tabindex="0" aria-label="Rechercher">
@@ -91,6 +92,8 @@
   <script src="assets/dcf.js"></script>
   <script src="assets/my-dcf.js"></script>
   <script src="assets/core.js"></script>
+  <script src="assets/mangrove.js"></script>
+  <script src="assets/mangrove-scene.js"></script>
   <script src="assets/fx.js"></script>
   <script src="assets/views-home.js"></script>
   <script src="assets/views-landing.js"></script>

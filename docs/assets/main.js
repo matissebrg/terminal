@@ -28,7 +28,9 @@
     T.$("#watchlist").innerHTML = u.tickers.map((t) => `<a class="wl-item" data-tk="${t.ticker}" href="#/t/${t.ticker}">
         <span class="tk">${t.ticker}</span><span class="px">${F.n(t.price)}</span>
         <span class="nm">${T.esc(t.name)}</span><span class="ch ${T.cls(t.chg_1d)}">${F.pct(t.chg_1d, 2, true)}</span>
-        ${T.spark(t.spark)}</a>`).join("");
+        ${T.spark(t.spark)}</a>`).join("") + (T.soonList || []).map((s) => `<a class="wl-item soon" data-tk="${s.ticker}" href="#/t/${s.ticker}">
+        <span class="tk">${s.ticker}</span><span class="px"><span class="soon-pill">Bientôt</span></span>
+        <span class="nm">${T.esc(s.name)}</span><span class="ch"></span></a>`).join("");
     T.$("#benchlist").innerHTML = Object.entries(u.benchmarks || {}).map(([k, b]) => `<div class="wl-item" style="cursor:default">
         <span class="tk">${k}</span><span class="px">${F.n(b.last)}</span>
         <span class="nm">${T.esc(b.name)}</span><span class="ch ${T.cls(b.chg_1d)}">${F.pct(b.chg_1d, 2, true)}</span>${T.spark(b.spark)}</div>`).join("");
@@ -39,6 +41,7 @@
       ["depots", "Dépôts SEC", "filings"]];
     T.commands = () => [
       ...u.tickers.map((t) => ({ label: `${t.ticker} ${t.name}`, html: `<b>${t.ticker}</b> ${T.esc(t.name)}`, kind: "valeur", href: `#/t/${t.ticker}`, icon: "◆" })),
+      ...(T.soonList || []).map((s) => ({ label: `${s.ticker} ${s.name} bientôt`, html: `<b>${s.ticker}</b> ${T.esc(s.name)}`, kind: "bientôt", href: `#/t/${s.ticker}`, icon: "◇" })),
       ...u.tickers.flatMap((t) => tabs.map(([k, l, kw]) => ({ label: `${t.ticker} ${l}`, keywords: kw, html: `<b>${t.ticker}</b> · ${l}`, kind: "onglet", href: `#/t/${t.ticker}/${k}`, icon: "›" }))),
       { label: "Tableau de bord accueil home", kind: "page", href: "#/", icon: "⌂" },
       { label: "Feed événements actualités", kind: "page", href: "#/feed", icon: "◉" },
@@ -58,7 +61,7 @@
     window.addEventListener("hashchange", T.render);
     // charts draw their labels on a canvas: wait (briefly) for the two typefaces so the first render uses them
     if (document.fonts && document.fonts.load) {
-      await Promise.race([Promise.all([document.fonts.load('500 12px "Archivo"'), document.fonts.load('500 12px "Martian Mono"')]).catch(() => {}),
+      await Promise.race([Promise.all([document.fonts.load('500 12px "Archivo"'), document.fonts.load('500 12px "Martian Mono"'), document.fonts.load('800 24px "Syne"')]).catch(() => {}),
         new Promise((r) => setTimeout(r, 700))]);
     }
     T.render();

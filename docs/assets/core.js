@@ -62,7 +62,7 @@
     text: v("--text"), text2: v("--text-2"), muted: v("--muted"), grid: v("--grid"), border: v("--border"),
     panel: v("--panel"), panel3: v("--panel-3"), accent: v("--accent"), up: v("--up"), down: v("--down"), warn: v("--warn"),
     series: [v("--s1"), v("--s2"), v("--s3"), v("--s4"), v("--s5"), v("--s6")],
-    neutral: "#5d6272",
+    neutral: "#5b6b67",
   };
   // Colour follows the entity, never its rank: fixed slot per ticker.
   const slot = {};
@@ -85,9 +85,9 @@
     animationDuration: 350,
     grid: { left: 8, right: 14, top: 26, bottom: 8, containLabel: true },
     tooltip: {
-      backgroundColor: "rgba(14,18,27,.96)", borderColor: "#3a445c", textStyle: { color: T.C.text, fontSize: 12 },
-      extraCssText: "box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px rgba(140,175,255,.10);border-radius:2px;backdrop-filter:blur(6px);",
-      axisPointer: { lineStyle: { color: "#6b7890", type: "dashed" }, crossStyle: { color: "#6b7890" } },
+      backgroundColor: "rgba(10,18,17,.96)", borderColor: "#34504a", textStyle: { color: T.C.text, fontSize: 12 },
+      extraCssText: "box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 30px rgba(100,220,190,.10);border-radius:2px;backdrop-filter:blur(6px);",
+      axisPointer: { lineStyle: { color: "#5f7d76", type: "dashed" }, crossStyle: { color: "#5f7d76" } },
     },
     legend: { textStyle: { color: T.C.text2 }, icon: "roundRect", itemWidth: 10, itemHeight: 3, top: 0, right: 0 },
   });
@@ -113,8 +113,8 @@
       grid: { vertLines: { color: T.C.grid }, horzLines: { color: T.C.grid } },
       rightPriceScale: { borderColor: T.C.border },
       timeScale: { borderColor: T.C.border, timeVisible: false },
-      crosshair: { mode: 0, vertLine: { color: "#8fa3c9", width: 1, style: 3, labelBackgroundColor: "#dbe6ff" },
-                   horzLine: { color: "#8fa3c9", width: 1, style: 3, labelBackgroundColor: "#dbe6ff" } },
+      crosshair: { mode: 0, vertLine: { color: "#86b5aa", width: 1, style: 3, labelBackgroundColor: "#d4f5ec" },
+                   horzLine: { color: "#86b5aa", width: 1, style: 3, labelBackgroundColor: "#d4f5ec" } },
       localization: { locale: "fr-FR", priceFormatter: (p) => f(p, 2) },
     }, opts));
     live.push(chart);

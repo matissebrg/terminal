@@ -100,7 +100,7 @@
           <div class="panel"><h3>Comment ça marche</h3>
             <div class="grid g3">
               <div><b>1 · Données</b><p class="sec" style="margin:6px 0 0">Chaque jour ouvré, GitHub Actions récupère les états financiers XBRL (SEC) et les cours, puis recalcule tout.</p></div>
-              <div><b>2 · Ton modèle</b><p class="sec" style="margin:6px 0 0">Archer ne publie pas d'objectif de cours. Dans l'onglet Valorisation de chaque fiche, un calculateur DCF part de ce que le cours suppose : à toi de régler les hypothèses.</p></div>
+              <div><b>2 · Ton modèle</b><p class="sec" style="margin:6px 0 0">Mangrove ne publie pas d'objectif de cours. Dans l'onglet Valorisation de chaque fiche, un calculateur DCF part de ce que le cours suppose : à toi de régler les hypothèses.</p></div>
               <div><b>3 · Le feed</b><p class="sec" style="margin:6px 0 0">Nouvelle publication, séance à plus de 5 %, catalyseur biotech, résultat d'une prédiction : un événement daté.</p></div>
             </div></div>
         </div>
@@ -164,7 +164,7 @@
           <li>les entreprises changent d'étiquette XBRL au fil du temps → chaque ligne a une liste ordonnée d'étiquettes candidates.</li>
         </ul></div>
       <div class="panel"><h3>Calculateur DCF (FCFF, deux phases)</h3>
-        <p class="sec" style="margin-top:0">Archer ne publie <b>aucune valeur DCF</b> : un DCF vaut ce que valent ses hypothèses, et celles d'un modèle automatique ne valent pas grand-chose. L'onglet Valorisation de chaque fiche propose le calcul, à toi de fournir les hypothèses. Ton modèle s'enregistre dans ton navigateur et se recalcule sur les derniers comptes.</p>
+        <p class="sec" style="margin-top:0">Mangrove ne publie <b>aucune valeur DCF</b> : un DCF vaut ce que valent ses hypothèses, et celles d'un modèle automatique ne valent pas grand-chose. L'onglet Valorisation de chaque fiche propose le calcul, à toi de fournir les hypothèses. Ton modèle s'enregistre dans ton navigateur et se recalcule sur les derniers comptes.</p>
         <div class="kv">
           <div>Point de départ</div><div>la croissance constante du CA qui justifie le cours actuel (DCF inversé), le reste tiré des comptes : marge, D&A, capex, trésorerie, dette, nombre d'actions</div>
           <div>Flux disponible</div><div>EBIT × (1 - t) + D&A - capex - ΔBFR</div>

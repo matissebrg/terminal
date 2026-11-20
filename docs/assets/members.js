@@ -156,7 +156,7 @@
 
   function authForms(view) {
     view.innerHTML = `<div class="auth-wrap"><div class="panel auth">
-      <img src="assets/brand/archer-lockup.png" alt="Archer" class="auth-logo">
+      <img src="assets/brand/mangrove-lockup.png" alt="Mangrove Terminal" class="auth-logo">
       <div class="seg" id="atab"><button data-k="in" class="on">Connexion</button><button data-k="up">Créer un compte</button></div>
       <form id="aform" class="aform" autocomplete="on">
         <label>E-mail<input type="email" name="email" required autocomplete="email"></label>
@@ -269,7 +269,7 @@
         try {
           const r = await must(M.sb.rpc("create_invite", { p_max_uses: +fd.get("uses") || 1, p_days: +fd.get("days") || 0, p_note: fd.get("note") || null }));
           const link = location.origin + location.pathname + "#/compte";
-          const text = `Rejoins Archer Terminal (bêta) : ${link}\nCrée un compte avec le code ${r.code}`;
+          const text = `Rejoins Mangrove Terminal (bêta) : ${link}\nCrée un compte avec le code ${r.code}`;
           T.$("#inew").innerHTML = `<div class="banner ok"><div>Nouveau code : <b class="num">${T.esc(r.code)}</b> <button class="btn" id="icopy">Copier le message d'invitation</button></div></div>`;
           T.$("#icopy").onclick = async () => { try { await navigator.clipboard.writeText(text); T.$("#icopy").textContent = "Copié ✓"; } catch (x) { window.prompt("Copie ce message :", text); } };
           drawInvites();

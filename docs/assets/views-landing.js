@@ -7,15 +7,21 @@
   const T = window.T, F = T.fmt;
   const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
   const calm = () => !window.FX || !window.FX.on();
+  let scene = null;   // the 3D mangrove behind the front door (mangrove-scene.js)
+  const GLYPH = {"canopy": "<path d=\"M9.5 25.5c0-5 3.6-8.4 8.6-8.1 1.6-4.8 6-7.9 11.2-7.4 2.6-2.4 7.6-2.4 10.6.4 4.4-.6 8.4 2.4 9.2 6.8 3.9.8 6.4 4 5.4 8.3Z\"/>", "water": "<path d=\"M6 26c4.5-4 8.5-4 13 0s8.5 4 13 0 8.5-4 13 0 8.5 4 13 0\"/><path d=\"M6 38c4.5-4 8.5-4 13 0s8.5 4 13 0 8.5-4 13 0 8.5 4 13 0\" opacity=\".55\"/>", "roots": "<path d=\"M32 8v16M32 24c-8.5.6-16 7-19 26M32 24c8.5.6 16 7 19 26M32 25c-4 3.4-7 12-7.6 25M32 25c4 3.4 7 12 7.6 25\"/>"};
 
   const TXT = {
     fr: {
       h1: ["Valorise.", "Prévois.", "Sois noté."],
-      lede: "Archer est un terminal d'analyse boursière. Les comptes de chaque valeur viennent des dépôts à la SEC, avec un calculateur pour bâtir ta propre valorisation. Les biotechs ont leur calendrier de catalyseurs avec des probabilités, et chaque prévision est horodatée avant les résultats puis comparée au réel.",
+      lede: "Mangrove est un terminal de recherche dédié à la santé : pharma et biotech. Les comptes viennent des dépôts à la SEC, les décisions de la FDA et les résultats d'essais arrivent avec leurs probabilités, et chaque prévision est horodatée avant l'événement puis notée contre le réel.",
+      chap: { canopy: ["La canopée", "Ce qui remonte en premier : les valeurs suivies et chaque événement daté."],
+        water: ["La ligne d'eau", "Là où une thèse rencontre le marché : catalyseurs et publications, avec ta prévision verrouillée avant."],
+        roots: ["Les racines", "Ce sur quoi tout repose : des comptes tirés des dépôts à la SEC, et ton propre modèle."] },
+      feedH: "Derniers événements", feedMore: "Tout le feed", scroll: "Descends dans l'arbre",
       enter: "Explorer le terminal", ask: "Demander une invitation", free: "Lecture libre, sans compte.",
       price: "Cours", d1: "Séance", d60: "60 jours", open: "Ouvrir la fiche", prev: "Valeur précédente", next: "Valeur suivante",
       asof: (d) => `Données du ${d}`, scope: "Valeurs suivies, une par une",
-      a: ["Ton modèle, pas le nôtre", "Archer ne publie aucun objectif de cours. Le calculateur part de ce que le cours actuel suppose, sur des comptes tirés des dépôts à la SEC. À toi de dire si c'est trop ou pas assez, hypothèse par hypothèse.", (tk) => `Ouvrir le calculateur sur ${tk}`],
+      a: ["Ton modèle, pas le nôtre", "Mangrove ne publie aucun objectif de cours. Le calculateur part de ce que le cours actuel suppose, sur des comptes tirés des dépôts à la SEC. À toi de dire si c'est trop ou pas assez, hypothèse par hypothèse.", (tk) => `Ouvrir le calculateur sur ${tk}`],
       aCap: (tk, g, n) => `${tk} : le cours suppose ${g} de croissance du chiffre d'affaires par an pendant ${n} ans. Et toi ?`,
       aSlide: (n) => `Croissance du chiffre d'affaires, par an, pendant ${n} ans`, aVal: "Ta valeur par action", aGap: "Écart avec le cours", aNote: "Les autres hypothèses restent celles des comptes. Toutes se règlent dans le calculateur.",
       b: ["Les catalyseurs avant qu'ils n'arrivent", "Décisions de la FDA et résultats d'essais à venir, avec le taux de succès historique, la probabilité retenue par le modèle et le mouvement de cours que les options anticipent.", "Ouvrir le calendrier"],
@@ -24,9 +30,9 @@
       c: ["Un registre qui ne se réécrit pas", "Tu enregistres ta prévision avant la publication des résultats. Elle est verrouillée à la date limite, puis notée contre le chiffre réel, le consensus des analystes et les autres membres.", "Voir les prochaines publications"],
       cLock: "verrouillage", est: "date estimée",
       also: "Aussi dans le terminal",
-      alsoList: [["Portefeuille fictif", "100 000 $ fictifs. Les ordres paient l'écart acheteur-vendeur et l'impact de marché, comme en vrai."], ["Options", "Volatilité implicite, grecques, constructeur de stratégies."], ["Feed", "Chaque publication, chaque séance à plus de 5 %, chaque catalyseur, à sa date."], ["États financiers", "Dix ans de comptes tirés des dépôts à la SEC, trimestre par trimestre."]],
+      alsoList: [["Portefeuille fictif", "100 000 $ fictifs. Les ordres paient l'écart acheteur-vendeur et l'impact de marché, comme en vrai."], ["Options", "Volatilité implicite, grecques, constructeur de stratégies."], ["Feed", "Chaque publication, chaque séance à plus de 5 %, chaque catalyseur, à sa date."], ["États financiers", "Dix ans de comptes tirés des dépôts à la SEC, trimestre par trimestre."], ["Bientôt", "Sanofi, Regeneron et des comparables pensés pour la santé."]],
       notH: "Ce que ce n'est pas",
-      not: (n) => ["Pas un conseil en investissement : un outil d'analyse et d'entraînement.", "Pas de temps réel : cours de clôture, mis à jour deux fois par jour ouvré.", `Pas tout le marché : ${n} valeurs suivies pour l'instant, surtout américaines.`, "Pas une vérité : un calcul vaut ce que valent ses hypothèses, et ici ce sont les tiennes.", "Pas d'argent réel : les portefeuilles sont fictifs."],
+      not: (n) => ["Pas un conseil en investissement : un outil d'analyse et d'entraînement.", "Pas de temps réel : cours de clôture, mis à jour deux fois par jour ouvré.", `Pas tout le marché : ${n} valeurs de santé suivies pour l'instant, surtout américaines.`, "Pas une vérité : un calcul vaut ce que valent ses hypothèses, et ici ce sont les tiennes.", "Pas d'argent réel : les portefeuilles sont fictifs."],
       betaH: "Bêta fermée", beta: "La lecture est libre. Prédire, tenir un portefeuille fictif et apparaître au classement demandent un compte, ouvert sur invitation.",
       email: "Ton e-mail", note: "Ce que tu suis en bourse (facultatif)", send: "Demander une invitation", have: "J'ai déjà un code",
       privacy: "Ton adresse sert uniquement à t'envoyer une invitation. Seul l'administrateur la voit, et elle est supprimée sur simple demande.",
@@ -35,11 +41,15 @@
     },
     en: {
       h1: ["Value it.", "Call it.", "Get scored."],
-      lede: "Archer is a stock analysis terminal. Each company's accounts come from its SEC filings, with a calculator to build your own valuation. Biotechs get a catalyst calendar with probabilities, and every forecast is time-stamped before earnings, then scored against what happened.",
+      lede: "Mangrove is a research terminal for healthcare: pharma and biotech. Accounts come from SEC filings, FDA decisions and trial readouts come with their probabilities, and every forecast is time-stamped before the event, then scored against what happened.",
+      chap: { canopy: ["The canopy", "What surfaces first: the stocks covered and every dated event."],
+        water: ["The waterline", "Where a thesis meets the market: catalysts and earnings, with your forecast locked in before."],
+        roots: ["The roots", "What everything stands on: accounts from SEC filings, and your own model."] },
+      feedH: "Latest events", feedMore: "The whole feed", scroll: "Scroll down the tree",
       enter: "Explore the terminal", ask: "Request an invite", free: "Free to read, no account needed. The terminal itself is in French for now.",
       price: "Price", d1: "Last session", d60: "60 days", open: "Open", prev: "Previous stock", next: "Next stock",
       asof: (d) => `Data as of ${d}`, scope: "Covered stocks, one at a time",
-      a: ["Your model, not ours", "Archer publishes no price targets. The calculator starts from what today's price assumes, on accounts taken from SEC filings. You decide whether that is too much or too little, one assumption at a time.", (tk) => `Open the calculator on ${tk}`],
+      a: ["Your model, not ours", "Mangrove publishes no price targets. The calculator starts from what today's price assumes, on accounts taken from SEC filings. You decide whether that is too much or too little, one assumption at a time.", (tk) => `Open the calculator on ${tk}`],
       aCap: (tk, g, n) => `${tk}: the price assumes revenue growing ${g} a year for ${n} years. What do you think?`,
       aSlide: (n) => `Revenue growth, per year, for ${n} years`, aVal: "Your value per share", aGap: "Gap to the price", aNote: "Every other assumption stays as the accounts give it. All of them can be changed in the calculator.",
       b: ["Catalysts before they hit", "Upcoming FDA decisions and trial readouts, with the historical success rate, the probability the model uses, and the price move that options are pricing in.", "Open the calendar"],
@@ -48,9 +58,9 @@
       c: ["A record that can't be rewritten", "You log your forecast before earnings come out. It locks at the deadline, then gets scored against the actual number, the analyst consensus and the other members.", "See upcoming earnings"],
       cLock: "locks", est: "estimated date",
       also: "Also in the terminal",
-      alsoList: [["Paper trading", "$100,000 of play money. Orders pay the bid-ask spread and market impact, as they would for real."], ["Options", "Implied volatility, greeks, a strategy builder."], ["Feed", "Every filing, every session that moves more than 5%, every catalyst, on its date."], ["Financial statements", "Ten years of accounts from SEC filings, quarter by quarter."]],
+      alsoList: [["Paper trading", "$100,000 of play money. Orders pay the bid-ask spread and market impact, as they would for real."], ["Options", "Implied volatility, greeks, a strategy builder."], ["Feed", "Every filing, every session that moves more than 5%, every catalyst, on its date."], ["Financial statements", "Ten years of accounts from SEC filings, quarter by quarter."], ["Coming soon", "Sanofi, Regeneron, and comparables built for healthcare."]],
       notH: "What it is not",
-      not: (n) => ["Not investment advice: a tool for analysis and practice.", "Not real time: closing prices, updated twice every trading day.", `Not the whole market: ${n} stocks covered so far, mostly US.`, "Not the truth: a calculation is worth what its assumptions are worth, and here they are yours.", "Not real money: portfolios are paper only."],
+      not: (n) => ["Not investment advice: a tool for analysis and practice.", "Not real time: closing prices, updated twice every trading day.", `Not the whole market: ${n} healthcare stocks covered so far, mostly US.`, "Not the truth: a calculation is worth what its assumptions are worth, and here they are yours.", "Not real money: portfolios are paper only."],
       betaH: "Closed beta", beta: "Reading is free. Forecasting, running a paper portfolio and appearing on the leaderboard need an account, opened by invitation.",
       email: "Your e-mail", note: "What you follow in the markets (optional)", send: "Request an invite", have: "I already have a code",
       privacy: "Your address is only used to send you an invitation. Only the administrator sees it, and it is deleted on request.",
@@ -129,7 +139,9 @@
     const lang = getLang(), L = TXT[lang], M = money(lang), P = pct(lang);
     document.body.classList.add("landing");
     store.set("archer-seen", "1");
-    const [u, bio, pred] = await Promise.all([T.get("universe.json"), T.get("biotech.json").catch(() => null), T.get("predictions.json").catch(() => null)]);
+    const [u, bio, pred, feed] = await Promise.all([T.get("universe.json"), T.get("biotech.json").catch(() => null), T.get("predictions.json").catch(() => null),
+      T.get("feed.json").catch(() => null)]);
+    const latest = T.sortEvents ? T.sortEvents((feed || {}).events || []).slice(0, 5) : [];
     const today = new Date().toISOString().slice(0, 10);
     const feat = u.tickers.find((t) => t.method !== "rnpv" && T.isNum(t.price)) || u.tickers[0];
     const val = await T.get(`${feat.ticker}/valuation.json`).catch(() => null);
@@ -166,19 +178,35 @@
         <a class="lp-more" href="${href}">${T.esc(typeof link === "function" ? link(feat.ticker) : link)} ›</a></div><div class="panel lp-live">${fig}</div></section>`;
     const canAsk = !!(T.members && T.members.configured);
 
+    const chap = (k) => `<header class="lp-chap" id="lp-${k}"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPH[k]}</svg>
+        <div><h2>${T.esc(L.chap[k][0])}</h2><p>${T.esc(L.chap[k][1])}</p></div></header>`;
+    const feedList = latest.length ? `<div class="lp-list lp-feed">${latest.map((e) => `<a href="#/t/${e.ticker}"><span class="num lp-d">${day(lang, e.date)}</span><b>${T.esc(e.ticker || "")}</b>
+        <span class="lp-what">${T.esc(e.title)}<em>${T.esc(e.detail || "")}</em></span></a>`).join("")}</div>` : "";
+
     view.innerHTML = `<div class="lp" lang="${lang}">
+      <canvas class="lp-scene" id="lpScene" aria-hidden="true"></canvas>
       <section class="lp-hero">
         <div class="lp-top"><span class="muted num">${T.esc(L.asof(new Date(u.meta.generated_at).toLocaleString(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })))}</span>
           <div class="seg" id="lpLang" role="group" aria-label="Langue / Language"><button type="button" data-k="fr" class="${lang === "fr" ? "on" : ""}" lang="fr">Français</button><button type="button" data-k="en" class="${lang === "en" ? "on" : ""}" lang="en">English</button></div></div>
-        <div class="lp-head"><h1>${L.h1.map((l, k) => `<span style="--k:${k}"><i>${T.esc(l)}</i></span>`).join("")}</h1>
-          <p class="lp-lede">${T.esc(L.lede)}</p>
-          <div class="lp-cta"><a class="btn primary lp-big" href="#/">${T.esc(L.enter)}</a>${canAsk ? `<a class="btn lp-big" href="#/bienvenue" data-ask>${T.esc(L.ask)}</a>` : ""}</div>
-          <p class="note">${T.esc(L.free)}</p></div>
-        <div class="lp-scope" id="lpScope"></div>
+        <div class="lp-head">
+          <h1 class="lp-brand" aria-label="Mangrove">${"Mangrove".split("").map((c, k) => `<span aria-hidden="true" style="--k:${k}">${c}</span>`).join("")}</h1>
+          <div class="lp-sub">
+            <p class="lp-tag">${L.h1.map((l, k) => `<span style="--k:${k}">${T.esc(l)}</span>`).join(" ")}</p>
+            <p class="lp-lede">${T.esc(L.lede)}</p>
+            <div class="lp-cta"><a class="btn primary lp-big" href="#/">${T.esc(L.enter)}</a>${canAsk ? `<a class="btn lp-big" href="#/bienvenue" data-ask>${T.esc(L.ask)}</a>` : ""}
+              <a class="lp-down" href="#lp-canopy" data-down>${T.esc(L.scroll)} ↓</a></div>
+            <p class="note">${T.esc(L.free)}</p></div></div>
       </section>
-      ${specA ? spec("a", L.a, `#/t/${feat.ticker}/valorisation`, specA) : ""}
+      ${chap("canopy")}
+      <section class="lp-canopy">
+        <div class="lp-scope" id="lpScope"></div>
+        ${feedList ? `<div class="panel lp-live"><h3>${T.esc(L.feedH)} <a class="hint" href="#/feed">${T.esc(L.feedMore)} ›</a></h3>${feedList}</div>` : ""}
+      </section>
+      ${chap("water")}
       ${specB ? spec("b flip", L.b, "#/biotech", specB) : ""}
       ${specC ? spec("c", L.c, "#/predictions", specC) : ""}
+      ${chap("roots")}
+      ${specA ? spec("a", L.a, `#/t/${feat.ticker}/valorisation`, specA) : ""}
       <section class="lp-also"><h2>${T.esc(L.also)}</h2><dl>${L.alsoList.map(([a, b]) => `<div><dt>${T.esc(a)}</dt><dd>${T.esc(b)}</dd></div>`).join("")}</dl></section>
       <section class="lp-not"><h2>${T.esc(L.notH)}</h2><ul>${L.not(u.tickers.length).map((x) => { const [a, ...b] = x.split(" : ").length > 1 ? x.split(" : ") : x.split(": "); return `<li><b>${T.esc(a)}</b>${b.length ? `<span>${T.esc(b.join(": "))}</span>` : ""}</li>`; }).join("")}</ul></section>
       <section class="lp-beta panel" id="lpBeta"><div><h2>${T.esc(L.betaH)}</h2><p>${T.esc(L.beta)}</p><a class="lp-more" href="#/compte">${T.esc(L.have)} ›</a></div>
@@ -188,6 +216,18 @@
           <p class="note">${T.esc(L.privacy)}</p></form>` : `<p class="note">${T.esc(L.off)}</p>`}</section>
       <footer class="foot"><span>${T.esc(L.src)}</span></footer></div>`;
 
+    // the scene: camera goes down the tree as the page scrolls (canopy -> waterline -> roots)
+    if (scene) { scene.stop(); scene = null; }
+    if (!calm() && window.MangroveScene) {
+      const roots = T.$("#lp-roots");
+      scene = window.MangroveScene.start({ canvas: T.$("#lpScene"), progress: () => {
+        const end = roots ? roots.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.35 : document.body.scrollHeight;
+        return window.scrollY / Math.max(1, end);
+      }, dim: () => { const r = roots ? roots.getBoundingClientRect().top : 0; return r < 0 ? Math.max(0.55, 1 + r / (window.innerHeight * 2)) : 1; } });
+    }
+    if (!scene) document.body.classList.add("lp-still");
+    const down = view.querySelector("[data-down]");
+    if (down) down.addEventListener("click", (e) => { e.preventDefault(); T.$("#lp-canopy").scrollIntoView({ behavior: calm() ? "auto" : "smooth", block: "start" }); });
     scope(T.$("#lpScope"), u.tickers, L, lang);
     if (calc) {
       const inp = T.$("#lpG"), draw = (exact) => {
@@ -217,7 +257,7 @@
   }
 
   T.route(/^\/bienvenue$/, render);
-  const syncBody = () => { if (!/^#\/bienvenue/.test(location.hash)) { document.body.classList.remove("landing"); clearInterval(timer); } };
+  const syncBody = () => { if (!/^#\/bienvenue/.test(location.hash)) { document.body.classList.remove("landing", "lp-still"); clearInterval(timer); if (scene) { scene.stop(); scene = null; } } };
   window.addEventListener("hashchange", syncBody);
 
   // First visit without an account: the site root opens the front door once.

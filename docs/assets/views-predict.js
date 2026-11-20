@@ -297,7 +297,7 @@
         xAxis: T.axis({ type: "category", data: labels, splitLine: { show: false }, axisLabel: { color: C().muted, fontSize: 10, rotate: 30 } }),
         yAxis: T.axis({ type: "value", scale: true, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
         series: [
-          { name: "Réel", type: "bar", data: h.map((x) => x.v).concat(null), barMaxWidth: 22, itemStyle: { color: "#2f3850", borderRadius: [1, 1, 0, 0] } },
+          { name: "Réel", type: "bar", data: h.map((x) => x.v).concat(null), barMaxWidth: 22, itemStyle: { color: "#2c403b", borderRadius: [1, 1, 0, 0] } },
           pt(mk(m.naive), C().neutral, "Naïf", "circle"),
           pt(mk(m.guidance), C().series[2], "Guidance", "diamond"),
           pt(m.consensus ? mk(m.consensus.avg) : null, C().series[1], "Consensus", "triangle"),
@@ -372,7 +372,7 @@
     }
     function toYaml(d) {
       const now = new Date();
-      let y = `# Archer Terminal · prédiction ${tk} ${d.period}\n# Écrite le ${now.toLocaleString("fr-FR")}. L'horodatage qui fait foi est celui du commit Git.\n`;
+      let y = `# Mangrove Terminal · prédiction ${tk} ${d.period}\n# Écrite le ${now.toLocaleString("fr-FR")}. L'horodatage qui fait foi est celui du commit Git.\n`;
       y += `ticker: ${tk}\nperiod: ${d.period}\n`;
       if (Object.keys(d.metrics).length) {
         y += "metrics:   # Md$ pour les montants, % pour les marges, $ pour le BPA ; low/high = intervalle à 80 %\n";
