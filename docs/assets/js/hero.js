@@ -45,28 +45,45 @@
     geo = { cx: w * 0.5, cy: w * (small ? 0.163 : 0.16),   /* crown height, from the width: the image runs on below */ rx: w * (small ? 0.4 : 0.39), ry: w * 0.065,
             cw: cards[0] ? cards[0].el.offsetWidth : 170, ch: cards[0] ? cards[0].el.offsetHeight : 90 };
   }
+  /* Hover (or keyboard focus) grows a card: it turns to face you, comes forward, and the orbit eases to a stop so it
+     stays under the pointer; leaving lets the orbit pick up speed again. All in the same transform, no layout. */
+  var spd = 1, GROW = 0.24;
   function place(a) {
     var n = cards.length;
     for (var i = 0; i < n; i++) {
-      var k = cards[i], th = a + i * 2 * Math.PI / n, s = Math.sin(th), co = Math.cos(th), front = co > -0.08;
-      var x = geo.cx + geo.rx * s - geo.cw / 2, y = geo.cy + geo.ry * co - geo.ch / 2;
-      var depth = (co + 1) / 2, sc = 0.74 + 0.26 * depth;
-      k.el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotateY(' + (-s * 32).toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
-      k.el.style.opacity = (0.3 + 0.7 * depth).toFixed(3);
-      var z = front ? 3 : 1;
-      if (k.z !== z) { k.el.style.zIndex = z; k.el.tabIndex = front ? 0 : -1; k.z = z; }
+      var k = cards[i], h = k.h || 0, th = a + i * 2 * Math.PI / n, s = Math.sin(th), co = Math.cos(th), front = co > -0.08;
+      var x = geo.cx + geo.rx * s - geo.cw / 2, y = geo.cy + geo.ry * co - geo.ch / 2 - 10 * h;
+      var depth = (co + 1) / 2, sc = (0.74 + 0.26 * depth) * (1 + GROW * h), op = 0.3 + 0.7 * depth;
+      k.el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px,0) rotateY(' + (-s * 32 * (1 - h)).toFixed(1) + 'deg) scale(' + sc.toFixed(3) + ')';
+      k.el.style.opacity = (op + (1 - op) * h).toFixed(3);
+      var z = h > 0.02 ? 4 : front ? 3 : 1;
+      if (k.z !== z) { k.el.style.zIndex = z; k.el.tabIndex = front || z === 4 ? 0 : -1; k.z = z; }
     }
   }
-  function running() { return !userPaused && visible && !reduce.matches && !document.hidden; }
+  function orbiting() { return !userPaused && visible && !reduce.matches && !document.hidden; }
+  function settling() { return cards.some(function (k) { return Math.abs((k.h || 0) - (k.ht || 0)) > 0.002; }) || (orbiting() && Math.abs(spd - (hot() ? 0 : 1)) > 0.002); }
+  function hot() { return cards.some(function (k) { return k.ht; }); }
+  function running() { return orbiting() || settling(); }
   function frame(t) {
     raf = 0;
-    if (!running()) return;
-    if (last) angle += (t - last) / PERIOD * 2 * Math.PI;
+    var dt = last ? Math.min(t - last, 64) : 16;
     last = t;
+    var ease = 1 - Math.exp(-dt / 90);
+    cards.forEach(function (k) { k.h = reduce.matches ? (k.ht || 0) : (k.h || 0) + ((k.ht || 0) - (k.h || 0)) * ease; });
+    spd += ((hot() ? 0 : 1) - spd) * (1 - Math.exp(-dt / 260));
+    if (hot() && spd < 0.01) spd = 0;
+    if (orbiting()) angle += dt / PERIOD * 2 * Math.PI * spd;
     place(angle);
-    raf = requestAnimationFrame(frame);
+    if (running()) raf = requestAnimationFrame(frame);
   }
   function kick() { if (running() && !raf) { last = 0; raf = requestAnimationFrame(frame); } }
+  function setHot(k, on) { k.ht = on ? 1 : 0; k.el.classList.toggle('hot', on); kick(); }
+  cards.forEach(function (k) {
+    k.el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') setHot(k, true); });
+    k.el.addEventListener('pointerleave', function () { if (document.activeElement !== k.el) setHot(k, false); });
+    k.el.addEventListener('focus', function () { if (k.el.matches(':focus-visible')) setHot(k, true); });
+    k.el.addEventListener('blur', function () { if (!k.el.matches(':hover')) setHot(k, false); });
+  });
   function relayout() { measure(); place(angle); }
   fill();
   relayout();

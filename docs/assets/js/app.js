@@ -527,7 +527,7 @@
   function waveField(svg, o) {
     if (!svg) return;
     var W = 1440, H = o.h, TAU = Math.PI * 2, out = '';
-    for (var k = 0; k < o.n; k++) {
+    for (var k = (o.only ? o.only[0] : 0); k < (o.only ? o.only[1] : o.n); k++) {
       var t = k / (o.n - 1), y0 = o.y0 + Math.pow(t, o.persp) * (H - o.y0), amp = o.amp * (0.25 + t), ph = k * 0.55;
       var c1 = Math.max(1, Math.round(o.freq * (1 - t * 0.35) * W / TAU)), c2 = Math.max(1, Math.round(c1 * 0.37));
       var d = '';
@@ -541,7 +541,23 @@
     svg.setAttribute('viewBox', '0 0 ' + 2 * W + ' ' + H);
     svg.innerHTML = '<g fill="none" stroke="' + o.color + '" stroke-width="1" vector-effect="non-scaling-stroke">' + out + '</g>';
   }
-  waveField($('waves'), { h: 260, n: 34, y0: 4, persp: 1.7, amp: 2.2, freq: 0.008, swell: 18, color: '#E4EEEA', op0: 0.45, op1: 0.14 });
+  /* The sea under the waterline in three bands (far, middle, near), each its own layer: the CSS slides them at
+     different speeds and lifts them gently, so the lines ripple against each other like small waves. */
+  (function () {
+    var far = $('waves'); if (!far) return;
+    var o = { h: 260, n: 36, y0: 4, persp: 1.7, amp: 5.5, freq: 0.013, swell: 18, color: '#E4EEEA', op0: 0.5, op1: 0.16 };
+    var bands = [far];
+    for (var j = 1; j < 3; j++) {
+      var sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      sv.setAttribute('preserveAspectRatio', 'none'); sv.setAttribute('aria-hidden', 'true'); sv.setAttribute('class', 'wl wl' + j);
+      far.parentNode.appendChild(sv); bands.push(sv);
+    }
+    far.setAttribute('class', 'wl wl0');
+    bands.forEach(function (sv, j) {
+      var lo = Math.floor(o.n * j / 3), hi = Math.floor(o.n * (j + 1) / 3);
+      waveField(sv, Object.assign({}, o, { only: [lo, hi], seed: j }));
+    });
+  })();
   waveField($('tide-lines'), { h: 600, n: 44, y0: 150, persp: 1.25, amp: 7, freq: 0.0045, swell: 120, color: '#7FE7C6', op0: 0.04, op1: 0.2 });
 
   function renderAll() {

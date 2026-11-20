@@ -29,6 +29,7 @@
     { el: [$('feed')], kids: '.entry', step: 90, total: 1500 },
     { el: qa('.horizon'), kids: '.mast', step: 110, total: 2200 },
     { el: qa('.tide-card'), kids: '.g', step: 140, total: 2600 },
+    { el: qa('.roots-art'), kids: '.veil', step: 0, total: 3400 },
     { el: [$('values')], kids: '.value', step: 120, total: 1900 },
     { el: [$('lib-roots')], kids: '.tile, .col h3', step: 55, total: 2000 },
     { el: qa('.closing'), kids: '.mark, .word, .base', step: 160, total: 1600 }
