@@ -109,17 +109,17 @@
   }
   function eventRow(e) {
     e = e || {};
-    return '<div class="erow"><div class="field grow"><label>Question</label><input type="text" class="q" value="' + esc(e.question || '') + '" placeholder="Ex. le chiffre d’affaires dépasse-t-il le haut de la guidance ?"></div>' +
-      '<div class="field"><label>Probabilité de oui, %</label><input type="text" inputmode="decimal" class="p" value="' + esc(e.probability || '') + '" placeholder="60"></div>' +
-      '<button type="button" class="close rm" aria-label="Retirer cette question"><svg aria-hidden="true"><use href="#g-x"/></svg></button></div>';
+    return '<div class="erow"><label class="field grow"><span class="label">Question</span><input type="text" class="q" name="question" autocomplete="off" value="' + esc(e.question || '') + '" placeholder="Ex. le chiffre d’affaires dépasse-t-il le haut de la guidance ?"></label>' +
+      '<label class="field"><span class="label">Probabilité de oui, %</span><input type="text" inputmode="decimal" class="p" name="probability" autocomplete="off" value="' + esc(e.probability || '') + '" placeholder="60"></label>' +
+      '<button type="button" class="icon-btn rm" aria-label="Retirer cette question"><svg aria-hidden="true"><use href="#g-x"/></svg></button></div>';
   }
   function priceRow(p) {
     p = p || {};
-    return '<div class="erow"><div class="field"><label>Date visée</label><input type="date" class="d" value="' + esc(p.date || '') + '" min="' + localToday() + '"></div>' +
-      '<div class="field"><label>Cours visé, $</label><input type="text" inputmode="decimal" class="v" value="' + esc(p.value || '') + '"></div>' +
-      '<div class="field"><label>Bas, $</label><input type="text" inputmode="decimal" class="lo" value="' + esc(p.low || '') + '"></div>' +
-      '<div class="field"><label>Haut, $</label><input type="text" inputmode="decimal" class="hi" value="' + esc(p.high || '') + '"></div>' +
-      '<button type="button" class="close rm" aria-label="Retirer cet objectif"><svg aria-hidden="true"><use href="#g-x"/></svg></button></div>';
+    return '<div class="erow"><label class="field"><span class="label">Date visée</span><input type="date" class="d" name="date" autocomplete="off" value="' + esc(p.date || '') + '" min="' + localToday() + '"></label>' +
+      '<label class="field"><span class="label">Cours visé, $</span><input type="text" inputmode="decimal" class="v" name="target" autocomplete="off" value="' + esc(p.value || '') + '"></label>' +
+      '<label class="field"><span class="label">Bas, $</span><input type="text" inputmode="decimal" class="lo" name="low" autocomplete="off" value="' + esc(p.low || '') + '"></label>' +
+      '<label class="field"><span class="label">Haut, $</span><input type="text" inputmode="decimal" class="hi" name="high" autocomplete="off" value="' + esc(p.high || '') + '"></label>' +
+      '<button type="button" class="icon-btn rm" aria-label="Retirer cet objectif"><svg aria-hidden="true"><use href="#g-x"/></svg></button></div>';
   }
   function collect() {
     var d = { ticker: tk, period: $('p-period').value, metrics: {}, events: [], price: [], note: $('p-note').value };
@@ -196,7 +196,7 @@
   sel.addEventListener('change', function () { picked = true; setTicker(sel.value); });
   $('pform').addEventListener('input', update);
   $('pform').addEventListener('click', function (e) {
-    var rm = e.target.closest('.rm'); if (rm) { rm.closest('.erow').remove(); update(); }
+    var rm = e.target.closest('.rm'); if (rm) { var box = rm.closest('.erow').parentNode; rm.closest('.erow').remove(); update(); var add = $(box.id === 'p-events' ? 'p-add-event' : 'p-add-price'); if (add) add.focus(); }
   });
   $('p-add-event').addEventListener('click', function () { $('p-events').insertAdjacentHTML('beforeend', eventRow()); $('p-events').lastElementChild.querySelector('input').focus(); update(); });
   $('p-add-price').addEventListener('click', function () { $('p-prices').insertAdjacentHTML('beforeend', priceRow()); $('p-prices').lastElementChild.querySelector('input').focus(); update(); });

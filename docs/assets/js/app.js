@@ -1,5 +1,5 @@
-/* Mangrove — the story: canopée (fil), ligne d'eau (calendrier), racines (principes), bibliothèque
-   (valeurs, documents, dossiers). La marée (prédictions) lives in predict.js.
+/* Mangrove — the descent: canopée (fil), ligne d'eau (calendrier sur l'horizon), racines (principes),
+   bibliothèque (valeurs, documents, dossiers). La marée lives in predict.js, the hero in hero.js.
    Library content comes from library/*.js (globals, so the private copy works from file://);
    market data from the pipeline through MGD (data.js). Plain script, no build step. */
 (function () {
@@ -7,8 +7,11 @@
   var P = window.MGP, D = window.MGD;
   var ROOTS = window.MG_ROOTS || [], COV = window.MG_COVERAGE || [], DOCS = window.MG_LIBRARY || [];
   var CATS = window.MG_CATALYSTS || [], VALUES = window.MG_VALUES || [];
-  var C_STOCK = '#20A88F', C_BENCH = '#C4842A';   // validated pair (dataviz validator, dark surface)
-  var KIND_COLORS = { 'Résultats': '#E3E8E6', 'Réglementaire': '#F2B544', 'Essai': '#46E3C8', 'Congrès': '#A9B7FF', 'Objectif de cours': '#FF9BC2' };
+  var C_STOCK = '#0E7A5A', C_BENCH = '#4C66B8';   // validated pair (dataviz validator, light dossier surface #F7F9F6)
+  /* event kinds: a light colour below the water, an ink colour on the white chips of the horizon */
+  var KIND_COLORS = { 'Résultats': '#E4EEEA', 'Réglementaire': '#E6B05A', 'Essai': '#3FE3A6', 'Congrès': '#A9C1FF', 'Objectif de cours': '#FF9BC2' };
+  var KIND_INK = { 'Résultats': '#33403B', 'Réglementaire': '#9A6512', 'Essai': '#0B6A4E', 'Congrès': '#3E57A8', 'Objectif de cours': '#A8336A' };
+  var MARK = '<svg viewBox="0 0 120 96" fill="currentColor" aria-hidden="true">' + (window.MG_MARK || '') + '</svg>';
   var FEED_TYPES = { price: 'Cours', filing: 'Dépôt SEC', coverage: 'Couverture', catalyst: 'Catalyseur', prediction: 'Prédiction', results: 'Résultats', trial: 'Essai clinique' };
   var MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
@@ -43,6 +46,19 @@
     if (S.comps[t]) return { key: 'comp', label: S.comps[t].accounting && S.comps[t].accounting.annual_only ? 'Comparable, comptes annuels' : 'Comparable' };
     return { key: 'wait', label: !S.ready ? 'Chargement' : S.core && !S.core.ok ? 'Données injoignables' : 'En attente du pipeline' };
   }
+  /* a 60-day sparkline: a single stroke, no axes */
+  function spark(vals, color) {
+    if (!vals || vals.length < 2) return '';
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), n = vals.length, W = 120, H = 30;
+    var d = vals.map(function (v, i) { return (i ? 'L' : 'M') + (i / (n - 1) * W).toFixed(1) + ' ' + (H - 2 - (hi > lo ? (v - lo) / (hi - lo) : .5) * (H - 4)).toFixed(1); }).join('');
+    return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  }
+  function sparkOf(t) {
+    var u = S.tracked[t], c = byTicker[t] || {};
+    if (u && u.spark) return u.spark;
+    if (c.etf && S.core && S.core.universe && S.core.universe.benchmarks && S.core.universe.benchmarks[t]) return S.core.universe.benchmarks[t].spark;
+    return S.px[t] ? S.px[t].slice(-60).map(function (b) { return b.c; }) : null;
+  }
   /* last close, 1-day and 1-year change from a bar series */
   function perfFrom(bars) {
     if (!bars || bars.length < 2) return null;
@@ -50,6 +66,10 @@
     var t1y = new Date(parseDate(last.t).getTime() - 365 * 864e5).toISOString().slice(0, 10);
     var y1 = null; for (var i = bars.length - 1; i >= 0; i--) { if (bars[i].t <= t1y) { y1 = bars[i]; break; } }
     return { last: last.c, date: last.t, chg_1d: last.c / prev.c - 1, r_1y: y1 ? (last.ac || last.c) / (y1.ac || y1.c) - 1 : null };
+  }
+  function hasPrices(t) {
+    var u = S.core && S.core.universe;
+    return !!(S.tracked[t] || S.comps[t] || (u && u.benchmarks && u.benchmarks[t]));
   }
   function quote(t) {
     var u = S.tracked[t], c = byTicker[t] || {};
@@ -85,11 +105,11 @@
       if (x.ticker && byTicker[x.ticker]) a.push('<button type="button" class="linkish" data-open="' + esc(x.ticker) + '">Dossier ' + esc(x.ticker) + '</button>');
       if (x.file && safeUrl(x.file)) a.push('<a class="linkish" href="' + esc(x.file) + '" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#g-file"/></svg>Ouvrir le fichier</a>');
       if (x.link && /^https?:\/\//i.test(x.link)) a.push('<a class="linkish" href="' + esc(x.link) + '" target="_blank" rel="noopener">Lire la source</a>');
-      return '<article class="card"><div class="date">' + x.date.getDate() + '<small>' + MONTHS[x.date.getMonth()] + ' ' + x.date.getFullYear() + '</small></div><div>' +
-        '<p class="kind"><span class="dot" style="background:' + colorOf(x.ticker) + '"></span>' + esc(x.label) + (x.ticker ? ', ' + esc(x.ticker) : '') + '</p>' +
+      return '<article class="entry"><p class="when">' + x.date.getDate() + '<small>' + MONTHS[x.date.getMonth()] + ' ' + x.date.getFullYear() + '</small></p><div>' +
+        '<p class="kind">' + esc(x.label) + (x.ticker ? '<span class="tk">' + esc(x.ticker) + '</span>' : '') + '</p>' +
         '<h3>' + esc(x.title) + '</h3>' + (x.summary ? '<p class="s">' + esc(x.summary) + '</p>' : '') +
-        '<div class="meta">' + a.join('') + '</div></div></article>';
-    }).join('') : '<p class="sub">' + (S.ready ? 'Rien pour l’instant. Le fil se remplit à chaque passage du pipeline et avec tes notes (library/library.js).' : 'Chargement du fil…') + '</p>';
+        (a.length ? '<div class="meta">' + a.join('') + '</div>' : '') + '</div></article>';
+    }).join('') : '<p class="feed-empty">' + (S.ready ? 'Rien pour l’instant. Le fil se remplit à chaque passage du pipeline et avec tes notes (library/library.js).' : 'Chargement du fil…') + '</p>';
     var more = $('feed-more');
     more.hidden = list.length <= FEED_PAGE;
     more.textContent = feedAll ? 'Afficher moins' : 'Tout afficher (' + list.length + ')';
@@ -118,28 +138,34 @@
       .sort(function (a, b) { return a.date - b.date || String(a.ticker).localeCompare(b.ticker); });
     cats.forEach(function (c, i) { c.i = i; });
   }
-  function pinHtml(c) { return '<span class="pin' + (c.confirmed ? ' full' : '') + '" style="color:' + (KIND_COLORS[c.kind] || '#E3E8E6') + '"></span>'; }
+  function pinHtml(c, ink) {
+    var col = (ink ? KIND_INK : KIND_COLORS)[c.kind] || '#E4EEEA';
+    return '<i class="' + (c.confirmed ? '' : 'ring') + '" style="background:' + col + ';color:' + col + '"></i>';
+  }
   function renderWaterline() {
     buildCats();
     var present = Object.keys(KIND_COLORS).filter(function (k) { return cats.some(function (c) { return c.kind === k; }); });
-    $('cat-legend').innerHTML = (present.length ? present : ['Résultats']).map(function (k) { return '<span><span class="pin full" style="color:' + KIND_COLORS[k] + '"></span>' + k + '</span>'; }).join('') +
-      '<span><span class="pin" style="color:#E3E8E6"></span>Creux : date estimée</span>';
+    $('cat-legend').innerHTML = (present.length ? present : ['Résultats']).map(function (k) { return '<span><i style="background:' + KIND_COLORS[k] + '"></i>' + k + '</span>'; }).join('') +
+      '<span><i class="ring"></i>Cercle vide : date estimée</span>';
     var span = TL_END - TL_START, pos = function (d) { return ((d - TL_START) / span) * 100; };
-    var lanes = [], placed = cats.map(function (c) { var x = pos(c.date), lane = 0; while (lanes[lane] != null && x - lanes[lane] < 9) lane++; lanes[lane] = x; return { c: c, x: x, lane: lane }; });
+    var lanes = [], placed = cats.map(function (c) { var x = pos(c.date), lane = 0; while (lanes[lane] != null && x - lanes[lane] < 10.5) lane++; lanes[lane] = x; return { c: c, x: x, lane: lane }; });
     var months = '', m = new Date(TL_START.getFullYear(), TL_START.getMonth() + 1, 1);
-    while (m <= TL_END) { months += '<div class="tl-month" style="left:' + pos(m).toFixed(2) + '%">' + MONTHS[m.getMonth()] + (m.getMonth() === 0 ? ' ' + m.getFullYear() : '') + '</div>'; m = new Date(m.getFullYear(), m.getMonth() + 1, 1); }
-    var markers = placed.map(function (p) {
-      var c = p.c;
-      return '<button type="button" class="cm" data-i="' + c.i + '" aria-pressed="' + (selectedCat === c.i) + '" style="left:' + p.x.toFixed(2) + '%;top:' + (p.lane * 42) + 'px" aria-label="' +
-        esc(fmt(c.date) + ', ' + c.ticker + ', ' + c.kind + (c.confirmed ? '' : ', date estimée')) + '">' + pinHtml(c) + esc(c.ticker) + '</button>';
+    while (m <= TL_END) { months += '<span class="month" style="left:' + pos(m).toFixed(2) + '%">' + MONTHS[m.getMonth()] + (m.getMonth() === 0 ? ' ' + m.getFullYear() : '') + '</span>'; m = new Date(m.getFullYear(), m.getMonth() + 1, 1); }
+    var masts = placed.map(function (p) {
+      var c = p.c, stem = 30 + (p.lane % 3) * 92;
+      var short = fmt(c.date).replace(/ \d{4}$/, '');
+      return '<div class="mast" style="left:' + p.x.toFixed(2) + '%">' +
+        '<button type="button" class="cm" data-i="' + c.i + '" aria-pressed="' + (selectedCat === c.i) + '" aria-label="' + esc(fmt(c.date) + ', ' + c.ticker + ', ' + c.kind + (c.confirmed ? '' : ', date estimée')) + '">' +
+        '<span class="tk">' + esc(c.ticker) + '</span><span class="d">' + esc(short) + '</span><span class="kd">' + pinHtml(c, true) + esc(c.kind) + '</span></button>' +
+        '<span class="stem' + (c.confirmed ? '' : ' est') + '" style="height:' + stem + 'px"></span></div>' +
+        '<div class="reflect" style="left:' + p.x.toFixed(2) + '%" aria-hidden="true"><span class="stem" style="height:' + Math.round(stem * .7) + 'px"></span><span class="ghost"></span></div>';
     }).join('');
-    $('timeline').innerHTML = '<div class="tl-track" style="height:' + (Math.max(1, lanes.length) * 42 + 8) + 'px">' + markers + '</div>' +
-      '<div class="tl-axis">' + months + '<div class="tl-today" style="left:' + pos(T0).toFixed(2) + '%"><span>Aujourd’hui</span></div></div>';
+    $('timeline').innerHTML = masts + months + '<div class="today" style="left:' + pos(T0).toFixed(2) + '%"><span>Aujourd’hui</span></div>';
     if (selectedCat == null || !cats[selectedCat]) { var up = cats.filter(function (c) { return c.date >= T0; })[0]; selectedCat = up ? up.i : null; }
     renderCatDetail();
     $('cat-list').innerHTML = cats.length ? cats.map(function (c) {
       return '<li><span class="when">' + esc(fmt(c.date)) + '</span><button type="button" class="linkish" data-open="' + esc(c.ticker) + '">' + esc((byTicker[c.ticker] || {}).name || c.ticker) + '</button>' +
-        '<span class="k">' + pinHtml(c) + esc(c.kind) + '</span><span>' + esc(c.description) + '</span><span class="conf">' + (c.kind === 'Objectif de cours' ? 'Ma date' : c.confirmed ? 'Confirmée' : 'Estimée') + '</span></li>';
+        '<span class="k">' + pinHtml(c) + esc(c.kind) + '</span><span class="d">' + esc(c.description) + '</span><span class="conf">' + (c.kind === 'Objectif de cours' ? 'Ma date' : c.confirmed ? 'Confirmée' : 'Estimée') + '</span></li>';
     }).join('') : '<li class="none">' + (S.ready ? 'Aucune date dans les six prochains mois. Ajoute tes catalyseurs dans library/catalysts.js.' : 'Chargement du calendrier…') + '</li>';
   }
   function renderCatDetail() {
@@ -151,13 +177,13 @@
     if (c.predictable) acts += '<button type="button" class="linkish" data-predict="' + esc(c.ticker) + '">Prévoir ces résultats</button>';
     if (c.source && /^https?:\/\//i.test(c.source)) acts += '<a class="linkish" href="' + esc(c.source) + '" target="_blank" rel="noopener">Source</a>';
     box.innerHTML = '<div class="date">' + c.date.getDate() + '<small>' + MONTHS[c.date.getMonth()] + ' ' + c.date.getFullYear() + '</small></div>' +
-      '<div><h3>' + esc(co.name || c.ticker) + ', ' + esc(c.kind.toLowerCase()) + '</h3><p>' + esc(c.description) + '</p><div class="meta">' + acts + '</div></div>' +
+      '<div><h4>' + esc(co.name || c.ticker) + ', ' + esc(c.kind.toLowerCase()) + '</h4><p>' + esc(c.description) + '</p><div class="meta">' + acts + '</div></div>' +
       '<div class="meta">' + pinHtml(c) + '<span class="conf-tag">' + (c.kind === 'Objectif de cours' ? 'Mon échéance' : c.confirmed ? 'Date confirmée' : 'Date estimée') + '</span></div>';
   }
   $('timeline').addEventListener('click', function (e) {
     var b = e.target.closest('.cm'); if (!b) return;
     selectedCat = +b.getAttribute('data-i'); renderWaterline();
-    var again = document.querySelector('.cm[data-i="' + selectedCat + '"]'); if (again) again.focus();
+    var again = document.querySelector('.cm[data-i="' + selectedCat + '"]'); if (again) again.focus({ preventScroll: true });
   });
 
   /* ======================= racines ======================= */
@@ -213,14 +239,14 @@
       $('lib-roots').innerHTML = ROOTS.map(function (r) {
         var group = comps.filter(function (c) { return c.root === r.name; });
         if (!group.length) return '';
-        return '<section class="col" style="--c:' + r.color + '" aria-label="' + esc(r.name) + '"><h3><span class="dot"></span>' + esc(r.name) + ' <span class="n">' + group.length + '</span></h3><div class="tiles">' +
+        return '<section class="col" style="--c:' + r.color + '" aria-label="' + esc(r.name) + '"><h3><i></i>' + esc(r.name) + ' <span class="n">' + group.length + '</span></h3><div class="tiles">' +
           group.map(function (c) {
             var q = quote(c.ticker), st = statusOf(c.ticker), nd = docs.filter(function (d) { return d.ticker === c.ticker && d.mine; }).length;
-            return '<button type="button" class="tile" data-open="' + esc(c.ticker) + '">' +
-              '<span class="row"><span class="sym">' + esc(c.ticker) + '</span>' + (q && P.isNum(q.price) ? '<span class="px">' + money(q.price) + ' <span class="' + dirClass(q.chg_1d) + '">' + pct(q.chg_1d) + '</span></span>' : '') + '</span>' +
-              '<span class="nm">' + esc(c.name) + '</span>' +
-              '<span class="info">' + esc(c.focus) + '</span>' +
-              '<span class="info"><span class="status s-' + st.key + '">' + esc(st.label) + '</span>' + (nd ? ', ' + plural(nd, 'document', 'documents') : '') + '</span></button>';
+            return '<button type="button" class="tile" style="--c:' + r.color + '" data-open="' + esc(c.ticker) + '" aria-label="' + esc('Dossier ' + c.ticker + ', ' + c.name) + '">' +
+              '<span class="row"><span class="sym" translate="no">' + esc(c.ticker) + '</span>' + (q && P.isNum(q.chg_1d) ? '<span class="chg ' + dirClass(q.chg_1d) + '">' + pct(q.chg_1d) + '</span>' : '') + '</span>' +
+              '<span class="nm">' + esc(c.name) + '</span><span class="focus">' + esc(c.focus) + '</span>' +
+              (spark(sparkOf(c.ticker), r.color) || '<svg class="spark" aria-hidden="true"></svg>') +
+              '<span class="row"><span class="px">' + (q && P.isNum(q.price) ? money(q.price) : '') + '</span><span class="status s-' + st.key + '">' + esc(st.label) + (nd ? ', ' + plural(nd, 'doc.', 'docs') : '') + '</span></span></button>';
           }).join('') + '</div></section>';
       }).join('');
     } else {
@@ -232,7 +258,7 @@
       $('lib-rows').innerHTML = shownDocs.map(function (d) {
         var t = safeUrl(d.file) ? '<a class="linkish" href="' + esc(d.file) + '" target="_blank" rel="noopener">' + esc(d.title) + '</a>' : esc(d.title);
         return '<tr><td class="when">' + esc(fmt(d.date)) + '</td><td><button type="button" class="linkish" data-open="' + esc(d.ticker) + '">' + esc(d.ticker) + '</button></td>' +
-          '<td><span class="kind"><span class="dot" style="background:' + (d.sec ? 'var(--muted)' : colorOf(d.ticker)) + '"></span>' + esc(d.type) + '</span></td><td>' + t + (d.summary ? '<p class="s">' + esc(d.summary) + '</p>' : '') + '</td></tr>';
+          '<td><span class="kind"><i style="background:' + (d.sec ? 'var(--ecume-2)' : colorOf(d.ticker)) + '"></i>' + esc(d.type) + '</span></td><td>' + t + (d.summary ? '<p class="s">' + esc(d.summary) + '</p>' : '') + '</td></tr>';
       }).join('');
       Array.prototype.forEach.call(document.querySelectorAll('#lib-list th'), function (th) {
         if (th.getAttribute('data-k') === lib.sort) th.setAttribute('aria-sort', lib.dir > 0 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort');
@@ -257,11 +283,6 @@
     if (lib.sort === k) lib.dir = -lib.dir; else { lib.sort = k; lib.dir = k === 'date' ? -1 : 1; }
     renderLibrary();
     var b = document.querySelector('#lib-list th[data-k="' + k + '"] button'); if (b) b.focus();
-  });
-  $('lib-roots').addEventListener('pointermove', function (e) {
-    var t = e.target.closest('.tile'); if (!t) return;
-    var r = t.getBoundingClientRect();
-    t.style.setProperty('--mx', (e.clientX - r.left) + 'px'); t.style.setProperty('--my', (e.clientY - r.top) + 'px');
   });
 
   /* ======================= charts (SVG, hover tooltip, table fallback) ======================= */
@@ -298,10 +319,10 @@
     var paths = r.lines.map(function (l) {
       return '<path d="' + l.values.map(function (v, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join('') + '" fill="none" stroke="' + l.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
     }).join('') + ends.map(function (e) {
-      return '<circle cx="' + x(n - 1).toFixed(1) + '" cy="' + e.y.toFixed(1) + '" r="4" fill="' + e.l.color + '" stroke="#0B1112" stroke-width="2"/><text x="' + (x(n - 1) + 9).toFixed(1) + '" y="' + (e.ly + 4).toFixed(1) + '" class="endl">' + esc(e.l.name) + ' ' + P.fr(e.v, 0) + '</text>';
+      return '<circle cx="' + x(n - 1).toFixed(1) + '" cy="' + e.y.toFixed(1) + '" r="4" fill="' + e.l.color + '" stroke="#F7F9F6" stroke-width="2"/><text x="' + (x(n - 1) + 9).toFixed(1) + '" y="' + (e.ly + 4).toFixed(1) + '" class="endl">' + esc(e.l.name) + ' ' + P.fr(e.v, 0) + '</text>';
     }).join('');
     var summary = r.lines.map(function (l) { return l.name + ' ' + P.signedPct(l.values[n - 1] / 100 - 1, 0); }).join(', ');
-    var legend = '<div class="legend chart-legend">' + r.lines.map(function (l) { return '<span><span class="key" style="background:' + l.color + '"></span>' + esc(l.name) + '</span>'; }).join('') + '</div>';
+    var legend = '<div class="chart-legend">' + r.lines.map(function (l) { return '<span><span class="key" style="background:' + l.color + '"></span>' + esc(l.name) + '</span>'; }).join('') + '</div>';
     var rows = [];
     for (var i = 0; i < n; i += Math.max(1, Math.round(n / 12))) rows.push(i);
     if (rows[rows.length - 1] !== n - 1) rows.push(n - 1);
@@ -396,7 +417,7 @@
       return '<li><span class="when">' + esc(fmt(c.date)) + '</span><div><p class="t">' + esc(c.kind) + (c.confirmed ? '' : ', date estimée') + '</p><p class="s">' + esc(c.description) + '</p></div></li>';
     }).join('') : '<li class="none">Aucune date dans les six prochains mois.</li>') + '</ul>' +
       '<h3>Mes prédictions</h3><p class="help">' + (recs.length ? plural(recs.length, 'prédiction enregistrée', 'prédictions enregistrées') + ', détail dans la marée.' : 'Aucune prédiction sur ' + esc(t) + ' pour l’instant.') + '</p>' +
-      '<button class="btn small" type="button" data-predict="' + esc(t) + '">Écrire une prédiction sur ' + esc(t) + '</button>';
+      '<button class="btn btn-ink btn-small" type="button" data-predict="' + esc(t) + '">Écrire une prédiction sur ' + esc(t) + '<svg aria-hidden="true"><use href="#g-arrow"/></svg></button>';
   }
   function thesisBlock(co) {
     var th = co && co.thesis ? String(co.thesis).trim() : '';
@@ -408,7 +429,7 @@
     if (!dlg.open) lastFocus = document.activeElement;
     openTk = t;
     var st = statusOf(t), q = quote(t);
-    var head = '<div class="dos-top"><div><h2 id="dos-title">' + esc(t) + '</h2><p class="dos-sub"><span>' + esc(c.name) + '</span><span class="kind"><span class="dot" style="background:' + colorOf(t) + '"></span>' + esc(c.root) + ', ' + esc(c.focus) + '</span><span class="status s-' + st.key + '">' + esc(st.label) + '</span></p></div>' +
+    var head = '<div class="dos-top"><div><h2 id="dos-title">' + esc(t) + '</h2><p class="dos-sub"><span class="nm">' + esc(c.name) + '</span><span class="kind"><i style="background:' + colorOf(t) + '"></i>' + esc(c.root) + ', ' + esc(c.focus) + '</span><span class="status s-' + st.key + '">' + esc(st.label) + '</span></p></div>' +
       '<button type="button" class="close" id="dos-close" aria-label="Fermer le dossier"><svg aria-hidden="true"><use href="#g-x"/></svg></button></div>';
     var nx = S.core && S.core.predictions && S.core.predictions.next && S.core.predictions.next[t];
     var stats = statRow([
@@ -428,7 +449,8 @@
     $('dos-close').focus();
     /* live parts */
     var bench = t === 'XLV' ? 'SPY' : 'XLV';
-    Promise.all([D.rawPrices(t), D.rawPrices(bench)]).then(function (r) {
+    var none = Promise.resolve(null);
+    Promise.all([hasPrices(t) ? D.rawPrices(t) : none, hasPrices(bench) ? D.rawPrices(bench) : none]).then(function (r) {
       if (openTk !== t || !$('dos-chart')) return;
       var s = [];
       if (r[0] && r[0].bars && r[0].bars.length) s.push({ name: t, color: C_STOCK, bars: r[0].bars });
@@ -452,6 +474,8 @@
     }
   }
   window.MG.openDossier = openDossier;
+  window.MG.api = { quote: quote, statusOf: statusOf, sparkOf: sparkOf, spark: spark, feedItems: feedItems, cats: function () { return cats; },
+    money: money, pct: pct, dirClass: dirClass, fmt: fmt, esc: esc, MONTHS: MONTHS, rootColor: rootColor, T0: T0 };
   dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
   dlg.addEventListener('close', function () { openTk = null; if (lastFocus && lastFocus.focus) lastFocus.focus(); });
   document.addEventListener('click', function (e) {
@@ -461,14 +485,62 @@
     if (p && window.MGPredict) { if (dlg.open) dlg.close(); window.MGPredict.start(p.getAttribute('data-predict')); }
   });
 
-  /* ======================= rail, footer, boot ======================= */
-  var railLinks = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  /* ======================= depth gauge, nav, menu, marks, waves ======================= */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-mark]'), function (el) { el.innerHTML = MARK; });
+  var depthLinks = Array.prototype.slice.call(document.querySelectorAll('.depth a'));
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+  var SECS = ['top', 'canopee', 'ligne-d-eau', 'maree', 'racines', 'bibliotheque'];
   if ('IntersectionObserver' in window) {
-    var obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) railLinks.forEach(function (l) { l.classList.toggle('on', l.getAttribute('data-sec') === en.target.id); }); });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    ['canopee', 'ligne-d-eau', 'maree', 'racines', 'bibliotheque'].forEach(function (id) { var el = $(id); if (el) obs.observe(el); });
+    /* the section crossing the middle of the screen is "where you are" */
+    var here = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var id = en.target.id;
+        depthLinks.forEach(function (l) { if (l.getAttribute('data-sec') === id) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current'); });
+        navLinks.forEach(function (l) { if (l.getAttribute('href') === '#' + id) l.setAttribute('aria-current', 'true'); else l.removeAttribute('aria-current'); });
+        document.body.classList.toggle('at-top', id === 'top');
+      });
+    }, { rootMargin: '-45% 0px -54% 0px' });
+    SECS.forEach(function (id) { var el = $(id); if (el) here.observe(el); });
+    /* the floating chrome turns to glass once dark water passes under the nav */
+    var under = new Set();
+    var dark = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) under.add(en.target); else under.delete(en.target); });
+      document.body.classList.toggle('below', under.size > 0);
+      var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', under.size ? '#04110F' : '#EDF0EC');
+    }, { rootMargin: '0px 0px -93% 0px' });
+    Array.prototype.forEach.call(document.querySelectorAll('.dark, .horizon .sea'), function (el) { dark.observe(el); });
   }
+  var menuBtn = document.querySelector('.nav-menu'), menu = $('menu');
+  function setMenu(open) {
+    menu.hidden = !open; menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.textContent = open ? 'Fermer' : 'Menu';
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) menu.querySelector('a').focus();
+  }
+  menuBtn.addEventListener('click', function () { setMenu(menu.hidden); });
+  menu.addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
+
+  /* fine-line wave fields, drawn once: the sea under the horizon and the tide card */
+  function waveField(svg, o) {
+    if (!svg) return;
+    var W = 1440, H = o.h, out = '';
+    for (var k = 0; k < o.n; k++) {
+      var t = k / (o.n - 1), y0 = o.y0 + Math.pow(t, o.persp) * (H - o.y0), amp = o.amp * (0.25 + t), f = o.freq * (1 - t * 0.35), ph = k * 0.55;
+      var d = '';
+      for (var x = 0; x <= W; x += 24) {
+        var swell = Math.sin(x / W * Math.PI * 1.3 + 0.6) * o.swell * t;
+        var y = y0 + Math.sin(x * f + ph) * amp + Math.sin(x * f * 0.37 + ph * 1.7) * amp * 0.6 + swell;
+        d += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1);
+      }
+      out += '<path d="' + d + '" stroke-opacity="' + (o.op0 + (o.op1 - o.op0) * t).toFixed(3) + '"/>';
+    }
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = '<g fill="none" stroke="' + o.color + '" stroke-width="1" vector-effect="non-scaling-stroke">' + out + '</g>';
+  }
+  waveField($('waves'), { h: 260, n: 34, y0: 4, persp: 1.7, amp: 2.2, freq: 0.008, swell: 18, color: '#E4EEEA', op0: 0.45, op1: 0.14 });
+  waveField($('tide-lines'), { h: 600, n: 44, y0: 150, persp: 1.25, amp: 7, freq: 0.0045, swell: 120, color: '#7FE7C6', op0: 0.04, op1: 0.2 });
+
   function renderAll() {
     renderFeed(); renderWaterline(); fillTypes(); renderLibrary();
     window.MG.on.forEach(function (f) { try { f(S); } catch (e) { console.error(e); } });
@@ -490,6 +562,10 @@
         if (r[0]) S.company[t] = r[0];
         ((r[1] && r[1].peers) || []).forEach(function (p) { if (others.indexOf(p.ticker) >= 0 && !S.comps[p.ticker]) S.comps[p.ticker] = p; });
       });
-    }).concat(others.map(function (t) { return D.rawPrices(t).then(function (r) { if (r && r.bars) S.px[t] = r.bars; }); })));
+    }));
+  }).then(function () {
+    renderAll();
+    /* comparables' price series, only once a tracked stock has listed them as peers */
+    return Promise.all(Object.keys(S.comps).map(function (t) { return D.rawPrices(t).then(function (r) { if (r && r.bars) S.px[t] = r.bars; }); }));
   }).then(renderAll);
 })();

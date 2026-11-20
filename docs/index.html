@@ -2,112 +2,162 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mangrove</title>
-<meta name="description" content="Mangrove : ma bibliothèque de recherche pharma, et les prévisions que je soumets aux résultats.">
-<meta name="theme-color" content="#050708">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mangrove · recherche pharma</title>
+<meta name="description" content="Mangrove : ma bibliothèque de recherche pharma, le calendrier des publications et des prévisions notées par les résultats.">
+<meta name="theme-color" content="#EDF0EC">
+<meta property="og:title" content="Mangrove">
+<meta property="og:description" content="Recherche pharma : notes, calendrier et prévisions notées par les résultats.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
 <link rel="icon" type="image/png" href="assets/brand/favicon.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/newsreader-display-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/mangrove.css">
+<script>document.documentElement.classList.add('enter');</script>
 </head>
-<body>
+<body class="at-top">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <symbol id="g-canopy" viewBox="0 0 48 48"><path d="M24 40V22" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M24 23c-9 0-14-6-14-13 7 0 14 4 14 13Zm0 0c9 0 14-6 14-13-7 0-14 4-14 13Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
-  <symbol id="g-water" viewBox="0 0 48 48"><path d="M6 20c4.5-4 8.5-4 13 0s8.5 4 13 0 8.5-4 10 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6 30c4.5-4 8.5-4 13 0s8.5 4 13 0 8.5-4 10 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></symbol>
-  <symbol id="g-tide" viewBox="0 0 48 48"><path d="M24 30V8M17 15l7-7 7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 36c4.5-4 8.5-4 13 0s8.5 4 13 0 8.5-4 10 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
-  <symbol id="g-roots" viewBox="0 0 48 48"><path d="M24 6v14M24 20c-6 4-10 9-11 20M24 20c6 4 10 9 11 20M24 20c-1 7-1 13 0 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
-  <symbol id="g-network" viewBox="0 0 48 48"><circle cx="24" cy="10" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="11" cy="36" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="37" cy="36" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M22 14 13 32M26 14l9 18M15 36h18" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="g-arrow" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="g-down" viewBox="0 0 16 16"><path d="M8 3v10M4 9l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="g-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="g-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z M14 3v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
   <symbol id="g-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="g-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z M14 3v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="g-pause" viewBox="0 0 16 16"><path d="M5 3v10M11 3v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="g-play" viewBox="0 0 16 16"><path d="M5 3l8 5-8 5z" fill="currentColor"/></symbol>
 </svg>
-
-<canvas id="gl" aria-hidden="true"></canvas>
 
 <a class="skip" href="#bibliotheque">Aller à la bibliothèque</a>
 
-<header class="top">
-  <a class="mark" href="#top" aria-label="Mangrove, retour en haut">Mangrove</a>
-  <nav aria-label="Sections">
-    <a href="#canopee">Canopée</a>
-    <a href="#ligne-d-eau">Ligne d'eau</a>
-    <a href="#maree">Marée</a>
-    <a href="#racines">Racines</a>
-    <a href="#bibliotheque">Bibliothèque</a>
-  </nav>
+<header class="nav">
+  <div class="nav-pill">
+    <a class="brand" href="#top" aria-label="Mangrove, retour en haut"><span data-mark aria-hidden="true"></span><span translate="no">Mangrove</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#canopee">Canopée</a>
+      <a href="#ligne-d-eau">Ligne d’eau</a>
+      <a href="#maree">Marée</a>
+      <a href="#racines">Racines</a>
+      <a href="#bibliotheque">Bibliothèque</a>
+    </nav>
+    <a class="btn btn-ink" href="#ecrire">Écrire une prédiction</a>
+    <button class="nav-menu" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+  </div>
 </header>
-
-<nav class="rail" aria-label="Où tu es dans l'arbre">
-  <a href="#canopee" data-sec="canopee" aria-label="Canopée : le fil"><svg aria-hidden="true"><use href="#g-canopy"/></svg></a>
-  <a href="#ligne-d-eau" data-sec="ligne-d-eau" aria-label="Ligne d'eau : le calendrier"><svg aria-hidden="true"><use href="#g-water"/></svg></a>
-  <a href="#maree" data-sec="maree" aria-label="Marée : les prédictions"><svg aria-hidden="true"><use href="#g-tide"/></svg></a>
-  <a href="#racines" data-sec="racines" aria-label="Racines : les principes"><svg aria-hidden="true"><use href="#g-roots"/></svg></a>
-  <a href="#bibliotheque" data-sec="bibliotheque" aria-label="Bibliothèque"><svg aria-hidden="true"><use href="#g-network"/></svg></a>
+<nav class="menu-sheet" id="menu" aria-label="Sections" hidden>
+  <a href="#canopee">Canopée<span>Le fil : notes, dépôts, mouvements</span></a>
+  <a href="#ligne-d-eau">Ligne d’eau<span>Les dates qui feront bouger les cours</span></a>
+  <a href="#maree">Marée<span>Mes prédictions et leur score</span></a>
+  <a href="#racines">Racines<span>Les principes</span></a>
+  <a href="#bibliotheque">Bibliothèque<span>Les valeurs et les documents</span></a>
 </nav>
 
-<main id="top">
-  <section class="hero" aria-labelledby="hero-title">
-    <h1 id="hero-title" aria-label="Mangrove"><span aria-hidden="true" style="--i:0">M</span><span aria-hidden="true" style="--i:1">a</span><span aria-hidden="true" style="--i:2">n</span><span aria-hidden="true" style="--i:3">g</span><span aria-hidden="true" style="--i:4">r</span><span aria-hidden="true" style="--i:5">o</span><span aria-hidden="true" style="--i:6">v</span><span aria-hidden="true" style="--i:7">e</span></h1>
-    <div class="hero-foot">
-      <p>Ma recherche pharma, de ce qui affleure chaque jour jusqu'à ce sur quoi tout repose.</p>
+<nav class="depth" aria-label="Profondeur dans l’arbre">
+  <ol>
+    <li><a href="#top" data-sec="top"><span class="lab">Cime</span><span class="m">+18 m</span></a></li>
+    <li><a href="#canopee" data-sec="canopee"><span class="lab">Canopée</span><span class="m">+9 m</span></a></li>
+    <li><a href="#ligne-d-eau" data-sec="ligne-d-eau"><span class="lab">Ligne d’eau</span><span class="m">0 m</span></a></li>
+    <li><a href="#maree" data-sec="maree"><span class="lab">Marée</span><span class="m">−3 m</span></a></li>
+    <li><a href="#racines" data-sec="racines"><span class="lab">Racines</span><span class="m">−8 m</span></a></li>
+    <li><a href="#bibliotheque" data-sec="bibliotheque"><span class="lab">Bibliothèque</span><span class="m">−14 m</span></a></li>
+  </ol>
+</nav>
+
+<main>
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="hero-pill" id="hero-pill"><span class="dot" aria-hidden="true"></span><span>Bibliothèque de recherche pharma</span></p>
+      <h1 id="hero-title"><span class="l1">Ce qui pousse au-dessus,</span><span class="l2">ce qui tient en dessous.</span></h1>
+      <p class="lede">Ma recherche sur la pharma et la santé : les notes, les dates qui feront bouger les cours, et des prévisions écrites avant les résultats, puis notées par eux.</p>
       <div class="hero-actions">
-        <a class="btn" href="#bibliotheque">Aller à la bibliothèque</a>
-        <span class="hint">ou descendre dans l'arbre</span>
+        <a class="btn btn-ink" href="#bibliotheque">Ouvrir la bibliothèque<svg aria-hidden="true"><use href="#g-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="#maree"><span class="dot" aria-hidden="true"></span>Voir mes prédictions</a>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <picture>
+        <source type="image/webp" srcset="assets/img/hero-tree-680.webp 680w, assets/img/hero-tree-1040.webp 1040w, assets/img/hero-tree-1600.webp 1600w" sizes="(max-width: 720px) 128vw, min(980px, 104vw)">
+        <img class="tree" src="assets/img/hero-tree-1040.webp" width="1600" height="1088" alt="Un palétuvier en chrome liquide, ses racines plongées dans une eau miroir" fetchpriority="high" decoding="async">
+      </picture>
+      <div id="orbit" role="group" aria-label="Valeurs suivies, ouvre un dossier"></div>
+    </div>
+
+    <aside class="float-card left" id="hero-latest" aria-label="Dernière entrée du fil"></aside>
+    <aside class="float-card right" id="hero-next" aria-label="Prochaine publication"></aside>
+
+    <div class="hero-foot">
+      <div class="cover" id="hero-cover"></div>
+      <a class="descend" href="#canopee">Descendre dans l’arbre<svg aria-hidden="true"><use href="#g-down"/></svg></a>
+      <div class="seal-wrap">
+        <button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="false" aria-label="Mettre l’animation en pause"><svg aria-hidden="true"><use href="#g-pause"/></svg></button>
+        <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+          <defs><path id="seal-path" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0"/></defs>
+          <text><textPath href="#seal-path" textLength="286" lengthAdjust="spacing">MANGROVE ✶ RECHERCHE SANTÉ ✶ LYON ✶ </textPath></text>
+          <path d="M60 50l2.6 7.4L70 60l-7.4 2.6L60 70l-2.6-7.4L50 60l7.4-2.6z" fill="currentColor"/>
+        </svg>
       </div>
     </div>
   </section>
 
-  <section class="band" id="canopee" aria-labelledby="canopee-title">
-    <div class="wrap">
-      <div class="head">
-        <svg class="glyph" aria-hidden="true"><use href="#g-canopy"/></svg>
-        <div>
-          <h2 id="canopee-title">La canopée</h2>
-          <p class="sub">Ce qui affleure en premier : mes notes, les dépôts SEC et les mouvements qui comptent, du plus récent au plus ancien.</p>
-        </div>
+  <section class="sec" id="canopee" aria-labelledby="canopee-title">
+    <div class="wrap split">
+      <div class="sec-head">
+        <p class="meter">+9 m, dans les feuilles</p>
+        <h2 id="canopee-title">La <em>canopée</em></h2>
+        <p class="sub">Ce qui affleure en premier : mes notes, les dépôts SEC et les mouvements qui comptent, du plus récent au plus ancien.</p>
+        <div class="chips" role="group" aria-label="Filtrer le fil" id="feed-chips"></div>
       </div>
-      <div class="chips" role="group" aria-label="Filtrer le fil" id="feed-chips"></div>
-      <div class="feed" id="feed" aria-live="polite"></div>
-      <button class="btn ghost" type="button" id="feed-more" hidden>Tout afficher</button>
+      <div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+        <button class="btn btn-ghost" type="button" id="feed-more" hidden>Tout afficher</button>
+      </div>
     </div>
   </section>
 
-  <section class="band" id="ligne-d-eau" aria-labelledby="ligne-title">
+  <section class="sec sec-water" id="ligne-d-eau" aria-labelledby="ligne-title">
     <div class="wrap">
-      <div class="head">
-        <svg class="glyph" aria-hidden="true"><use href="#g-water"/></svg>
-        <div>
-          <h2 id="ligne-title">La ligne d'eau</h2>
-          <p class="sub">Là où une thèse rencontre le marché : les dates auxquelles le cours réagira, sur les six prochains mois.</p>
-        </div>
+      <div class="sec-head">
+        <p class="meter">0 m, la surface</p>
+        <h2 id="ligne-title">La ligne <em>d’eau</em></h2>
+        <p class="sub">Là où une thèse rencontre le marché : chaque date qui fera bouger un cours, posée sur l’horizon des six prochains mois.</p>
       </div>
-      <div class="legend" id="cat-legend"></div>
-      <div class="tl-scroll" tabindex="0" aria-label="Calendrier, défile de côté sur petit écran">
+    </div>
+    <div class="horizon">
+      <div class="sea"><svg id="waves" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      <div class="line" aria-hidden="true"></div>
+      <div class="tl-scroll" tabindex="0" aria-label="Calendrier des six prochains mois, défile de côté sur petit écran">
         <div class="tl" id="timeline"></div>
       </div>
+    </div>
+  </section>
+  <div class="dark water-tail">
+    <div class="wrap under">
+      <div class="legend" id="cat-legend"></div>
       <div class="cat-detail" id="cat-detail" aria-live="polite" hidden></div>
       <h3 class="list-title">Toutes les dates à venir</h3>
       <ol class="cat-list" id="cat-list"></ol>
     </div>
-  </section>
+  </div>
 
-  <section class="band" id="maree" aria-labelledby="maree-title">
+  <section class="sec dark" id="maree" aria-labelledby="maree-title">
     <div class="wrap">
-      <div class="head">
-        <svg class="glyph" aria-hidden="true"><use href="#g-tide"/></svg>
-        <div>
-          <h2 id="maree-title">La marée</h2>
-          <p class="sub">Mes prévisions, écrites avant la publication et horodatées par Git. Quand la marée monte avec les résultats, chacune est notée, juste ou fausse.</p>
-        </div>
+      <div class="sec-head">
+        <p class="meter">−3 m, sous la surface</p>
+        <h2 id="maree-title">La <em>marée</em></h2>
+        <p class="sub">Mes prévisions, écrites avant la publication et horodatées par Git. Quand la marée monte avec les résultats, chacune est notée, juste ou fausse.</p>
       </div>
-
-      <div class="gauges" id="gauges"></div>
-      <p class="counts" id="pred-counts"></p>
+      <div class="tide-card">
+        <svg id="tide-lines" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="pearl" aria-hidden="true"></div>
+        <div class="gauges" id="gauges"></div>
+        <p class="counts" id="pred-counts"></p>
+      </div>
       <div class="scroll metric-table" id="pred-metrics" hidden></div>
 
       <h3 class="list-title" id="pred-list-title">Mes prédictions</h3>
       <div class="chips" role="group" aria-label="Filtrer les prédictions" id="pred-chips"></div>
-      <div class="preds" id="pred-list" aria-live="polite"></div>
+      <div class="preds" id="pred-list" aria-live="polite" style="margin-top:16px"></div>
 
       <h3 class="list-title" id="ecrire">Écrire une prédiction</h3>
       <div class="composer">
@@ -115,87 +165,87 @@
           <div class="prow">
             <div class="field">
               <label for="p-ticker">Valeur</label>
-              <select id="p-ticker"></select>
+              <select id="p-ticker" name="ticker"></select>
             </div>
             <div class="field" id="p-period-field">
               <label for="p-period">Période publiée</label>
-              <input id="p-period" type="text" inputmode="text" autocomplete="off" placeholder="Q4 FY2026" aria-describedby="p-period-help">
+              <input id="p-period" name="period" type="text" autocomplete="off" spellcheck="false" placeholder="Q4 FY2026…" aria-describedby="p-period-help">
             </div>
           </div>
           <p class="help" id="p-period-help"></p>
 
           <fieldset id="p-metrics-set">
             <legend>Résultats, avec un intervalle à 80 %</legend>
-            <p class="help">Montants en milliards de dollars, marges en %, BPA en dollars. L'intervalle doit contenir le chiffre publié quatre fois sur cinq. Laisse vide ce que tu ne prévois pas.</p>
+            <p class="help">Montants en milliards de dollars, marges en %, BPA en dollars. L’intervalle doit contenir le chiffre publié quatre fois sur cinq. Laisse vide ce que tu ne prévois pas.</p>
             <div class="scroll"><table class="ptable" id="p-metrics"></table></div>
           </fieldset>
           <p class="help warnline" id="p-metrics-off" hidden></p>
 
           <fieldset>
             <legend>Questions oui / non</legend>
-            <p class="help">Une probabilité en %, notée par le score de Brier. Tu indiques l'issue toi-même dans le fichier, une fois connue.</p>
+            <p class="help">Une probabilité en %, notée par le score de Brier. Tu indiques l’issue toi-même dans le fichier, une fois connue.</p>
             <div id="p-events"></div>
-            <button class="btn ghost small" type="button" id="p-add-event"><svg aria-hidden="true"><use href="#g-plus"/></svg>Ajouter une question</button>
+            <button class="btn btn-ghost btn-small" type="button" id="p-add-event"><svg aria-hidden="true"><use href="#g-plus"/></svg>Ajouter une question</button>
           </fieldset>
 
           <fieldset>
             <legend>Objectifs de cours</legend>
             <p class="help" id="p-price-help">Vérifiés sur la clôture du jour visé.</p>
             <div id="p-prices"></div>
-            <button class="btn ghost small" type="button" id="p-add-price"><svg aria-hidden="true"><use href="#g-plus"/></svg>Ajouter un objectif</button>
+            <button class="btn btn-ghost btn-small" type="button" id="p-add-price"><svg aria-hidden="true"><use href="#g-plus"/></svg>Ajouter un objectif</button>
           </fieldset>
 
           <div class="field">
             <label for="p-note">Raisonnement</label>
-            <textarea id="p-note" rows="4" placeholder="Hypothèses clés, et ce qui te ferait changer d'avis."></textarea>
+            <textarea id="p-note" name="note" rows="4" placeholder="Hypothèses clés, et ce qui te ferait changer d’avis…"></textarea>
           </div>
         </form>
 
         <aside class="pfile" aria-labelledby="pfile-title">
           <h4 id="pfile-title">Le fichier enregistré</h4>
           <p class="help" id="p-fname"></p>
-          <div class="pcheck" id="p-check" aria-live="polite"></div>
+          <div id="p-check" aria-live="polite"></div>
           <pre id="p-yaml" tabindex="0" aria-label="Contenu du fichier de prédiction"></pre>
           <div class="pactions">
-            <a class="btn" id="p-save" href="#" target="_blank" rel="noopener" aria-disabled="true">Enregistrer sur GitHub</a>
-            <button class="btn ghost" type="button" id="p-copy">Copier le fichier</button>
+            <a class="btn btn-ink" id="p-save" href="#" target="_blank" rel="noopener" aria-disabled="true">Enregistrer sur GitHub</a>
+            <button class="btn btn-ghost" type="button" id="p-copy">Copier le fichier</button>
           </div>
-          <p class="help">GitHub s'ouvre avec le fichier prêt : clique « Commit changes ». L'heure du commit fait foi ; seule la dernière version d'avant la publication est notée.</p>
+          <p class="help">GitHub s’ouvre avec le fichier prêt : clique « Commit changes ». L’heure du commit fait foi ; seule la dernière version d’avant la publication est notée.</p>
         </aside>
       </div>
     </div>
   </section>
 
-  <section class="band" id="racines" aria-labelledby="racines-title">
-    <div class="wrap">
-      <div class="head">
-        <svg class="glyph" aria-hidden="true"><use href="#g-roots"/></svg>
-        <div>
-          <h2 id="racines-title">Les racines</h2>
-          <p class="sub">Les principes auxquels chaque note est tenue. Tout ce qui dépasse de l'eau repose sur eux.</p>
-        </div>
+  <section class="sec dark sec-roots" id="racines" aria-labelledby="racines-title">
+    <div class="roots-art">
+      <picture>
+        <source type="image/webp" srcset="assets/img/roots-760.webp 760w, assets/img/roots-1200.webp 1200w, assets/img/roots-2000.webp 2000w" sizes="100vw">
+        <img src="assets/img/roots-1200.webp" width="2000" height="1250" alt="Les racines du palétuvier, sous l’eau, éclairées par la surface" loading="lazy" decoding="async">
+      </picture>
+      <div class="sec-head">
+        <p class="meter">−8 m, dans les racines</p>
+        <h2 id="racines-title">Les <em>racines</em></h2>
+        <p class="sub">Les principes auxquels chaque note est tenue. Tout ce qui dépasse de l’eau repose sur eux.</p>
       </div>
-      <div class="values" id="values"></div>
     </div>
+    <div class="wrap values" id="values"></div>
   </section>
 
-  <section class="band" id="bibliotheque" aria-labelledby="bibliotheque-title">
+  <section class="sec dark" id="bibliotheque" aria-labelledby="bibliotheque-title">
     <div class="wrap">
-      <div class="head">
-        <svg class="glyph" aria-hidden="true"><use href="#g-network"/></svg>
-        <div>
-          <h2 id="bibliotheque-title">La bibliothèque</h2>
-          <p class="sub">Chaque valeur suivie, enracinée dans son métier. Ouvre une tuile pour le dossier complet.</p>
-        </div>
+      <div class="sec-head">
+        <p class="meter">−14 m, au fond</p>
+        <h2 id="bibliotheque-title">La <em>bibliothèque</em></h2>
+        <p class="sub">Chaque valeur suivie, enracinée dans son métier. Ouvre une tuile pour le dossier complet : cours, comptes, thèse, dépôts et prédictions.</p>
       </div>
       <form class="tools" id="lib-tools" role="search" onsubmit="return false">
         <div class="field grow">
           <label for="lib-q">Rechercher</label>
-          <input id="lib-q" type="search" placeholder="Ticker, société, titre ou mot-clé" autocomplete="off">
+          <input id="lib-q" name="q" type="search" placeholder="Ticker, société, titre ou mot-clé…" autocomplete="off" spellcheck="false">
         </div>
         <div class="field">
           <label for="lib-type">Type de document</label>
-          <select id="lib-type"></select>
+          <select id="lib-type" name="type"></select>
         </div>
         <div class="field">
           <span class="label" id="view-label">Vue</span>
@@ -220,16 +270,20 @@
       </div>
       <div class="empty" id="lib-empty" hidden>
         <p>Rien ne correspond à ces filtres.</p>
-        <button class="btn ghost" type="button" id="lib-clear">Effacer les filtres</button>
+        <button class="btn btn-ghost" type="button" id="lib-clear">Effacer les filtres</button>
       </div>
     </div>
   </section>
 </main>
 
-<footer>
+<footer class="closing dark">
   <div class="wrap">
-    <span>Mangrove, bibliothèque de recherche. Rien ici n'est un conseil en investissement.</span>
-    <span id="foot-data"></span>
+    <div class="mark" data-mark aria-hidden="true"></div>
+    <p class="word" aria-hidden="true" translate="no">Mangrove</p>
+    <div class="base">
+      <span>Bibliothèque de recherche personnelle. Rien ici n’est un conseil en investissement.</span>
+      <span id="foot-data"></span>
+    </div>
   </div>
 </footer>
 
@@ -246,8 +300,9 @@
 <script src="library/values.js"></script>
 <script src="assets/js/predict-core.js"></script>
 <script src="assets/js/data.js"></script>
-<script src="assets/js/scene.js"></script>
+<script src="assets/js/mark.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/hero.js"></script>
 <script src="assets/js/predict.js"></script>
 </body>
 </html>

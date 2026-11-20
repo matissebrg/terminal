@@ -3,7 +3,12 @@ name: Ajouter une valeur
 # Onglet Actions > « Ajouter une valeur » > Run workflow.
 # Crée config/assumptions/<TICKER>.yaml à partir de l'historique SEC, ajoute la valeur et ses pairs
 # dans config/universe.yaml, puis relance la mise à jour du site (~3 minutes au total).
+# Autre déclencheur, sans passer par l'onglet Actions : commiter demandes/ajouter-valeurs.yaml (mêmes champs que
+# ci-dessous : ticker, peers, sector, industry, etf, etf_name) ; le fichier est supprimé une fois la demande traitée.
 on:
+  push:
+    branches: [main]
+    paths: ["demandes/ajouter-valeurs.yaml"]
   workflow_dispatch:
     inputs:
       ticker:
@@ -53,16 +58,27 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r requirements.txt
 
+      - name: Lire la demande (demandes/ajouter-valeurs.yaml)
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_ENV"
+          import yaml
+          d = yaml.safe_load(open("demandes/ajouter-valeurs.yaml", encoding="utf-8")) or {}
+          for k in ("ticker", "peers", "sector", "industry", "etf", "etf_name"):
+              print(f"REQ_{k.upper()}=" + " ".join(str(d.get(k) or "").split()))
+          PY
+
       - name: Créer la couverture
         shell: bash   # -e -o pipefail : une erreur du script fait échouer l'étape (sinon masquée par « tee »)
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-          IN_TICKER: ${{ inputs.ticker }}
-          IN_PEERS: ${{ inputs.peers }}
-          IN_SECTOR: ${{ inputs.sector }}
-          IN_INDUSTRY: ${{ inputs.industry }}
-          IN_ETF: ${{ inputs.etf }}
-          IN_ETF_NAME: ${{ inputs.etf_name }}
+          IN_TICKER: ${{ inputs.ticker || env.REQ_TICKER }}
+          IN_PEERS: ${{ inputs.peers || env.REQ_PEERS }}
+          IN_SECTOR: ${{ inputs.sector || env.REQ_SECTOR }}
+          IN_INDUSTRY: ${{ inputs.industry || env.REQ_INDUSTRY }}
+          IN_ETF: ${{ inputs.etf || env.REQ_ETF }}
+          IN_ETF_NAME: ${{ inputs.etf_name || env.REQ_ETF_NAME }}
         run: |
           # entrées passées par variables d'environnement (jamais interpolées dans le script) ; espaces retirés
           trim() { local v="$1"; v="${v#"${v%%[![:space:]]*}"}"; printf '%s' "${v%"${v##*[![:space:]]}"}"; }
@@ -93,10 +109,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          IN_TICKER: ${{ inputs.ticker }}
+          IN_TICKER: ${{ inputs.ticker || env.REQ_TICKER }}
         run: |
           git config user.name "terminal-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -q --ignore-unmatch demandes/ajouter-valeurs.yaml
           git add config
           if git diff --cached --quiet; then
             echo "::warning::Rien de nouveau : ${IN_TICKER^^} est peut-être déjà suivie."

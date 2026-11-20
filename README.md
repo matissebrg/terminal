@@ -96,7 +96,35 @@ pipeline/  normalize → ratios → feed → predictions  ──►  docs/data/*
 ```
 
 Le site (`docs/index.html`, `docs/assets/`, `docs/library/`) n'a ni dépendance ni étape de build : HTML, CSS et JavaScript
-simples, une scène WebGL dessinée à la main (`assets/js/scene.js`), des graphiques en SVG.
+simples, des graphiques en SVG. Pas de WebGL : la mangrove en chrome du haut de page et les racines sous l'eau sont des rendus
+Blender exportés en WebP, ce qui garde la page fluide sur un PC de bureau sans carte graphique.
+
+### Design
+
+- **Idée** : on descend dans la page comme dans l'eau. Canopée (lecture du moment) → ligne d'eau (calendrier des publications,
+  mâts et reflets) → marée (prédictions et score) → racines (fondamentaux de chaque valeur) → bibliothèque.
+- **Couleurs** (`assets/css/mangrove.css`, `:root`) : brume `#EDF0EC` au-dessus de l'eau, abysse `#04110F` en dessous, lagune
+  `#3FE3A6` (le vert du logo) comme seul accent. La barre de navigation passe en verre sombre quand on passe sous l'eau.
+- **Polices** : Newsreader (titres, instance « display » à opsz 72, deux fichiers) et Geist (texte). 124 Ko au total, voir
+  `assets/fonts/LICENSE.txt`.
+- **Mouvement** : seules les cartes en orbite autour de l'arbre bougent, en `transform`/`opacity`. Elles s'arrêtent hors écran,
+  onglet masqué, avec « réduire les animations » du système, ou via le bouton pause en bas à droite du premier écran.
+- **Logo** : `assets/brand/mangrove-mark.svg` (aussi dans `assets/js/mark.js` pour l'insérer dans la page) ; icônes PNG
+  générées depuis `favicon.svg` avec `rsvg-convert`.
+
+### Refaire les images
+
+```bash
+pip install bpy pillow numpy        # bpy = Blender en module Python (rendu Cycles sur CPU)
+python3 tools/render/mangrove_scene.py hero.png  2400 1500 96 hero
+python3 tools/render/mangrove_scene.py roots.png 2400 1500 64 roots
+python3 tools/render/postprocess.py hero  hero.png  docs/assets/img
+python3 tools/render/postprocess.py roots roots.png docs/assets/img
+```
+
+Le fond du rendu « hero » est exactement la couleur de la page : `postprocess.py` détoure l'arbre par distance à cette couleur,
+de sorte que l'image posée sur la page redonne le rendu (aux pertes de compression WebP près). Si `--brume` change dans le CSS, changer aussi `PAPER`
+dans les deux scripts et refaire les images. Compter quelques minutes par rendu.
 
 L'ancien espace membres (Supabase) n'a plus d'interface sur le site. Sa base et ses migrations restent dans le repo et le
 workflow continue de les maintenir ; rien n'est supprimé côté données.

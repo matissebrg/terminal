@@ -1,6 +1,8 @@
-Hanken Grotesk (c) The Hanken Grotesk Project Authors, https://github.com/marcologous/hanken-grotesk
-Syne (c) The Syne Project Authors, https://gitlab.com/bonjour-monde/fonderie/syne-typeface
-Martian Mono (c) The Martian Mono Project Authors, https://github.com/evilmartians/mono
-All three under the SIL Open Font License 1.1: https://openfontlicense.org
-Files from the Fontsource packages @fontsource-variable/hanken-grotesk, @fontsource-variable/syne and
-@fontsource-variable/martian-mono.
+Newsreader (c) 2020 The Newsreader Project Authors, https://github.com/productiontype/Newsreader
+Geist (c) 2024 The Geist Project Authors, https://github.com/vercel/geist-font
+Both under the SIL Open Font License 1.1: https://openfontlicense.org
+
+newsreader-display-normal.woff2 and newsreader-display-italic.woff2 are subsets of Newsreader,
+instanced with fontTools varLib.instancer (opsz fixed at 72, wght 380-520). Under the OFL, these
+modified versions are not sold and keep the original copyright notice.
+geist-latin-wght-normal.woff2 comes from the Fontsource package @fontsource-variable/geist.
