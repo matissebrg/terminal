@@ -42,7 +42,7 @@
   var PERIOD = 80000;   // one turn every 80 s: slow enough to read a card as it passes
   function measure() {
     var w = stage.clientWidth, h = stage.clientHeight, small = w < 600;
-    geo = { cx: w * 0.5, cy: h * (small ? 0.24 : 0.235), rx: w * (small ? 0.4 : 0.39), ry: w * 0.065,
+    geo = { cx: w * 0.5, cy: w * (small ? 0.163 : 0.16),   /* crown height, from the width: the image runs on below */ rx: w * (small ? 0.4 : 0.39), ry: w * 0.065,
             cw: cards[0] ? cards[0].el.offsetWidth : 170, ch: cards[0] ? cards[0].el.offsetHeight : 90 };
   }
   function place(a) {
@@ -86,15 +86,23 @@
     place(angle);
   });
 
-  var toggle = $('motion-toggle');
-  toggle.addEventListener('click', function () {
-    userPaused = !userPaused;
-    toggle.setAttribute('aria-pressed', String(userPaused));
-    toggle.setAttribute('aria-label', userPaused ? 'Relancer l’animation' : 'Mettre l’animation en pause');
-    toggle.innerHTML = '<svg aria-hidden="true"><use href="#g-' + (userPaused ? 'play' : 'pause') + '"/></svg>';
-    document.body.classList.toggle('still', userPaused);
+  /* One pause for every moving thing on the page: the hero button and its twin in the footer. */
+  var toggles = [$('motion-toggle'), $('motion-toggle-foot')].filter(Boolean);
+  function setPaused(p) {
+    userPaused = p;
+    document.body.classList.toggle('still', p);
+    toggles.forEach(function (t) {
+      t.setAttribute('aria-pressed', String(p));
+      if (t.id === 'motion-toggle') {
+        t.setAttribute('aria-label', p ? 'Relancer les animations' : 'Mettre les animations en pause');
+        t.innerHTML = '<svg aria-hidden="true"><use href="#g-' + (p ? 'play' : 'pause') + '"/></svg>';
+      } else {
+        t.textContent = p ? 'Relancer les animations' : 'Mettre les animations en pause';
+      }
+    });
     kick();
-  });
+  }
+  toggles.forEach(function (t) { t.addEventListener('click', function () { setPaused(!userPaused); }); });
 
   /* ---------- floating cards and the cover line ---------- */
   function floats() {

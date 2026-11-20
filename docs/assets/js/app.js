@@ -51,7 +51,7 @@
     if (!vals || vals.length < 2) return '';
     var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), n = vals.length, W = 120, H = 30;
     var d = vals.map(function (v, i) { return (i ? 'L' : 'M') + (i / (n - 1) * W).toFixed(1) + ' ' + (H - 2 - (hi > lo ? (v - lo) / (hi - lo) : .5) * (H - 4)).toFixed(1); }).join('');
-    return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+    return '<svg class="spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" pathLength="1" fill="none" stroke="' + color + '" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
   function sparkOf(t) {
     var u = S.tracked[t], c = byTicker[t] || {};
@@ -522,20 +522,23 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
 
   /* fine-line wave fields, drawn once: the sea under the horizon and the tide card */
+  /* Static wave fields, drawn twice as wide as their box and periodic over 1440 units, so the CSS can slide them
+     left by half their width forever without a seam (a transform on one layer: no repaint). */
   function waveField(svg, o) {
     if (!svg) return;
-    var W = 1440, H = o.h, out = '';
+    var W = 1440, H = o.h, TAU = Math.PI * 2, out = '';
     for (var k = 0; k < o.n; k++) {
-      var t = k / (o.n - 1), y0 = o.y0 + Math.pow(t, o.persp) * (H - o.y0), amp = o.amp * (0.25 + t), f = o.freq * (1 - t * 0.35), ph = k * 0.55;
+      var t = k / (o.n - 1), y0 = o.y0 + Math.pow(t, o.persp) * (H - o.y0), amp = o.amp * (0.25 + t), ph = k * 0.55;
+      var c1 = Math.max(1, Math.round(o.freq * (1 - t * 0.35) * W / TAU)), c2 = Math.max(1, Math.round(c1 * 0.37));
       var d = '';
-      for (var x = 0; x <= W; x += 24) {
-        var swell = Math.sin(x / W * Math.PI * 1.3 + 0.6) * o.swell * t;
-        var y = y0 + Math.sin(x * f + ph) * amp + Math.sin(x * f * 0.37 + ph * 1.7) * amp * 0.6 + swell;
+      for (var x = 0; x <= 2 * W; x += 24) {
+        var swell = Math.sin(x / W * TAU + 0.6) * o.swell * t;
+        var y = y0 + Math.sin(x / W * TAU * c1 + ph) * amp + Math.sin(x / W * TAU * c2 + ph * 1.7) * amp * 0.6 + swell;
         d += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1);
       }
       out += '<path d="' + d + '" stroke-opacity="' + (o.op0 + (o.op1 - o.op0) * t).toFixed(3) + '"/>';
     }
-    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('viewBox', '0 0 ' + 2 * W + ' ' + H);
     svg.innerHTML = '<g fill="none" stroke="' + o.color + '" stroke-width="1" vector-effect="non-scaling-stroke">' + out + '</g>';
   }
   waveField($('waves'), { h: 260, n: 34, y0: 4, persp: 1.7, amp: 2.2, freq: 0.008, swell: 18, color: '#E4EEEA', op0: 0.45, op1: 0.14 });

@@ -78,8 +78,9 @@
     <div class="stage" id="stage">
       <picture>
         <source type="image/webp" srcset="assets/img/hero-tree-680.webp 680w, assets/img/hero-tree-1040.webp 1040w, assets/img/hero-tree-1600.webp 1600w" sizes="(max-width: 720px) 128vw, min(980px, 104vw)">
-        <img class="tree" src="assets/img/hero-tree-1040.webp" width="1600" height="1088" alt="Un palétuvier en chrome liquide, ses racines plongées dans une eau miroir" fetchpriority="high" decoding="async">
+        <img class="tree" src="assets/img/hero-tree-1040.webp" width="1600" height="1133" alt="Un palétuvier en chrome liquide, ses racines plongées dans une eau miroir" fetchpriority="high" decoding="async">
       </picture>
+      <div class="sheen" aria-hidden="true"><i></i></div>
       <div id="orbit" role="group" aria-label="Valeurs suivies, ouvre un dossier"></div>
     </div>
 
@@ -90,7 +91,7 @@
       <div class="cover" id="hero-cover"></div>
       <a class="descend" href="#canopee">Descendre dans l’arbre<svg aria-hidden="true"><use href="#g-down"/></svg></a>
       <div class="seal-wrap">
-        <button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="false" aria-label="Mettre l’animation en pause"><svg aria-hidden="true"><use href="#g-pause"/></svg></button>
+        <button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="false" aria-label="Mettre les animations en pause"><svg aria-hidden="true"><use href="#g-pause"/></svg></button>
         <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
           <defs><path id="seal-path" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0"/></defs>
           <text><textPath href="#seal-path" textLength="286" lengthAdjust="spacing">MANGROVE ✶ RECHERCHE SANTÉ ✶ LYON ✶ </textPath></text>
@@ -149,6 +150,7 @@
       </div>
       <div class="tide-card">
         <svg id="tide-lines" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="tide-rise" aria-hidden="true"></div>
         <div class="pearl" aria-hidden="true"></div>
         <div class="gauges" id="gauges"></div>
         <p class="counts" id="pred-counts"></p>
@@ -283,6 +285,7 @@
     <div class="base">
       <span>Bibliothèque de recherche personnelle. Rien ici n’est un conseil en investissement.</span>
       <span id="foot-data"></span>
+      <button class="linkish foot-motion" type="button" id="motion-toggle-foot" aria-pressed="false">Mettre les animations en pause</button>
     </div>
   </div>
 </footer>
@@ -304,5 +307,6 @@
 <script src="assets/js/app.js"></script>
 <script src="assets/js/hero.js"></script>
 <script src="assets/js/predict.js"></script>
+<script src="assets/js/motion.js"></script>
 </body>
 </html>

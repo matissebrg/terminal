@@ -107,8 +107,14 @@ Blender exportés en WebP, ce qui garde la page fluide sur un PC de bureau sans 
   `#3FE3A6` (le vert du logo) comme seul accent. La barre de navigation passe en verre sombre quand on passe sous l'eau.
 - **Polices** : Newsreader (titres, instance « display » à opsz 72, deux fichiers) et Geist (texte). 124 Ko au total, voir
   `assets/fonts/LICENSE.txt`.
-- **Mouvement** : seules les cartes en orbite autour de l'arbre bougent, en `transform`/`opacity`. Elles s'arrêtent hors écran,
-  onglet masqué, avec « réduire les animations » du système, ou via le bouton pause en bas à droite du premier écran.
+- **Mouvement** (`assets/js/motion.js` + fin de `mangrove.css`) : uniquement `transform` et `opacity`, donc calculé par le
+  compositeur sans bloquer la page. Un mouvement par profondeur : les titres remontent à la surface, les mâts du calendrier
+  sortent de l'eau, la marée monte dans la carte des scores et les chiffres défilent, les principes pendent au bout de
+  racines qui poussent, les tuiles de la bibliothèque montent du fond et tracent leur courbe. En continu : un reflet passe
+  sur l'arbre en chrome, les vagues dérivent, des bulles montent dans les sections sombres, une lumière suit la souris sous
+  l'eau. Défilement lié (Chrome/Edge, `animation-timeline`) : le texte du premier écran s'efface, l'arbre et les racines
+  bougent en parallaxe. Les boucles ne tournent que quand leur bloc est à l'écran ; tout s'arrête avec « réduire les
+  animations » du système ou les boutons pause (premier écran et pied de page).
 - **Logo** : `assets/brand/mangrove-mark.svg` (aussi dans `assets/js/mark.js` pour l'insérer dans la page) ; icônes PNG
   générées depuis `favicon.svg` avec `rsvg-convert`.
 

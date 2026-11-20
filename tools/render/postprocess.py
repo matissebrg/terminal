@@ -22,7 +22,7 @@ PAPER = np.array([0xED, 0xF0, 0xEC], float)   # --brume
 ABYSS = np.array([0x04, 0x11, 0x0F], float)   # --abysse
 
 # Hero crop, in render pixels (2400 x 1500 render): x, y, width, height.
-HERO_CROP = (292, 134, 1816, 1235)
+HERO_CROP = (292, 134, 1816, 1286)   # down to where the reflection has faded out
 HERO_WIDTHS = (1600, 1040, 680)
 ROOTS_WIDTHS = (2000, 1200, 760)
 
@@ -56,10 +56,7 @@ def hero(src, out_dir):
     x, y, w, h = HERO_CROP
     rgba = cutout(rgb[y:y + h, x:x + w], PAPER)
     rgba[:2, :, 3] = rgba[-2:, :, 3] = rgba[:, :2, 3] = rgba[:, -2:, 3] = 0   # no stray border pixels
-    img = Image.fromarray(rgba, "RGBA")
-    # Trim to the 1600:1088 ratio the CSS reserves (aspect-ratio on .stage).
-    target_h = round(img.width * 1088 / 1600)
-    img = img.crop((0, 0, img.width, min(img.height, target_h)))
+    img = Image.fromarray(rgba, "RGBA")   # 1600 x 1133 once resized: keep .stage's aspect-ratio in step
     save_widths(img, out_dir, "hero-tree", HERO_WIDTHS, quality=86)
 
 

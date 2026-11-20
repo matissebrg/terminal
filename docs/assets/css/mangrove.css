@@ -170,7 +170,9 @@ body.below .depth { color: var(--ecume); }
 body.at-top .depth { opacity: 0; visibility: hidden; pointer-events: none; }
 
 /* ---------- hero: the canopy ---------- */
-.hero { position: relative; height: max(720px, 100svh); padding: clamp(96px, 12vh, 118px) 0 0; display: flex; flex-direction: column; align-items: center; overflow: clip; isolation: isolate; }
+/* The hero is one screen of copy plus the whole tree: the roots and their reflection run past the first screen
+   and fade into the page instead of being cut by the section edge. */
+.hero { position: relative; min-height: max(720px, 100svh); padding: clamp(96px, 12vh, 118px) 0 0; display: flex; flex-direction: column; align-items: center; overflow-x: clip; isolation: isolate; }
 .hero::before { /* faint daylight from above */
   content: ''; position: absolute; inset: 0; z-index: -1;
   background: radial-gradient(120% 70% at 50% -10%, #FBFCFA 0%, rgba(251, 252, 250, 0) 60%);
@@ -183,7 +185,7 @@ body.at-top .depth { opacity: 0; visibility: hidden; pointer-events: none; }
 .lede { margin-top: clamp(12px, 2vh, 20px); max-width: 40em; font-size: clamp(16px, 1.25vw, 18.5px); line-height: 1.55; color: var(--encre-2); }
 .hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: clamp(16px, 2.6vh, 28px); }
 
-.stage { position: relative; z-index: 2; flex: none; width: min(1000px, 104vw, 128vh); margin-top: clamp(-52px, -4vh, -10px); aspect-ratio: 1600 / 1088; perspective: 1400px; }
+.stage { position: relative; z-index: 2; flex: none; width: min(1000px, 104vw, 128vh); margin-top: clamp(-52px, -4vh, -10px); aspect-ratio: 1600 / 1133; perspective: 1400px; }
 .stage .tree { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; user-select: none; -webkit-user-drag: none; }
 .ocard {
   position: absolute; left: 0; top: 0; z-index: 1; width: 170px; padding: 12px 14px 12px; border-radius: 18px;
@@ -218,7 +220,7 @@ body.at-top .depth { opacity: 0; visibility: hidden; pointer-events: none; }
 .float-card.left::after { left: 100%; }
 .float-card.right::after { right: 100%; transform: scaleX(-1); }
 
-.hero-foot { position: absolute; z-index: 6; left: 0; right: 0; bottom: 26px; width: var(--wrap); margin-inline: auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; }
+.hero-foot { position: absolute; z-index: 6; left: 0; right: 0; top: calc(max(720px, 100svh) - 26px); translate: 0 -100%; width: var(--wrap); margin-inline: auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; }
 .cover { display: grid; gap: 10px; justify-items: start; }
 .cover p { font-size: 13.5px; color: var(--vase); line-height: 1.35; }
 .cover p b { display: block; font-family: var(--serif); font-weight: 400; font-size: 26px; color: var(--encre); letter-spacing: -.01em; }
@@ -582,7 +584,7 @@ dialog#dossier::backdrop { background: rgba(2, 9, 8, .72); }
   .ocard { width: 132px; padding: 9px 10px; border-radius: 14px; }
   .ocard .sym { font-size: 20px; }
   .ocard .nm, .ocard svg.spark { display: none; }
-  .hero-foot { position: relative; bottom: auto; margin: 8px auto 36px; grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .hero-foot { position: relative; top: auto; translate: none; margin: 8px auto 36px; grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .cover { justify-items: center; }
   .cover .tick { justify-content: center; }
   .hero-foot .cover { visibility: visible; }
@@ -604,4 +606,146 @@ dialog#dossier::backdrop { background: rgba(2, 9, 8, .72); }
 @media (prefers-reduced-motion: reduce) {
   .seal, .descend svg { animation: none; }
   .btn, .tile, .mast button { transition: none; }
+}
+
+/* =====================================================================================================
+   Motion. Only transform / translate / opacity are animated (compositor work, no layout, no repaint),
+   so the page stays smooth on a PC without a graphics card. html.mo is set by motion.js when motion is
+   allowed; loops run only while their block is on screen (.on) and stop on body.still (pause buttons).
+   ===================================================================================================== */
+.foot-motion { color: var(--ecume-2); }
+.foot-motion:hover { color: var(--ecume); }
+#maree > .wrap, .closing > .wrap { position: relative; z-index: 1; }
+.mast .stem, .today { transform-origin: 50% 100%; }
+.gauge .fill { transform-origin: 0 50%; }
+.value::before { transform-origin: 50% 0; }
+svg.spark path { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.horizon .sea svg, .tide-card > svg { width: 200%; }   /* drawn twice as wide, seamless: slides by half */
+
+/* the tide rising inside the score card */
+.tide-rise { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform: translateY(40%);
+  background: linear-gradient(180deg, rgba(63, 227, 166, .10) 0%, rgba(63, 227, 166, .05) 30%, rgba(63, 227, 166, 0) 80%); }
+.tide-rise::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, rgba(127, 231, 198, 0), rgba(127, 231, 198, .55) 30%, rgba(127, 231, 198, .55) 70%, rgba(127, 231, 198, 0)); box-shadow: 0 0 18px rgba(63, 227, 166, .5); }
+
+/* light sweeping over the chrome tree, masked by the tree itself */
+.sheen { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0;
+  -webkit-mask: var(--tree-mask) 0 0 / 100% 100% no-repeat; mask: var(--tree-mask) 0 0 / 100% 100% no-repeat; }
+.sheen i { position: absolute; top: -10%; bottom: -10%; left: 0; width: 26%; transform: translateX(-130%) skewX(-14deg);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .55) 45%, rgba(214, 255, 238, .7) 50%, rgba(255, 255, 255, .55) 55%, rgba(255, 255, 255, 0)); }
+
+/* bubbles and the lamp */
+.bubbles { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.bubbles span { position: absolute; bottom: -16px; left: var(--x); width: var(--s); height: var(--s); border-radius: 50%; opacity: 0;
+  border: 1px solid rgba(127, 231, 198, .4); background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, .6), rgba(127, 231, 198, .1) 55%, rgba(127, 231, 198, 0) 72%); }
+.lamp { position: fixed; left: 0; top: 0; z-index: 0; width: 600px; height: 600px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity .6s;
+  background: radial-gradient(closest-side, rgba(63, 227, 166, .085), rgba(63, 227, 166, .03) 55%, rgba(63, 227, 166, 0)); will-change: transform; }
+body.below .lamp { opacity: 1; }
+body.still .lamp { opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- headings rise through a waterline; meter, subtitle and chips follow ---- */
+  .mo .sec-head h2 { overflow: clip; padding: 0 .12em .1em 0; margin-bottom: -.1em; }
+  .mo .sec-head h2 .rise { display: inline-block; }
+  .mo .sec-head:not(.in) h2 .rise { transform: translateY(112%); }
+  .mo .sec-head:not(.in) :is(.meter, .sub, .chips) { opacity: 0; transform: translateY(14px); }
+  .mo .sec-head:not(.in) .meter::before { transform: scaleX(0); }
+  .sec-head .meter::before { transform-origin: 0 50%; }
+  .mo .sec-head.in h2 .rise { transition: transform 1.25s var(--ease-out) .08s; }
+  .mo .sec-head.in :is(.meter, .sub, .chips) { transition: opacity .9s var(--ease-out) calc(var(--d, 0ms) + .25s), transform 1s var(--ease-out) calc(var(--d, 0ms) + .25s); }
+  .mo .sec-head.in .meter::before { transition: transform 1s var(--ease-out); }
+
+  /* ---- canopée: entries settle like leaves, their rule drawn left to right ---- */
+  .mo .entry { position: relative; border-top-color: transparent; }
+  .mo .entry::before { content: ''; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: var(--hair-paper); transform-origin: 0 50%; }
+  .mo #feed:not(.in) .entry { opacity: 0; transform: translateY(22px); }
+  .mo #feed:not(.in) .entry::before { transform: scaleX(0); }
+  .mo #feed.in:not(.settled) .entry { transition: opacity .8s var(--ease-out) var(--d), transform 1s var(--ease-out) var(--d); }
+  .mo #feed.in:not(.settled) .entry::before { transition: transform 1.2s var(--ease-out) var(--d); }
+
+  /* ---- ligne d'eau: masts grow out of the water, labels pop, reflections and months follow; waves drift ---- */
+  .mo .horizon:not(.in) .mast .stem, .mo .horizon:not(.in) .today { transform: scaleY(0); }
+  .mo .horizon:not(.in) .mast button { opacity: 0; transform: translateY(16px) scale(.94); }
+  .mo .horizon:not(.in) :is(.reflect, .month) { opacity: 0; }
+  .mo .horizon.in:not(.settled) .mast .stem { transition: transform .9s var(--ease-out) var(--d); }
+  .mo .horizon.in:not(.settled) .mast button { transition: opacity .6s var(--ease-out) calc(var(--d) + .5s), transform .9s cubic-bezier(.2, 1.5, .4, 1) calc(var(--d) + .5s); }
+  .mo .horizon.in:not(.settled) .reflect { transition: opacity 1.4s ease .9s; }
+  .mo .horizon.in:not(.settled) .month { transition: opacity 1s ease .4s; }
+  .mo .horizon.in:not(.settled) .today { transition: transform 1.2s var(--ease-out) .2s; }
+  .horizon.on #waves { animation: drift 64s linear infinite; }
+  .horizon .line { overflow: hidden; }
+  .horizon .line::after { content: ''; position: absolute; top: -1px; left: 0; width: 220px; height: 3px; transform: translateX(-240px);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .95), rgba(255, 255, 255, 0)); }
+  .horizon.on .line::after { animation: glint 9s var(--ease-out) 1.5s infinite; }
+
+  /* ---- marée: the tide rises in the card, numbers count up, gauges fill, the pearl floats ---- */
+  .mo .tide-card:not(.in) .tide-rise { transform: translateY(100%); }
+  .mo .tide-card.in:not(.settled) .tide-rise { transition: transform 2.6s cubic-bezier(.3, .7, .2, 1); }
+  .tide-card.on.settled .tide-rise { animation: swell 7s ease-in-out infinite alternate; }
+  .mo .tide-card:not(.in) .gauge .fill { transform: scaleX(0); }
+  .mo .tide-card:not(.in) .g { opacity: 0; transform: translateY(18px); }
+  .mo .tide-card.in:not(.settled) .g { transition: opacity .9s var(--ease-out) calc(var(--d) + .2s), transform 1s var(--ease-out) calc(var(--d) + .2s); }
+  .mo .tide-card.in:not(.settled) .gauge .fill { transition: transform 1.6s var(--ease-out) calc(var(--d) + .6s); }
+  .tide-card.on .pearl { animation: pearl 12s ease-in-out infinite alternate; }
+  .tide-card.on > svg { animation: drift 120s linear infinite; }
+
+  /* ---- racines: the light breathes, each principle hangs from a root that grows down to it ---- */
+  .roots-art::after { content: ''; position: absolute; z-index: 1; left: 15%; right: 15%; top: clamp(150px, 24vh, 230px); height: 46%; pointer-events: none; opacity: .35;
+    background: radial-gradient(50% 50% at 50% 40%, rgba(127, 231, 198, .22), rgba(127, 231, 198, 0)); }
+  .roots-art.on::after { animation: breathe 6.5s ease-in-out infinite alternate; }
+  .mo #values:not(.in) .value { opacity: 0; transform: translateY(30px); }
+  .mo #values:not(.in) .value::before { transform: scaleY(0); }
+  .mo #values.in:not(.settled) .value::before { transition: transform .8s var(--ease-out) var(--d); }
+  .mo #values.in:not(.settled) .value { transition: opacity .9s var(--ease-out) calc(var(--d) + .35s), transform 1.1s var(--ease-out) calc(var(--d) + .35s); }
+
+  /* ---- bibliothèque: tiles come up from the floor, their price lines draw themselves ---- */
+  .mo #lib-roots:not(.in) :is(.tile, .col h3) { opacity: 0; transform: translateY(26px); }
+  .mo #lib-roots:not(.in) .tile .spark path { stroke-dashoffset: 1; }
+  .mo #lib-roots.in:not(.settled) :is(.tile, .col h3) { transition: opacity .8s var(--ease-out) var(--d), transform 1s var(--ease-out) var(--d); }
+  .mo #lib-roots.in:not(.settled) .tile .spark path { transition: stroke-dashoffset 1.6s cubic-bezier(.4, 0, .2, 1) calc(var(--d) + .35s); }
+
+  /* ---- the deepest point ---- */
+  .mo .closing:not(.in) :is(.mark, .word, .base) { opacity: 0; transform: translateY(40px); }
+  .mo .closing.in:not(.settled) :is(.mark, .word, .base) { transition: opacity 1.2s var(--ease-out) var(--d), transform 1.4s var(--ease-out) var(--d); }
+  .closing.on.settled .mark { animation: lantern 4s ease-in-out infinite alternate; }
+
+  /* ---- hero: the sheen, cards that drift on their own breath ---- */
+  .hero.on .stage.masked .sheen { opacity: 1; transition: opacity 1s 2.2s; }
+  .hero.on .stage.masked .sheen i { animation: sheen 8.5s cubic-bezier(.45, 0, .25, 1) 2.6s infinite; }
+  .hero.on .float-card { animation: hover-y 7s ease-in-out infinite alternate; }
+  .hero.on .float-card.right { animation-duration: 8.5s; animation-delay: -3s; }
+
+  /* bubbles */
+  .bubbles.on span { animation: bubble var(--t) linear var(--w) infinite; }
+
+  /* one pause for everything */
+  body.still :is(#waves, .tide-card > svg, .tide-rise, .pearl, .float-card, .sheen i, .bubbles span, .closing .mark) { animation-play-state: paused; }
+  body.still .line::after, body.still .roots-art::after { animation-play-state: paused; }
+
+  @keyframes drift { to { transform: translateX(-50%); } }
+  @keyframes glint { 0% { transform: translateX(-240px); } 60%, 100% { transform: translateX(100vw); } }
+  @keyframes swell { from { transform: translateY(40%); } to { transform: translateY(35%); } }
+  @keyframes pearl { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-16px, 14px, 0); } }
+  @keyframes breathe { from { opacity: .25; } to { opacity: .9; } }
+  @keyframes lantern { from { opacity: .7; } to { opacity: 1; } }
+  @keyframes sheen { 0% { transform: translateX(-130%) skewX(-14deg); } 55%, 100% { transform: translateX(520%) skewX(-14deg); } }
+  @keyframes hover-y { from { translate: 0 -5px; } to { translate: 0 6px; } }
+  @keyframes bubble {
+    0% { transform: translate3d(0, 0, 0); opacity: 0; }
+    12% { opacity: .85; }
+    50% { transform: translate3d(var(--dx), calc(var(--rise, 900px) * -.5), 0); }
+    88% { opacity: .6; }
+    100% { transform: translate3d(0, calc(var(--rise, 900px) * -1), 0); opacity: 0; }
+  }
+
+  /* ---- scroll-linked (Chrome / Edge; elsewhere these simply stay still) ---- */
+  @supports (animation-timeline: view()) {
+    .hero { view-timeline: --hero block; }
+    .hero-copy { animation: copy-away linear both; animation-timeline: --hero; animation-range: exit 0% exit 45%; }
+    .stage { animation: tree-sink linear both; animation-timeline: --hero; animation-range: exit 0% exit 100%; }
+    .roots-art { view-timeline: --roots block; }
+    .roots-art img { animation: roots-drift linear both; animation-timeline: --roots; animation-range: cover 0% cover 100%; }
+    @keyframes copy-away { to { opacity: 0; translate: 0 -90px; } }
+    @keyframes tree-sink { to { translate: 0 12%; } }
+    @keyframes roots-drift { from { translate: 0 -70px; scale: 1.08; } to { translate: 0 50px; scale: 1.02; } }
+  }
 }
