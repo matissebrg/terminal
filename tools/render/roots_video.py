@@ -1,17 +1,22 @@
-"""Turn the growing-roots frames into the site's video, its poster and the still picture.
+"""Turn the roots renders into the site's videos, their poster and the still picture.
 
-Run (after `mangrove_scene.py <dir>/f_ 1600 1000 24 grow` has written f_0001.png .. f_0120.png, and
-`GROW_FIRST=120 GROW_LAST=120 mangrove_scene.py <dir>/big_ 2400 1500 48 grow` the last frame large):
+Run, after mangrove_scene.py has written into <dir>:
+    f_0001.png ..  growth frames    GROW_FRAMES=92 mangrove_scene.py <dir>/f_ 1920 1200 24 grow
+    s_0001.png ..  sway frames      mangrove_scene.py <dir>/s_ 1920 1200 24 sway
+    big_*.png      last frame, big  GROW_FRAMES=92 GROW_FIRST=92 GROW_LAST=92 mangrove_scene.py <dir>/big_ 2400 1500 48 grow
     python3 tools/render/roots_video.py <dir> docs/assets
 
 Writes
-  video/roots-grow-1600.mp4, video/roots-grow-960.mp4   H.264, 24 fps, plays once when the section comes into view
-  img/roots-start.webp                                  first frame: the poster, so nothing jumps before it plays
-  img/roots-{2000,1200,760}.webp                        last frame: the still shown without motion (and as fallback)
+  video/roots-grow-{1920,960}.mp4   the growth, played once when the section comes into view
+  video/roots-sway-{1920,960}.mp4   the grown roots swept by a current and back (forward + reverse): a seamless loop
+                                    whose first frame is the growth's last, played right after it
+  img/roots-start.webp              first frame of the growth: the poster
+  img/roots-{2000,1200,760}.webp    last frame: the still shown without motion (and as fallback)
 
-Each frame gets the same treatment as the old still: the hard line where the bright surface meets the dark water is
-softened (found per frame, since the camera sinks), faint light shafts, and an elliptical fade to --abysse so the
-picture has no edge on the dark page. Needs Pillow, numpy and ffmpeg.
+Every frame gets the same treatment: the hard line where the bright surface meets the dark water is softened (found
+per frame, since the camera sinks during the growth), faint light shafts, and a fade to --abysse at the sides, the top
+and the bottom, baked in, so the picture has no edge on the dark page and needs no CSS mask. A faint static dither
+keeps the dark glows from banding. Needs Pillow, numpy and ffmpeg.
 """
 import subprocess
 import sys
@@ -54,14 +59,25 @@ def treat(img, hy, dither=None):
     v = np.clip((r - .45) / .55, 0, 1)
     v = (v * v * (3 - 2 * v))[..., None]
     a = a * (1 - v) + ABYSS * v
+    sm = lambda x: x * x * (3 - 2 * x)
+    vt = sm(np.clip(yy / (H * .14), 0, 1)) * sm(np.clip((H * .97 - yy) / (H * .37), 0, 1))     # top and bottom
+    a = a * vt[..., None] + ABYSS * (1 - vt[..., None])
     if dither is not None:          # the same faint noise on every frame: breaks the banding of dark glows, adds no flicker
         a = a + dither[..., None]
     return Image.fromarray(np.clip(a, 0, 255).round().astype(np.uint8), "RGB")
 
 
+def encode(tmp, pattern, dst, w, crf):
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", "24", "-i", f"{tmp}/{pattern}",
+                    "-vf", f"scale={w}:-2:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-tune", "film",
+                    "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", str(dst)], check=True)
+    print(dst, f"{dst.stat().st_size / 1024:.0f} KB")
+
+
 def main(src, out):
     src, out = Path(src), Path(out)
     frames = sorted(src.glob("f_*.png"))
+    sways = sorted(src.glob("s_*.png"))
     if not frames:
         sys.exit("no frames f_*.png in " + str(src))
     imgs = [Image.open(f) for f in frames]
@@ -70,19 +86,23 @@ def main(src, out):
     (out / "video").mkdir(parents=True, exist_ok=True)
     W, H = imgs[0].size
     dither = np.random.default_rng(3).uniform(-1.2, 1.2, (H, W))
+    sizes = ((1920, 18), (960, 21))
     with tempfile.TemporaryDirectory() as tmp:
         for n, (im, hy) in enumerate(zip(imgs, rows), 1):
             t = treat(im, hy, dither)
-            t.save(f"{tmp}/p_{n:04d}.png")
+            t.save(f"{tmp}/g_{n:04d}.png")
             if n == 1:
-                t.save(out / "img" / "roots-start.webp", "WEBP", quality=82, method=6)
-        # quality first (the user saw blocks in dark gradients): low CRF, slow preset, film tuning keeps the grain
-        for w, crf in ((1600, 19), (960, 21)):
-            dst = out / "video" / f"roots-grow-{w}.mp4"
-            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", "24", "-i", f"{tmp}/p_%04d.png",
-                            "-vf", f"scale={w}:-2:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-tune", "film",
-                            "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", str(dst)], check=True)
-            print(dst, f"{dst.stat().st_size / 1024:.0f} KB")
+                t.save(out / "img" / "roots-start.webp", "WEBP", quality=86, method=6)
+        for w, crf in sizes:
+            encode(tmp, "g_%04d.png", out / "video" / f"roots-grow-{w}.mp4", w, crf)
+        if sways:
+            hy = rows[-1]                                    # same treatment as the growth's last frame: no seam
+            done = [treat(Image.open(f), hy, dither) for f in sways]
+            seq = done + done[-2:0:-1]                        # forward, then back: loops with no jump
+            for n, t in enumerate(seq, 1):
+                t.save(f"{tmp}/s_{n:04d}.png")
+            for w, crf in sizes:
+                encode(tmp, "s_%04d.png", out / "video" / f"roots-sway-{w}.mp4", w, crf)
     bigs = sorted(src.glob("big_*.png"))
     last = Image.open(bigs[-1]) if bigs else imgs[-1]
     hy = horizon_row(np.asarray(last.convert("RGB"), float))
@@ -90,7 +110,7 @@ def main(src, out):
     for w in (2000, 1200, 760):
         im = still.resize((w, round(still.height * w / still.width)), Image.LANCZOS)
         p = out / "img" / f"roots-{w}.webp"
-        im.save(p, "WEBP", quality=82, method=6)
+        im.save(p, "WEBP", quality=84, method=6)
         print(p, f"{p.stat().st_size / 1024:.0f} KB")
 
 

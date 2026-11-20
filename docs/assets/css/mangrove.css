@@ -431,12 +431,14 @@ fieldset .btn { margin-top: 12px; }
 /* les racines */
 .sec-roots { padding: 0; overflow: hidden; }
 .roots-art { position: relative; height: clamp(680px, 124svh, 1120px); }
-.roots-art :is(img, video) { position: absolute; left: 0; right: 0; top: clamp(150px, 24vh, 230px); width: 100%; height: calc(100% - clamp(150px, 24vh, 230px)); object-fit: cover; object-position: 50% 22%;
-  /* no edge anywhere: the picture melts into the abyss at the top and runs out before the section ends */
-  -webkit-mask: linear-gradient(180deg, transparent 0%, #000 12%, #000 58%, transparent 96%); mask: linear-gradient(180deg, transparent 0%, #000 12%, #000 58%, transparent 96%); }
-.roots-art video { opacity: 0; transition: opacity .6s; }
-.mo .roots-art.has-video video { opacity: 1; }
-.mo .roots-art.has-video img { opacity: 0; }
+.roots-art :is(img, video) { position: absolute; left: 0; right: 0; top: clamp(150px, 24vh, 230px); width: 100%; height: calc(100% - clamp(150px, 24vh, 230px));
+  /* whole frame, never cropped: the fades to the abyss are part of the picture itself (no CSS mask on a video,
+     which made the browser re-composite it and flash when it started), and its dark sides meet the page */
+  object-fit: contain; object-position: 50% 0; }
+.roots-art video { display: none; }
+.mo .roots-art.has-video video { display: block; }
+.mo .roots-art.has-video img { visibility: hidden; }
+.roots-art video.roots-grow.done { visibility: hidden; }   /* the loop underneath has taken over, frame for frame */
 .roots-art .sec-head { position: absolute; z-index: 2; left: 50%; top: clamp(80px, 11vh, 120px); transform: translateX(-50%); width: var(--wrap); max-width: none; text-align: center; justify-items: center; }
 .roots-art .sec-head .sub { max-width: 36em; }
 .values { position: relative; z-index: 2; margin-top: -22vh; padding-bottom: clamp(96px, 12vh, 140px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
@@ -600,7 +602,7 @@ dialog#dossier::backdrop { background: rgba(2, 9, 8, .72); }
   .value::before { display: none; }
   .roots-view { grid-template-columns: 1fr; }
   .roots-art { height: 92svh; }
-  .roots-art :is(img, video) { object-position: 50% 40%; }
+  .roots-art :is(img, video) { object-fit: cover; object-position: 50% 0; }
   .tide-card .pearl { width: 160px; right: -50px; top: -50px; }
   .dlist li { grid-template-columns: 1fr; gap: 2px; }
   .btn { min-height: 48px; }
@@ -630,7 +632,6 @@ svg.spark path { stroke-dasharray: 1; stroke-dashoffset: 0; }
 /* the tide rising inside the score card */
 .tide-rise { position: absolute; inset: 0; z-index: 0; pointer-events: none; transform: translateY(40%);
   background: linear-gradient(180deg, rgba(63, 227, 166, .10) 0%, rgba(63, 227, 166, .05) 30%, rgba(63, 227, 166, 0) 80%); }
-.tide-rise::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, rgba(127, 231, 198, 0), rgba(127, 231, 198, .55) 30%, rgba(127, 231, 198, .55) 70%, rgba(127, 231, 198, 0)); box-shadow: 0 0 18px rgba(63, 227, 166, .5); }
 
 /* light sweeping over the chrome tree, masked by the tree itself */
 .sheen { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; opacity: 0;
@@ -688,13 +689,11 @@ body.lite .float-card { animation: none !important; }
 
   /* ---- marée: the tide rises in the card, numbers count up, gauges fill, the pearl floats ---- */
   .mo .tide-card:not(.in) .tide-rise { transform: translateY(100%); }
-  .mo .tide-card.in:not(.settled) .tide-rise { transition: transform 2.6s cubic-bezier(.3, .7, .2, 1); }
-  .tide-card.on.settled .tide-rise { animation: swell 7s ease-in-out infinite alternate; }
+  .mo .tide-card.in:not(.settled) .tide-rise { transition: transform 2.6s cubic-bezier(.33, 1, .68, 1); }   /* same curve as the canvas tide line */
   .mo .tide-card:not(.in) .gauge .fill { transform: scaleX(0); }
   .mo .tide-card:not(.in) .g { opacity: 0; transform: translateY(18px); }
   .mo .tide-card.in:not(.settled) .g { transition: opacity .9s var(--ease-out) calc(var(--d) + .2s), transform 1s var(--ease-out) calc(var(--d) + .2s); }
   .mo .tide-card.in:not(.settled) .gauge .fill { transition: transform 1.6s var(--ease-out) calc(var(--d) + .6s); }
-  .tide-card.on .pearl { animation: pearl 12s ease-in-out infinite alternate; }
 
   /* ---- racines: the light breathes, each principle hangs from a root that grows down to it ---- */
   .roots-art::after { content: ''; position: absolute; z-index: 1; left: 15%; right: 15%; top: clamp(150px, 24vh, 230px); height: 46%; pointer-events: none; opacity: .35;
@@ -726,13 +725,11 @@ body.lite .float-card { animation: none !important; }
   .bubbles.on span { animation: bubble var(--t) linear var(--w) infinite; }
 
   /* one pause for everything */
-  body.still :is(.tide-rise, .pearl, .float-card, .sheen i, .bubbles span, .closing .mark) { animation-play-state: paused; }
+  body.still :is(.float-card, .sheen i, .bubbles span, .closing .mark) { animation-play-state: paused; }
   body.still .line::after, body.still .roots-art::after { animation-play-state: paused; }
 
   @keyframes drift { to { transform: translateX(-50%); } }
   @keyframes glint { 0% { transform: translateX(-240px); } 60%, 100% { transform: translateX(100vw); } }
-  @keyframes swell { from { transform: translateY(40%); } to { transform: translateY(35%); } }
-  @keyframes pearl { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-16px, 14px, 0); } }
   @keyframes breathe { from { opacity: .25; } to { opacity: .9; } }
   @keyframes lantern { from { opacity: .7; } to { opacity: 1; } }
   @keyframes sheen { 0% { transform: translateX(-130%) skewX(-14deg); } 55%, 100% { transform: translateX(520%) skewX(-14deg); } }
@@ -751,9 +748,9 @@ body.lite .float-card { animation: none !important; }
     .hero-copy { animation: copy-away linear both; animation-timeline: --hero; animation-range: exit 0% exit 45%; }
     .stage { animation: tree-sink linear both; animation-timeline: --hero; animation-range: exit 0% exit 100%; }
     .roots-art { view-timeline: --roots block; }
-    .roots-art :is(img, video) { animation: roots-drift linear both; animation-timeline: --roots; animation-range: cover 0% cover 100%; }
+    .roots-art :is(img, video) { animation: roots-drift linear both; animation-timeline: --roots; animation-range: cover 0% cover 100%; }   /* moves, never scales: stays sharp */
     @keyframes copy-away { to { opacity: 0; translate: 0 -90px; } }
     @keyframes tree-sink { to { translate: 0 12%; } }
-    @keyframes roots-drift { from { translate: 0 -70px; scale: 1.08; } to { translate: 0 50px; scale: 1.02; } }
+    @keyframes roots-drift { from { translate: 0 -50px; } to { translate: 0 40px; } }
   }
 }

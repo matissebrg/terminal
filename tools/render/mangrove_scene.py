@@ -17,7 +17,10 @@ SHOT = sys.argv[-1]
 # 'grow' = the roots shot, animated: every root grows down from the surface while the camera sinks with them.
 # Renders frames GROW_FIRST..GROW_LAST (env vars, default the whole 1..72) as OUT####.png.
 GROW = SHOT == "grow"
-if GROW:
+# 'sway' = the same grown roots, camera where the growth ends, the roots swept a little by a current and back:
+# played forward then backward it loops forever with no seam, right after the growth.
+SWAY = SHOT == "sway"
+if GROW or SWAY:
     SHOT = "roots"
 
 PAPER = "#EDF0EC"      # page colour above water (keep in sync with --brume in the CSS)
@@ -357,7 +360,47 @@ cam.rotation_euler = (target - cam_loc).to_track_quat("-Z", "Y").to_euler()
 sc.collection.objects.link(cam)
 sc.camera = cam
 
-if not GROW:
+if SWAY:
+    import os
+    FRAMES = int(os.environ.get("SWAY_FRAMES", 48))    # 2 s out, 2 s back: a 4 s breath of current
+    sc.render.fps = 24
+    sc.frame_start = int(os.environ.get("GROW_FIRST", 1))
+    sc.frame_end = int(os.environ.get("GROW_LAST", FRAMES))
+    sc.render.image_settings.color_depth = "8"
+    sc.render.filepath = OUT
+    loc, tgt = Vector((0.4, -7.4, -1.3)), Vector((0, 0, -1.35))      # where the growth ends
+    cam.location = loc
+    cam.rotation_euler = (tgt - loc).to_track_quat("-Z", "Y").to_euler()
+    rnd = random.Random(23)
+    cur = Vector((1.0, 0.35, 0.0)).normalized()                        # the current's direction
+    for ob in sc.objects:
+        if not ob.name.startswith(("root", "aerial")):
+            continue
+        amp = rnd.uniform(0.14, 0.30)
+        side = Vector((rnd.uniform(-0.4, 0.4), rnd.uniform(-0.4, 0.4), 0))
+        for sp in ob.data.splines:
+            for pt in sp.points:
+                pt.keyframe_insert("co", frame=1)
+            for pt in sp.points:
+                z = pt.co[2]
+                if z < 0.1:                                            # only what hangs in the water moves; deeper moves more
+                    d = (cur + side) * amp * min(1.0, (0.1 - z) / 4.0) ** 0.8 * 1.6
+                    pt.co = (pt.co[0] + d.x, pt.co[1] + d.y, pt.co[2], pt.co[3])
+                pt.keyframe_insert("co", frame=FRAMES)
+        act = ob.data.animation_data.action if ob.data.animation_data else None
+        fcs = list(act.fcurves) if act is not None and hasattr(act, "fcurves") else []
+        if act is not None and not fcs:
+            for layer in getattr(act, "layers", []):
+                for strip in layer.strips:
+                    for bag in getattr(strip, "channelbags", []):
+                        fcs += list(bag.fcurves)
+        for fc in fcs:
+            for kp in fc.keyframe_points:
+                kp.interpolation = "SINE"
+                kp.easing = "EASE_IN_OUT"
+    bpy.ops.render.render(animation=True)
+    print("RENDERED SWAY", sc.frame_start, sc.frame_end)
+elif not GROW:
     bpy.ops.render.render(write_still=True)
     print("RENDERED", OUT)
 else:

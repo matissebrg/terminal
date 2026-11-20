@@ -551,13 +551,39 @@
         }
         ctx.stroke();
       }
+      if (o.tide) tideLine(t);
       ctx.globalAlpha = 1;
     }
-    return { el: canvas, size: size, draw: draw, fps: o.fps || 60 };
+    /* the tide's own surface: a bright line that rises once (from the bottom to 40 % of the card, like the band
+       behind it), then keeps breathing. Drawn here, with sub-pixel smoothing, instead of moving a CSS line by
+       whole pixels, which looked choppy. */
+    var riseAt = null;
+    function tideLine(t) {
+      var lvl;
+      if (riseAt === null) {
+        if (document.documentElement.classList.contains('mo')) return;        // waiting for the card to come into view
+        lvl = 0.4;
+      } else {
+        var p = Math.min(1, Math.max(0, (performance.now() - riseAt) / 2600)), e = 1 - Math.pow(1 - p, 3);
+        lvl = 1 + (0.4 - 1) * e;
+      }
+      var base = h * lvl + Math.sin(t * 0.9) * 3, k1 = Math.PI * 2 / 420, k2 = Math.PI * 2 / 190;
+      [[7, 0.06], [3, 0.16], [1.2, 0.7]].forEach(function (st) {
+        ctx.globalAlpha = st[1]; ctx.lineWidth = st[0]; ctx.strokeStyle = '#7FE7C6';
+        ctx.beginPath();
+        for (var x = -8; x <= w + 8; x += 8) {
+          var y = base + Math.sin(x * k1 - t * 0.8) * 4 + Math.sin(x * k2 + t * 1.3) * 1.6;
+          if (x === -8) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+      ctx.lineWidth = 1;
+    }
+    return { el: canvas, size: size, draw: draw, fps: o.fps || 60, rise: function () { if (riseAt === null) riseAt = performance.now(); } };
   }
   var waves = [];
   if ($('waves')) waves.push(WaveField($('waves'), { h: 260, n: 30, y0: 4, persp: 1.7, amp: 2.8, len: 170, speed: 1.1, swell: 16, color: '#E4EEEA', op0: 0.5, op1: 0.17, step: 8, fps: 30, end: 0.9, fade: 0.35 }));
-  if ($('tide-lines')) waves.push(WaveField($('tide-lines'), { h: 600, n: 40, y0: 150, persp: 1.25, amp: 7, len: 520, speed: 0.45, swell: 110, color: '#7FE7C6', op0: 0.05, op1: 0.22, step: 8, fps: 24 }));
+  if ($('tide-lines')) waves.push(WaveField($('tide-lines'), { h: 600, n: 40, y0: 150, persp: 1.25, amp: 7, len: 520, speed: 0.45, swell: 110, color: '#7FE7C6', op0: 0.05, op1: 0.22, step: 8, fps: 30, tide: true }));
   waves.forEach(function (wv) { wv.size(); wv.draw(0); });
   /* the boxes change size after load (the score card grows when its numbers arrive): resize the bitmap with them,
      never let the browser stretch it (that is what made the lines look pixelated) */
