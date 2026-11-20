@@ -1,6 +1,18 @@
 {
  "events": [
   {
+   "id": "804035f1b191",
+   "date": "2026-11-20",
+   "ticker": "BBIO",
+   "type": "catalyst",
+   "title": "BBIO : Décision FDA (PDUFA) dans 7 j (BBP-418)",
+   "detail": "Décision de la FDA sur BBP-418 (examen prioritaire, pas de comité consultatif prévu)",
+   "url": "https://www.globenewswire.com/news-release/2026/10/29/3391801/0/en/bridgebio-reports-third-quarter-2026-financial-results-and-corporate-updates.html",
+   "values": {
+    "catalyst": "bbp418-pdufa"
+   }
+  },
+  {
    "id": "dcbd932c34bb",
    "date": "2026-11-19",
    "ts": "2026-11-19T21:00:00Z",
@@ -1975,5 +1987,5 @@
    }
   }
  ],
- "updated": "2026-11-19"
+ "updated": "2026-11-20"
 }
