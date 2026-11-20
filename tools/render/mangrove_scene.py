@@ -362,36 +362,56 @@ if not GROW:
     print("RENDERED", OUT)
 else:
     import os
-    FRAMES = 72                     # 3 s at 24 fps
+    FRAMES = int(os.environ.get("GROW_FRAMES", 120))   # 5 s at 24 fps: slow enough to read as growth, not a jolt
     sc.render.fps = 24
     sc.frame_start = int(os.environ.get("GROW_FIRST", 1))
     sc.frame_end = int(os.environ.get("GROW_LAST", FRAMES))
     sc.render.image_settings.color_depth = "8"
     sc.render.filepath = OUT
+
+    def fcurves(idblock):
+        """F-curves of an ID's action, for both the classic and the layered (Blender 4.4+) action API."""
+        act = idblock.animation_data.action if idblock.animation_data else None
+        if act is None:
+            return []
+        if hasattr(act, "fcurves") and len(act.fcurves):
+            return list(act.fcurves)
+        out = []
+        for layer in getattr(act, "layers", []):
+            for strip in layer.strips:
+                for bag in getattr(strip, "channelbags", []):
+                    out += list(bag.fcurves)
+        return out
+
+    def smooth(idblock):
+        for fc in fcurves(idblock):
+            for kp in fc.keyframe_points:
+                kp.interpolation = "SINE"
+                kp.easing = "EASE_IN_OUT"
+
     # each root grows along its own length (bevel factor), from where it meets the surface down to its tip,
-    # one after another, easing out
+    # in a slow, overlapping wave, easing in and out
     rnd = random.Random(11)
     roots = [o for o in sc.objects if o.name.startswith(("root", "aerial"))]
     rnd.shuffle(roots)
+    span = FRAMES * 0.28
     for i, ob in enumerate(roots):
         cu = ob.data
         cu.bevel_factor_mapping_end = "SPLINE"
-        f0 = 2 + i * 1.6 + rnd.uniform(0, 3)
-        f1 = f0 + rnd.uniform(34, 46)
+        f0 = 3 + span * i / max(1, len(roots) - 1) + rnd.uniform(0, 4)
+        f1 = min(f0 + FRAMES * rnd.uniform(0.55, 0.66), FRAMES - 4)
         cu.bevel_factor_end = 0.42 if ob.name.startswith("root") else 0.5
         cu.keyframe_insert("bevel_factor_end", frame=f0)
         cu.bevel_factor_end = 1.0
-        cu.keyframe_insert("bevel_factor_end", frame=min(f1, FRAMES - 2))
-        for fc in (cu.animation_data.action.fcurves if hasattr(cu.animation_data.action, "fcurves") else []):
-            for kp in fc.keyframe_points:
-                kp.interpolation = "SINE"
-                kp.easing = "EASE_OUT"
-    # the camera sinks with the roots
-    for f, (cz, tz) in ((1, (-0.75, -0.45)), (FRAMES, (-1.55, -1.75))):
+        cu.keyframe_insert("bevel_factor_end", frame=f1)
+        smooth(cu)
+    # the camera sinks a little with the roots, gently
+    for f, (cz, tz) in ((1, (-0.85, -0.6)), (FRAMES, (-1.3, -1.35))):
         loc, tgt = Vector((0.4, -7.4, cz)), Vector((0, 0, tz))
         cam.location = loc
         cam.rotation_euler = (tgt - loc).to_track_quat("-Z", "Y").to_euler()
         cam.keyframe_insert("location", frame=f)
         cam.keyframe_insert("rotation_euler", frame=f)
+    smooth(cam)
     bpy.ops.render.render(animation=True)
     print("RENDERED FRAMES", sc.frame_start, sc.frame_end)

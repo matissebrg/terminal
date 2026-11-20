@@ -26,7 +26,10 @@
       if (now - start < 2200) return requestAnimationFrame(probe);
       times.sort(function (a, b) { return a - b; });
       var med = times[times.length >> 1] || 16;
-      if (med > 28) { document.body.classList.add('lite'); window.MG && (MG.lite = true); }
+      if (med > 28) {
+        document.body.classList.add('lite');
+        if (window.MG) { MG.lite = true; (MG.waves || []).forEach(function (w) { w.size(); w.draw(w.t || 0); }); }
+      }
     }
     requestAnimationFrame(probe);
   })();
@@ -52,16 +55,18 @@
   var byEl = new Map();
   REVEALS.forEach(function (r) { r.el.forEach(function (el) { if (el) { el.setAttribute('data-rv', ''); byEl.set(el, r); } }); });
 
+  function reveal(el) {
+    var r = byEl.get(el);
+    if (!r || el.classList.contains('in')) return;
+    rio.unobserve(el);
+    qa(r.kids, el).forEach(function (k, i) { k.style.setProperty('--d', Math.min(i, 14) * r.step + 'ms'); });
+    el.classList.add('in');
+    if (el.classList.contains('tide-card')) countUp(el);
+    setTimeout(function () { el.classList.add('settled'); }, r.total + Math.min(qa(r.kids, el).length, 14) * r.step);
+  }
+  var held = new Set();     // containers that wait for something else before they reveal (the principles wait for the roots)
   var rio = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (!e.isIntersecting) return;
-      var el = e.target, r = byEl.get(el);
-      rio.unobserve(el);
-      qa(r.kids, el).forEach(function (k, i) { k.style.setProperty('--d', Math.min(i, 14) * r.step + 'ms'); });
-      el.classList.add('in');
-      if (el.classList.contains('tide-card')) countUp(el);
-      setTimeout(function () { el.classList.add('settled'); }, r.total + Math.min(qa(r.kids, el).length, 14) * r.step);
-    });
+    entries.forEach(function (e) { if (e.isIntersecting && !held.has(e.target)) reveal(e.target); });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
   byEl.forEach(function (r, el) { rio.observe(el); });
 
@@ -120,9 +125,19 @@
   /* Each field redraws at its own steady rate (30 fps for the sea, 20 for the score card's lines): a steady rhythm
      reads as smooth, and it costs a fraction of 60 fps. Time-based, so a late frame never makes the water jump. If a
      redraw still costs too much (old PC), the rate is lowered a notch. */
+  var gaps = [], lastNow = 0;
+  function goLite() {
+    if (window.MG && MG.lite) return;
+    document.body.classList.add('lite');
+    MG.lite = true;
+    waves.forEach(function (w) { w.size(); w.draw(w.t || 0); });
+  }
   function wtick(now) {
     wraf = 0;
-    if (!live.size || document.body.classList.contains('still') || document.hidden) { t0w = 0; return; }
+    if (!live.size || document.body.classList.contains('still') || document.hidden) { t0w = 0; lastNow = 0; return; }
+    /* the machine is judged while the water actually moves: if frames keep arriving late, switch to light mode */
+    if (lastNow) { gaps.push(now - lastNow); if (gaps.length >= 90) { gaps.sort(function (a, b) { return a - b; }); if (gaps[45] > 24) goLite(); gaps = []; } }
+    lastNow = now;
     if (!t0w) t0w = now - (waves[0].t || 0) * 1000;
     var t = (now - t0w) / 1000;
     live.forEach(function (wv) {
@@ -156,13 +171,25 @@
   var rootsArt = document.querySelector('.roots-art'), grow = rootsArt && rootsArt.querySelector('video.roots-grow');
   if (grow && grow.canPlayType('video/mp4')) {
     rootsArt.classList.add('has-video');
+    /* the principles hang from the roots: they only come once the roots have finished growing */
+    var vals = $('values');
+    if (vals) held.add(vals);
+    var release = function () {
+      if (!vals || !held.has(vals)) return;
+      held.delete(vals);
+      var r = vals.getBoundingClientRect();
+      if (r.top < innerHeight && r.bottom > 0) reveal(vals);        // already on screen: reveal now; otherwise when scrolled to
+    };
+    var fallback = function () { rootsArt.classList.remove('has-video'); release(); };   // the still picture shows
+    grow.addEventListener('timeupdate', function () { if (grow.duration && grow.currentTime > grow.duration - 0.35) release(); });
+    grow.addEventListener('ended', release);
     var gio = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       gio.disconnect();
-      grow.src = 'assets/video/roots-grow-' + (innerWidth <= 720 ? 640 : 1040) + '.mp4';
-      grow.addEventListener('error', function () { rootsArt.classList.remove('has-video'); });   // the still picture shows
+      grow.src = 'assets/video/roots-grow-' + (innerWidth <= 720 ? 960 : 1600) + '.mp4';
+      grow.addEventListener('error', fallback);
       var p = grow.play();
-      if (p && p.catch) p.catch(function () { rootsArt.classList.remove('has-video'); });
+      if (p && p.catch) p.catch(fallback);
     }, { threshold: 0.35 });
     gio.observe(rootsArt);
     new MutationObserver(function () {                   // the pause buttons hold the growth too

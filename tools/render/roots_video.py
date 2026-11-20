@@ -1,12 +1,12 @@
 """Turn the growing-roots frames into the site's video, its poster and the still picture.
 
-Run (after `mangrove_scene.py <dir>/f_ 1040 650 24 grow` has written f_0001.png .. f_0072.png, and
-`GROW_FIRST=72 GROW_LAST=72 mangrove_scene.py <dir>/big_ 2000 1250 48 grow` the last frame large):
+Run (after `mangrove_scene.py <dir>/f_ 1600 1000 24 grow` has written f_0001.png .. f_0120.png, and
+`GROW_FIRST=120 GROW_LAST=120 mangrove_scene.py <dir>/big_ 2400 1500 48 grow` the last frame large):
     python3 tools/render/roots_video.py <dir> docs/assets
 
 Writes
-  video/roots-grow-1040.mp4, video/roots-grow-640.mp4   H.264, 24 fps, plays once when the section comes into view
-  img/roots-start-1200.webp                             first frame: the poster, so nothing jumps before it plays
+  video/roots-grow-1600.mp4, video/roots-grow-960.mp4   H.264, 24 fps, plays once when the section comes into view
+  img/roots-start.webp                                  first frame: the poster, so nothing jumps before it plays
   img/roots-{2000,1200,760}.webp                        last frame: the still shown without motion (and as fallback)
 
 Each frame gets the same treatment as the old still: the hard line where the bright surface meets the dark water is
@@ -35,7 +35,7 @@ def horizon_row(a):
     return lo + int(np.argmin(d[lo:hi]))
 
 
-def treat(img, hy):
+def treat(img, hy, dither=None):
     W, H = img.size
     a = np.asarray(img.convert("RGB"), float)
     yy, xx = np.mgrid[0:H, 0:W]
@@ -54,6 +54,8 @@ def treat(img, hy):
     v = np.clip((r - .45) / .55, 0, 1)
     v = (v * v * (3 - 2 * v))[..., None]
     a = a * (1 - v) + ABYSS * v
+    if dither is not None:          # the same faint noise on every frame: breaks the banding of dark glows, adds no flicker
+        a = a + dither[..., None]
     return Image.fromarray(np.clip(a, 0, 255).round().astype(np.uint8), "RGB")
 
 
@@ -66,26 +68,29 @@ def main(src, out):
     rows = np.array([horizon_row(np.asarray(i.convert("RGB"), float)) for i in imgs], float)
     rows = np.convolve(np.pad(rows, 4, mode="edge"), np.ones(9) / 9, mode="valid")   # no jitter between frames
     (out / "video").mkdir(parents=True, exist_ok=True)
+    W, H = imgs[0].size
+    dither = np.random.default_rng(3).uniform(-1.2, 1.2, (H, W))
     with tempfile.TemporaryDirectory() as tmp:
         for n, (im, hy) in enumerate(zip(imgs, rows), 1):
-            t = treat(im, hy)
+            t = treat(im, hy, dither)
             t.save(f"{tmp}/p_{n:04d}.png")
             if n == 1:
-                t.save(out / "img" / "roots-start-1200.webp", "WEBP", quality=70, method=6)
-        for w in (1040, 640):
+                t.save(out / "img" / "roots-start.webp", "WEBP", quality=82, method=6)
+        # quality first (the user saw blocks in dark gradients): low CRF, slow preset, film tuning keeps the grain
+        for w, crf in ((1600, 19), (960, 21)):
             dst = out / "video" / f"roots-grow-{w}.mp4"
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", "24", "-i", f"{tmp}/p_%04d.png",
-                            "-vf", f"scale={w}:-2:flags=lanczos", "-c:v", "libx264", "-preset", "veryfast", "-crf", "25",
-                            "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", str(dst)], check=True)
+                            "-vf", f"scale={w}:-2:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-tune", "film",
+                            "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", str(dst)], check=True)
             print(dst, f"{dst.stat().st_size / 1024:.0f} KB")
-    big = src / "big_0072.png"
-    last = Image.open(big) if big.exists() else imgs[-1]
+    bigs = sorted(src.glob("big_*.png"))
+    last = Image.open(bigs[-1]) if bigs else imgs[-1]
     hy = horizon_row(np.asarray(last.convert("RGB"), float))
     still = treat(last, hy)
     for w in (2000, 1200, 760):
         im = still.resize((w, round(still.height * w / still.width)), Image.LANCZOS)
         p = out / "img" / f"roots-{w}.webp"
-        im.save(p, "WEBP", quality=72, method=6)
+        im.save(p, "WEBP", quality=82, method=6)
         print(p, f"{p.stat().st_size / 1024:.0f} KB")
 
 

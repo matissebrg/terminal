@@ -529,7 +529,7 @@
     var ctx = canvas.getContext('2d'), w = 0, h = 0, dpr = 1;
     function size() {
       var r = canvas.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, o.dpr || 1);   // soft lines: 1x pixels are plenty, and half the work at 1.5x
+      dpr = Math.min(window.devicePixelRatio || 1, 2) * (window.MG && MG.lite ? 0.75 : 1);   // sharp on every screen; a bit softer in light mode
       w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
       canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     }
@@ -537,12 +537,12 @@
       if (!w) size();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = o.color; ctx.lineWidth = 1;
+      ctx.strokeStyle = o.color; ctx.lineWidth = 1; ctx.lineJoin = 'round';
       var sy = h / o.h, step = o.step || 10, TAU = Math.PI * 2;
       for (var k = 0; k < o.n; k++) {
-        var f = k / (o.n - 1), y0 = (o.y0 + Math.pow(f, o.persp) * (o.h - o.y0)) * sy, amp = o.amp * (0.2 + f) * sy;
+        var f = k / (o.n - 1), y0 = (o.y0 + Math.pow(f, o.persp) * (o.h * (o.end || 1) - o.y0)) * sy, amp = o.amp * (0.2 + f) * sy;
         var k1 = TAU / (o.len * (1.25 - f * 0.45)), k2 = k1 * 2.3, sp = o.speed * (0.35 + f), ph = k * 0.55;
-        ctx.globalAlpha = o.op0 + (o.op1 - o.op0) * f;
+        ctx.globalAlpha = (o.op0 + (o.op1 - o.op0) * f) * (o.fade ? Math.min(1, (1 - f) / o.fade + 0.15) : 1);   // last lines fade out: no edge
         ctx.beginPath();
         for (var x = -step; x <= w + step; x += step) {
           var y = y0 + Math.sin(x * k1 - t * sp + ph) * amp + Math.sin(x * k2 + t * sp * 1.6 + ph * 1.7) * amp * 0.45 +
@@ -556,11 +556,19 @@
     return { el: canvas, size: size, draw: draw, fps: o.fps || 60 };
   }
   var waves = [];
-  if ($('waves')) waves.push(WaveField($('waves'), { h: 260, n: 30, y0: 4, persp: 1.7, amp: 2.8, len: 170, speed: 1.1, swell: 16, color: '#E4EEEA', op0: 0.5, op1: 0.17, step: 12, fps: 30 }));
-  if ($('tide-lines')) waves.push(WaveField($('tide-lines'), { h: 600, n: 40, y0: 150, persp: 1.25, amp: 7, len: 520, speed: 0.45, swell: 110, color: '#7FE7C6', op0: 0.05, op1: 0.22, step: 16, fps: 20 }));
+  if ($('waves')) waves.push(WaveField($('waves'), { h: 260, n: 30, y0: 4, persp: 1.7, amp: 2.8, len: 170, speed: 1.1, swell: 16, color: '#E4EEEA', op0: 0.5, op1: 0.17, step: 8, fps: 30, end: 0.9, fade: 0.35 }));
+  if ($('tide-lines')) waves.push(WaveField($('tide-lines'), { h: 600, n: 40, y0: 150, persp: 1.25, amp: 7, len: 520, speed: 0.45, swell: 110, color: '#7FE7C6', op0: 0.05, op1: 0.22, step: 8, fps: 24 }));
   waves.forEach(function (wv) { wv.size(); wv.draw(0); });
-  var wrt = 0;
-  window.addEventListener('resize', function () { clearTimeout(wrt); wrt = setTimeout(function () { waves.forEach(function (wv) { wv.size(); wv.draw(wv.t || 0); }); }, 150); });
+  /* the boxes change size after load (the score card grows when its numbers arrive): resize the bitmap with them,
+     never let the browser stretch it (that is what made the lines look pixelated) */
+  if ('ResizeObserver' in window) {
+    var ro = new ResizeObserver(function (entries) {
+      entries.forEach(function (e) { var wv = waves.filter(function (x) { return x.el === e.target; })[0]; if (wv) { wv.size(); wv.draw(wv.t || 0); } });
+    });
+    waves.forEach(function (wv) { ro.observe(wv.el); });
+  } else {
+    window.addEventListener('resize', function () { waves.forEach(function (wv) { wv.size(); wv.draw(wv.t || 0); }); });
+  }
   window.MG.waves = waves;
 
   function renderAll() {
