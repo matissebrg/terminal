@@ -1,4 +1,4 @@
-# Mangrove : valeurs couvertes (santé : pharma, biotech, et Veeva pour les logiciels des laboratoires).
+# Mangrove : valeurs couvertes (grandes pharmas, Veeva) et l'ETF santé de référence.
 #
 # Ajouter une valeur : GitHub > Actions > « Ajouter une valeur » > Run workflow (ticker + pairs).
 # Le workflow remplit ce fichier, crée config/assumptions/<TICKER>.yaml à partir de l'historique
@@ -10,124 +10,31 @@
 #   next_earnings  date des prochains résultats ; par défaut, estimation Yahoo. Quand la société
 #                  l'annonce :  next_earnings: {date: 2026-11-18, confirmed: true}
 #
-# Annoncées mais pas encore couvertes (fiche « bientôt » sur le site) : Sanofi (SNY), Regeneron (REGN).
-# Elles se déclarent dans docs/assets/config.js (window.MANGROVE.comingSoon), pas ici.
 
 benchmarks:
   SPY: S&P 500 (ETF SPY)
-  IBB: Biotechnologie (ETF IBB)
   XLV: Santé (ETF XLV)
-  XSW: Logiciels (ETF XSW)
 
 beta_benchmark: SPY
 
 tickers:
-  BBIO:
-    name: BridgeBio Pharma, Inc.
-    sector: Biotechnologie
-    industry: Maladies génétiques rares (cardiologie, neuromusculaire, croissance osseuse)
-    peers:
-    - ALNY
-    - BMRN
-    - SRPT
-    benchmarks: [SPY, IBB]
   VEEV:
     name: Veeva Systems Inc
     sector: Logiciels
     industry: Logiciels cloud pour l'industrie pharmaceutique
     peers: [CRM, ORCL, CERT]
-    benchmarks: [SPY, XSW]
-  SMMT:
-    name: Summit Therapeutics Inc.
-    sector: Biotechnologie
-    industry: Oncologie (ivonescimab, anticorps bispécifique PD-1 x VEGF)
-    peers: [MRK, BMY, PFE]
-    benchmarks: [SPY, IBB]
-  CAPR:
-    name: Capricor Therapeutics, Inc.
-    sector: Biotechnologie
-    industry: Thérapie cellulaire (deramiocel, myopathie de Duchenne)
-    peers: [SRPT, DYN]
-    benchmarks: [SPY, IBB]
-  SVRA:
-    name: Savara Inc
-    sector: Biotechnologie
-    industry: Maladies respiratoires rares (molgramostim inhalé)
-    peers: [INSM]
-    benchmarks: [SPY, IBB]
-  COGT:
-    name: Cogent Biosciences, Inc.
-    sector: Biotechnologie
-    industry: 'Oncologie de précision (bezuclastinib : GIST, mastocytose)'
-    peers: [EXEL, IDYA]
-    benchmarks: [SPY, IBB]
-  MLYS:
-    name: Mineralys Therapeutics, Inc.
-    sector: Biotechnologie
-    industry: Cardiologie (lorundrostat, inhibiteur de l'aldostérone synthase)
-    peers: [AZN, MRK]
-    benchmarks: [SPY, IBB]
-  PRAX:
-    name: Praxis Precision Medicines, Inc.
-    sector: Biotechnologie
-    industry: 'Neurologie (relutrigine : épilepsies génétiques ; ulixacaltamide : tremblement essentiel)'
-    peers: [XENE, NBIX]
-    benchmarks: [SPY, IBB]
-  AGIO:
-    name: Agios Pharmaceuticals, Inc.
-    sector: Biotechnologie
-    industry: 'Maladies rares du sang (mitapivat : déficit en PK, thalassémies, drépanocytose)'
-    peers: [VRTX, PTCT]
-    benchmarks: [SPY, IBB]
+    benchmarks: [SPY, XLV]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
-  ALNY: Alnylam Pharmaceuticals
-  BMRN: BioMarin Pharmaceutical
-  SRPT: Sarepta Therapeutics, Inc.
   CRM: Salesforce, Inc.
   ORCL: Oracle Corp
   CERT: Certara, Inc.
-  MRK: Merck & Co., Inc.
-  BMY: Bristol Myers Squibb Co
-  PFE: Pfizer Inc
-  DYN: Dyne Therapeutics, Inc.
-  INSM: INSMED Inc
-  EXEL: Exelixis, Inc.
-  IDYA: IDEAYA Biosciences, Inc.
-  AZN: Astrazeneca Plc
-  XENE: Xenon Pharmaceuticals Inc.
-  NBIX: Neurocrine Biosciences Inc
-  VRTX: Vertex Pharmaceuticals Inc / Ma
-  PTCT: Ptc Therapeutics, Inc.
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
 families:
-  ORCL: tech
-  BBIO: sante
-  MRK: sante
-  BMY: sante
-  AZN: sante
   VEEV: sante
   CRM: tech
+  ORCL: tech
   CERT: tech
-  SMMT: sante
-  PFE: sante
-  CAPR: sante
-  SRPT: sante
-  DYN: sante
-  SVRA: sante
-  INSM: sante
-  COGT: sante
-  EXEL: sante
-  IDYA: sante
-  MLYS: sante
-  PRAX: sante
-  XENE: sante
-  NBIX: sante
-  AGIO: sante
-  VRTX: sante
-  PTCT: sante
-  ALNY: sante
-  BMRN: sante

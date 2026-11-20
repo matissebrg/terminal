@@ -1,8 +1,7 @@
 """Valuation engine: FCFF DCF (2-stage with fade), scenarios, sensitivities,
 reverse DCF and trading comparables.
 
-The same DCF is implemented in docs/assets/dcf.js for the interactive page;
-tests/test_dcf_parity.py checks that both give identical results.
+The site no longer runs a DCF in the browser: this module is the only implementation.
 
 Conventions (documented because they move the result):
   * FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR. Stock-based compensation is

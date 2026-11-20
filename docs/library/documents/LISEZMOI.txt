@@ -1,0 +1,4 @@
+Range ici les fichiers de tes documents (PDF, HTML, XLSX...) et déclare-les dans ../library.js.
+
+Dans le repo public : uniquement ce que tu publierais sous ton nom.
+Les travaux faits pour ton employeur restent dans ta copie privée, hors de Git.

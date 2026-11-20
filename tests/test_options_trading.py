@@ -1,7 +1,7 @@
 """Paper trading of options, end to end on PostgreSQL: quotes -> order -> evening fill at the ask,
 resale at the bid, cash settlement at expiry, portfolio value, no naked shorting."""
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
@@ -12,8 +12,23 @@ from tests.test_db import dburl  # noqa: F401
 
 pytestmark = pytest.mark.skipif(not ADMIN_URL, reason="TEST_DATABASE_URL non défini")
 
+# The database refuses orders on contracts that expire today or earlier, by the real clock. The scenario is
+# written around an expiry on Friday 2026-11-20, so it is moved forward by whole 52-week blocks (same
+# weekdays, same sessions) until that expiry is at least two months away. Every date below goes through D / T.
+_BLOCKS = max(0, -(-((date.today() + timedelta(days=60)) - date(2026, 11, 20)).days // 364))
+_SHIFT = timedelta(weeks=52 * _BLOCKS)
 
-def chain(spot, c_bid, c_ask, p_bid, p_ask, exp="2026-11-20"):
+
+def D(s):
+    return (date.fromisoformat(s) + _SHIFT).isoformat()
+
+
+def T(dt):
+    return dt + _SHIFT
+
+
+
+def chain(spot, c_bid, c_ask, p_bid, p_ask, exp=D("2026-11-20")):
     return {"spot": spot, "chains": {exp: [
         {"strike": 200.0, "c_bid": c_bid, "c_ask": c_ask, "c_mid": (c_bid + c_ask) / 2, "c_iv": 0.4,
          "p_bid": p_bid, "p_ask": p_ask, "p_mid": (p_bid + p_ask) / 2, "p_iv": 0.42}]}}
@@ -30,20 +45,20 @@ def test_option_paper_trading(dburl):  # noqa: F811
     me = Client(url, uid)
     sb = PgSupa(url)
     common = dict(fins={}, filings={}, guidance={}, consensus={}, next_earnings={}, names={"NVDA": "NVIDIA"})
-    morning = datetime(2026, 10, 28, 13, 7, tzinfo=timezone.utc)           # 09:07 New York
-    evening = datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc)          # 17:37 New York
+    morning = T(datetime(2026, 10, 28, 13, 7, tzinfo=timezone.utc))           # 09:07 New York
+    evening = T(datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc))          # 17:37 New York
     # morning run: quotes published, no fill possible
-    community.sync(sb, bars=bars(("2026-10-27", 210.0)), now=morning, option_chains={"NVDA": chain(210, 14.0, 14.6, 4.0, 4.4)}, **common)
+    community.sync(sb, bars=bars((D("2026-10-27"), 210.0)), now=morning, option_chains={"NVDA": chain(210, 14.0, 14.6, 4.0, 4.4)}, **common)
     assert me.q("select count(*) from public.option_quotes")[0][0] == 2
     pf = me.q("insert into public.portfolios (name) values ('opt') returning id")[0][0]
     with pytest.raises(psycopg.errors.RaiseException, match="non couvert"):
-        me.q("select public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'C', 'sell', 1)", (pf,))
+        me.q("select public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'C', 'sell', 1)", (pf,))
     with pytest.raises(psycopg.errors.RaiseException, match="non coté"):
-        me.q("select public.place_option_order(%s, 'NVDA', '2026-11-20', 205, 'C', 'buy', 1)", (pf,))
-    oid = me.q("select (public.place_option_order(%s, 'nvda', '2026-11-20', 200, 'C', 'buy', 2)).id", (pf,))[0][0]
-    _su(url, "update public.option_orders set created_at = %s where id = %s", (datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc), oid))
+        me.q("select public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 205, 'C', 'buy', 1)", (pf,))
+    oid = me.q("select (public.place_option_order(%s, 'nvda', '" + D("2026-11-20") + "', 200, 'C', 'buy', 2)).id", (pf,))[0][0]
+    _su(url, "update public.option_orders set created_at = %s where id = %s", (T(datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc)), oid))
     # evening run, same session: filled at the ASK of the evening snapshot
-    out = community.sync(sb, bars=bars(("2026-10-27", 210.0), ("2026-10-28", 215.0)), now=evening,
+    out = community.sync(sb, bars=bars((D("2026-10-27"), 210.0), (D("2026-10-28"), 215.0)), now=evening,
                          option_chains={"NVDA": chain(215, 17.0, 17.5, 3.0, 3.3)}, **common)
     assert out["options"]["filled"] == 1
     o = me.q("select status, fill_price from public.option_orders where id = %s", (oid,))[0]
@@ -54,13 +69,13 @@ def test_option_paper_trading(dburl):  # noqa: F811
     assert val == pytest.approx(cash + 2 * 100 * 17.25)                     # marked at mid
     assert "premier_contrat" in {r[0] for r in me.q("select badge_id from public.user_badges")}
     # resale of one contract next day at the BID
-    sid = me.q("select (public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'C', 'sell', 1)).id", (pf,))[0][0]
-    _su(url, "update public.option_orders set created_at = %s where id = %s", (datetime(2026, 10, 29, 14, 0, tzinfo=timezone.utc), sid))
-    community.sync(sb, bars=bars(("2026-10-28", 215.0), ("2026-10-29", 240.0)), now=datetime(2026, 10, 29, 21, 37, tzinfo=timezone.utc),
+    sid = me.q("select (public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'C', 'sell', 1)).id", (pf,))[0][0]
+    _su(url, "update public.option_orders set created_at = %s where id = %s", (T(datetime(2026, 10, 29, 14, 0, tzinfo=timezone.utc)), sid))
+    community.sync(sb, bars=bars((D("2026-10-28"), 215.0), (D("2026-10-29"), 240.0)), now=T(datetime(2026, 10, 29, 21, 37, tzinfo=timezone.utc)),
                    option_chains={"NVDA": chain(240, 40.0, 41.0, 1.0, 1.2)}, **common)
     assert float(me.q("select fill_price from public.option_orders where id = %s", (sid,))[0][0]) == 40.0
     # the last contract expires in the money: settled at intrinsic value (close 230 - strike 200 = 30)
-    community.sync(sb, bars=bars(("2026-11-19", 235.0), ("2026-11-20", 230.0)), now=datetime(2026, 11, 20, 21, 37, tzinfo=timezone.utc),
+    community.sync(sb, bars=bars((D("2026-11-19"), 235.0), (D("2026-11-20"), 230.0)), now=T(datetime(2026, 11, 20, 21, 37, tzinfo=timezone.utc)),
                    option_chains={}, **common)
     exp = me.q("select qty, price from public.option_trades where side = 'expire'")
     assert [(q, float(p)) for q, p in exp] == [(1, 30.0)]
@@ -77,14 +92,21 @@ def test_order_after_close_waits_for_next_session(dburl):  # noqa: F811
     me = Client(url, uid)
     sb = PgSupa(url)
     common = dict(fins={}, filings={}, guidance={}, consensus={}, next_earnings={}, names={})
-    community.sync(sb, bars=bars(("2026-10-27", 210.0)), now=datetime(2026, 10, 28, 13, 7, tzinfo=timezone.utc),
+    community.sync(sb, bars=bars((D("2026-10-27"), 210.0)), now=T(datetime(2026, 10, 28, 13, 7, tzinfo=timezone.utc)),
                    option_chains={"NVDA": chain(210, 14.0, 14.6, 4.0, 4.4)}, **common)
     pf = me.q("insert into public.portfolios (name) values ('late') returning id")[0][0]
-    oid = me.q("select (public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'P', 'buy', 1)).id", (pf,))[0][0]
-    _su(url, "update public.option_orders set created_at = %s where id = %s", (datetime(2026, 10, 28, 20, 45, tzinfo=timezone.utc), oid))
-    community.sync(sb, bars=bars(("2026-10-28", 215.0)), now=datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc),
+    oid = me.q("select (public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'P', 'buy', 1)).id", (pf,))[0][0]
+    _su(url, "update public.option_orders set created_at = %s where id = %s", (T(datetime(2026, 10, 28, 20, 45, tzinfo=timezone.utc)), oid))
+    community.sync(sb, bars=bars((D("2026-10-28"), 215.0)), now=T(datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc)),
                    option_chains={"NVDA": chain(215, 17.0, 17.5, 3.0, 3.3)}, **common)
     assert me.q("select status from public.option_orders where id = %s", (oid,))[0][0] == "pending"   # 16:45 NY: after the close
+
+
+def _backdate(url, oid, when):
+    """Move an order to `when`, with the 30-day validity of a limit order counted from that day, as the
+    database does at insertion (it uses the real clock)."""
+    _su(url, "update public.orders set created_at = %s, expires_on = case when order_type = 'limit' "
+             "then %s::date + 30 else expires_on end where id = %s", (when, when.date().isoformat(), oid))
 
 
 def ohlc(pts):
@@ -99,26 +121,26 @@ def test_covered_call_cash_secured_put_and_limit_orders(dburl):  # noqa: F811
     me = Client(url, uid)
     sb = PgSupa(url)
     common = dict(fins={}, filings={}, guidance={}, consensus={}, next_earnings={}, names={"NVDA": "NVIDIA"})
-    hist = [(f"2026-10-{d:02d}", 200, 202, 198, 200, 1_000_000) for d in range(1, 27)]
-    community.sync(sb, bars=ohlc(hist), now=datetime(2026, 10, 27, 13, 7, tzinfo=timezone.utc),
+    hist = [(D(f"2026-10-{d:02d}"), 200, 202, 198, 200, 1_000_000) for d in range(1, 27)]
+    community.sync(sb, bars=ohlc(hist), now=T(datetime(2026, 10, 27, 13, 7, tzinfo=timezone.utc)),
                    option_chains={"NVDA": chain(200, 6.0, 6.4, 5.0, 5.4)}, **common)
     lp = me.q("select adv_shares, spread_bps, sigma_d from public.latest_prices where ticker = 'NVDA'")[0]
     assert float(lp[0]) == 1_000_000 and float(lp[1]) == pytest.approx(10 * (2e8 / 1e7) ** -0.5)
     pf = me.q("insert into public.portfolios (name) values ('w') returning id")[0][0]
     # no shares yet: a call cannot be sold; a put can, if 200 x 100 $ of cash stays free
     with pytest.raises(psycopg.errors.RaiseException, match="non couvert"):
-        me.q("select public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'C', 'sell', 1)", (pf,))
+        me.q("select public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'C', 'sell', 1)", (pf,))
     with pytest.raises(psycopg.errors.RaiseException, match="non garanti"):
-        me.q("select public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'P', 'sell', 6)", (pf,))
+        me.q("select public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'P', 'sell', 6)", (pf,))
     # buy 100 shares (market, morning of the 27th) and a limit buy at 195 that never trades through
     mk = me.q("select (public.place_order(%s, 'NVDA', 'buy', 100)).id", (pf,))[0][0]
     lim = me.q("select (public.place_order(%s, 'NVDA', 'buy', 10, 'limit', 195)).id", (pf,))[0][0]
     for oid in (mk, lim):
-        _su(url, "update public.orders set created_at = %s where id = %s", (datetime(2026, 10, 27, 15, 0, tzinfo=timezone.utc), oid))
-    put = me.q("select (public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'P', 'sell', 2)).id", (pf,))[0][0]
-    _su(url, "update public.option_orders set created_at = %s where id = %s", (datetime(2026, 10, 27, 15, 0, tzinfo=timezone.utc), put))
-    day = hist + [("2026-10-27", 200, 203, 197, 202, 1_000_000)]
-    out = community.sync(sb, bars=ohlc(day), now=datetime(2026, 10, 27, 21, 37, tzinfo=timezone.utc),
+        _backdate(url, oid, T(datetime(2026, 10, 27, 15, 0, tzinfo=timezone.utc)))
+    put = me.q("select (public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'P', 'sell', 2)).id", (pf,))[0][0]
+    _su(url, "update public.option_orders set created_at = %s where id = %s", (T(datetime(2026, 10, 27, 15, 0, tzinfo=timezone.utc)), put))
+    day = hist + [(D("2026-10-27"), 200, 203, 197, 202, 1_000_000)]
+    out = community.sync(sb, bars=ohlc(day), now=T(datetime(2026, 10, 27, 21, 37, tzinfo=timezone.utc)),
                          option_chains={"NVDA": chain(202, 7.0, 7.4, 4.0, 4.4)}, **common)
     assert out["orders"]["filled"] == 1 and out["orders"]["waiting"] == 1        # the limit waits for the 28th
     o = me.q("select fill_price, detail from public.orders where id = %s", (mk,))[0]
@@ -128,23 +150,23 @@ def test_covered_call_cash_secured_put_and_limit_orders(dburl):  # noqa: F811
     assert cash == pytest.approx(100000 - 100 * float(o[0]) + 2 * 100 * 4.0, abs=0.02)
     # the cash securing the puts (2 x 200 x 100 = 40 000) cannot be spent
     big = me.q("select (public.place_order(%s, 'NVDA', 'buy', 300)).id", (pf,))[0][0]
-    _su(url, "update public.orders set created_at = %s where id = %s", (datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc), big))
+    _backdate(url, big, T(datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc)))
     # now covered: one call can be sold against the 100 shares, and those shares are locked
     _su(url, "insert into public.option_quotes (ticker, expiry, strike, type, bid, ask, mid, quote_date, evening) values "
-             "('NVDA', '2026-11-20', 210, 'C', 1.0, 1.2, 1.1, '2026-10-27', true) on conflict do nothing")
-    cc = me.q("select (public.place_option_order(%s, 'NVDA', '2026-11-20', 210, 'C', 'sell', 1)).id", (pf,))
+             "('NVDA', '" + D("2026-11-20") + "', 210, 'C', 1.0, 1.2, 1.1, '" + D("2026-10-27") + "', true) on conflict do nothing")
+    cc = me.q("select (public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 210, 'C', 'sell', 1)).id", (pf,))
     with pytest.raises(psycopg.errors.RaiseException, match="non couvert"):
-        me.q("select public.place_option_order(%s, 'NVDA', '2026-11-20', 200, 'C', 'sell', 1)", (pf,))   # pending one counts
+        me.q("select public.place_option_order(%s, 'NVDA', '" + D("2026-11-20") + "', 200, 'C', 'sell', 1)", (pf,))   # pending one counts
     with pytest.raises(psycopg.errors.RaiseException, match="Vente impossible"):
         me.q("select public.place_order(%s, 'NVDA', 'sell', 1)", (pf,))
     assert cc
     # 28th: the session trades down to 194 -> the 195 limit fills at 195; the big buy is rejected (reserved cash)
-    day2 = day + [("2026-10-28", 201, 201, 194, 196, 1_000_000)]
+    day2 = day + [(D("2026-10-28"), 201, 201, 194, 196, 1_000_000)]
     chain2 = chain(196, 3.0, 3.4, 7.0, 7.4)
-    chain2["chains"]["2026-11-20"].append({"strike": 210.0, "c_bid": 1.0, "c_ask": 1.2, "c_mid": 1.1, "c_iv": 0.4,
+    chain2["chains"][D("2026-11-20")].append({"strike": 210.0, "c_bid": 1.0, "c_ask": 1.2, "c_mid": 1.1, "c_iv": 0.4,
                                            "p_bid": 14.0, "p_ask": 14.4, "p_mid": 14.2, "p_iv": 0.4})
-    _su(url, "update public.option_orders set created_at = %s where side = 'sell' and strike = 210", (datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc),))
-    out = community.sync(sb, bars=ohlc(day2), now=datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc),
+    _su(url, "update public.option_orders set created_at = %s where side = 'sell' and strike = 210", (T(datetime(2026, 10, 28, 15, 0, tzinfo=timezone.utc)),))
+    out = community.sync(sb, bars=ohlc(day2), now=T(datetime(2026, 10, 28, 21, 37, tzinfo=timezone.utc)),
                          option_chains={"NVDA": chain2}, **common)
     lo = me.q("select status, fill_price from public.orders where id = %s", (lim,))[0]
     assert lo[0] == "filled" and float(lo[1]) == 195.0
@@ -152,12 +174,12 @@ def test_covered_call_cash_secured_put_and_limit_orders(dburl):  # noqa: F811
     assert b[0] == "rejected" and "puts vendus" in b[1]
     assert {"vendeur_primes", "ordre_limite"} <= {r[0] for r in me.q("select badge_id from public.user_badges")}
     # short positions count as liabilities in the portfolio value
-    val = float(_su(url, "select value from public.portfolio_values where portfolio_id = %s and date = '2026-10-28'", (pf,))[0][0])
+    val = float(_su(url, "select value from public.portfolio_values where portfolio_id = %s and date = '" + D("2026-10-28") + "'", (pf,))[0][0])
     cash = float(me.q("select cash from public.portfolios where id = %s", (pf,))[0][0])
     assert val == pytest.approx(cash + 110 * 196 - 2 * 100 * 7.2 - 1 * 100 * 1.1, abs=0.05)
     # expiry at 190: puts lose 10 each (paid by the seller), the 210 call expires worthless
-    community.sync(sb, bars=ohlc(day2 + [("2026-11-20", 191, 192, 189, 190, 1_000_000)]),
-                   now=datetime(2026, 11, 20, 21, 37, tzinfo=timezone.utc), option_chains={}, **common)
+    community.sync(sb, bars=ohlc(day2 + [(D("2026-11-20"), 191, 192, 189, 190, 1_000_000)]),
+                   now=T(datetime(2026, 11, 20, 21, 37, tzinfo=timezone.utc)), option_chains={}, **common)
     pos = me.q("select type, strike, sum(case when side = 'buy' then qty else -qty end) from public.option_trades group by type, strike")
     assert all(q == 0 for _, _, q in pos)
     after = float(me.q("select cash from public.portfolios where id = %s", (pf,))[0][0])

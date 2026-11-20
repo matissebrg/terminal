@@ -13,6 +13,7 @@ on:
       - "pipeline/**"
       - "supabase/**"
       - "docs/assets/**"
+      - "docs/library/**"
       - "docs/index.html"
       - ".github/workflows/**"
 
@@ -47,7 +48,7 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - uses: actions/setup-node@v7   # pour le test de parité DCF Python ↔ JS
+      - uses: actions/setup-node@v7   # tests du formulaire de prédiction du site (node)
         with:
           node-version: "22"
 
@@ -119,9 +120,9 @@ jobs:
       # seule la copie publiée est modifiée (rien n'est enregistré dans le repo).
       - name: Numéroter les scripts et la feuille de style publiés
         run: |
-          sed -E -i "s#((src|href)=\"assets/[A-Za-z0-9_./-]+\.(js|css))\"#\1?v=${GITHUB_SHA::8}\"#g" docs/index.html
+          sed -E -i "s#((src|href)=\"(assets|library)/[A-Za-z0-9_./-]+\.(js|css))\"#\1?v=${GITHUB_SHA::8}\"#g" docs/index.html
           n=$(grep -c "?v=${GITHUB_SHA::8}" docs/index.html || true)
-          if [[ "$n" -lt 10 ]]; then echo "::warning::Numérotation des fichiers du site incomplète ($n références)"; fi
+          if [[ "$n" -lt 11 ]]; then echo "::warning::Numérotation des fichiers du site incomplète ($n références)"; fi
 
       - uses: actions/configure-pages@v6
 

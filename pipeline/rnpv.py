@@ -19,7 +19,7 @@ Catalysts: a pending event moves a programme one stage (phase 3 -> filed, filed 
 On success the PoS is divided by the step probability; on failure the programme is worth 0 (future
 development costs are avoided). Solving for the probability that makes the model equal to the market
 price gives the market-implied probability of the event, with everything else held at your inputs.
-docs/assets/rnpv.js is the browser twin (tests/test_rnpv.py checks they agree).
+(Its browser twin, docs/assets/rnpv.js, left with the terminal front end.)
 """
 from __future__ import annotations
 

@@ -1,316 +1,140 @@
-<p align="center"><img src="docs/assets/brand/mangrove-lockup.png" alt="Mangrove Terminal" width="420"></p>
+# Mangrove
 
-# Mangrove Terminal
-
-Terminal personnel de recherche **santé (pharma et biotech)** et d'entraînement à la prévision, consultable partout
-(GitHub Pages) et mis à jour automatiquement (GitHub Actions). Anciennement *Archer Terminal* : mêmes fonctionnalités (pipeline, base Supabase, prédictions,
-portefeuilles fictifs, options, rNPV), nouvelle identité et périmètre recentré sur la santé.
+Ma bibliothèque de recherche pharma, racontée comme un palétuvier : on descend de la canopée jusqu'aux racines.
 
 **Site :** `https://matissebrg.github.io/terminal/`
 
-### Périmètre
+| Section | Ce qu'on y trouve | D'où ça vient |
+|---|---|---|
+| Canopée | Le fil : mes notes, les dépôts SEC, les mouvements de cours, les couvertures | `library/library.js` + pipeline (`data/feed.json`) |
+| Ligne d'eau | Le calendrier des six prochains mois : résultats, catalyseurs, échéances de mes objectifs de cours | pipeline (dates de résultats) + `library/catalysts.js` |
+| Marée | Mes prédictions, le tableau de calibration, et le formulaire pour en écrire une | `config/predictions/` notées par `pipeline/predictions.py` |
+| Racines | Les principes auxquels chaque note est tenue | `library/values.js` |
+| Bibliothèque | Les valeurs par racine, mes documents et les dépôts SEC ; un dossier par valeur | `library/coverage.js` + pipeline |
 
-- **Couvertes** : les biotechs de `config/universe.yaml` et Veeva (logiciels pour les laboratoires). Les anciennes
-  valeurs hors santé (NVDA, WMT, GOOG, XOM, AMZN) et leurs données ont été retirées du terminal.
-- **Bientôt** (`docs/assets/config.js`, `window.MANGROVE`) : Sanofi (SNY) et Regeneron (REGN) ont une fiche « bientôt » ;
-  les **comparables boursiers** (onglet Secteur, tableaux de multiples) sont en refonte pour la santé
-  (`comparablesSoon: false` pour les réafficher).
-- **Page d'accueil** (`#/bienvenue`) : un manglier 3D en chrome liquide (`docs/assets/mangrove-scene.js`, WebGL) ; la caméra
-  descend avec le défilement : la canopée (valeurs suivies, feed), la ligne d'eau (catalyseurs, prédictions), les racines
-  (comptes SEC, ton modèle). Coupé si les effets sont désactivés ou si « réduire les animations » est actif.
-- **Design « Estuary »** (`docs/assets/app.css`) : Syne pour les titres, Hanken Grotesk pour l'interface, Martian Mono pour
-  les chiffres ; panneaux en verre posés sur la « ligne d'eau » ; lumière d'eau animée en fond (`fx.js`).
+Couverture : **Sanofi (SNY), Eli Lilly (LLY), Novo Nordisk (NVO), AstraZeneca (AZN), Merck & Co. (MRK), Veeva (VEEV)**, et
+l'ETF santé **XLV** comme référence.
 
-**Changement de nom (anciennement Archer Terminal)** : les réglages enregistrés dans le navigateur (`archer-*`) sont
-déplacés une fois vers `mangrove-*` au chargement ; la migration `0009_mangrove.sql` renomme les badges visibles et
-préfixe les nouveaux codes d'invitation `MANGROVE-` ; la table d'historique des migrations est renommée
-`mangrove_migrations` par `pipeline.dbadmin` sans rejouer les migrations. Secret GitHub : `MANGROVE_ADMIN_EMAIL`
-(l'ancien `ARCHER_ADMIN_EMAIL` reste lu en secours). L'identifiant interne du badge d'inscription reste `archer`.
+## À faire une fois, après la fusion de la branche
 
-| Page | Contenu |
-|---|---|
-| Tableau de bord | valeurs couvertes (cours, performance, multiples), indices santé, taux sans risque, prochains catalyseurs, feed |
-| Synthèse | cours, ta valeur si tu as enregistré un modèle (ou la rNPV pour une biotech), repères de prix, chiffres clés TTM, thèse |
-| États financiers | compte de résultat, bilan, flux - annuel / trimestriel, variations N-1, liens EDGAR, export CSV |
-| Ratios | 25 ratios (rentabilité, rendement du capital, croissance, coûts, bilan, efficacité, allocation) |
-| Valorisation | calculateur DCF personnel (aucune valeur publiée par le site), sensibilités ; comparables : bientôt |
-| **Biotech** | rNPV, catalyseurs avec probabilités, essais ClinicalTrials.gov |
-| **Prédictions** | registre de prévisions horodatées par Git, vérifiées automatiquement contre le réel, le consensus, la guidance et un modèle naïf |
-| Options | volatilité implicite (30/90 j, structure par terme, smile), open interest, put/call, choc implicite vs réactions passées |
-| Secteur | comparables : bientôt |
-| Performance | chandeliers / aire / comparaison % vs indices, rendements, volatilité, drawdown, bêta |
-| Dépôts SEC | 10-K, 10-Q, 8-K de résultats |
-| Feed | publications, réévaluations (avec décomposition), mouvements ±5 %, franchissement de la valeur, prédictions |
+Le pipeline ne connaît encore que VEEV : les comptes de LLY et MRK se construisent depuis la SEC, ce que seul GitHub Actions
+peut faire (avec ton identité SEC, secret `SEC_USER_AGENT`).
 
-Raccourcis : `Ctrl K` ou `/` pour la recherche, `1` à `9` pour changer d'onglet.
+1. Onglet **Actions** → **Ajouter une valeur** → *Run workflow*.
+2. Ticker : `LLY,MRK` ; pairs : `LLY,MRK,SNY,NVO,AZN` ; ETF : `XLV` ; nom de l'ETF : `Santé (ETF XLV)`.
+3. Environ 5 minutes plus tard, le site affiche LLY et MRK en suivi complet, et SNY, NVO, AZN comme comparables (cours,
+   comptes annuels convertis en dollars).
 
----
+## Suivi complet ou comparable
+
+Sanofi, Novo Nordisk et AstraZeneca déposent un rapport annuel **20-F** à la SEC, sans comptes trimestriels XBRL exploitables.
+Le pipeline les lit donc comme **comparables** : cours, dernier exercice publié, multiples. Pour elles, la marée note les
+**objectifs de cours** et les **questions oui / non**, pas les chiffres trimestriels. Les valeurs déclarées dans
+`config/universe.yaml` (VEEV, puis LLY et MRK) sont en **suivi complet** : trimestres reconstruits, consensus, date de
+résultats, et prévisions de résultats notées automatiquement.
+
+## La bibliothèque : ce que tu modifies
+
+Tout est dans `docs/library/`, en JavaScript simple (pour que la copie privée marche hors ligne). Modifie sur GitHub (crayon →
+*Commit changes*) : le site se republie tout seul.
+
+- `library.js` : tes documents. Une entrée par note, modèle ou thèse : date, ticker, type, titre, résumé, fichier.
+  Les fichiers vont dans `library/documents/`.
+- `catalysts.js` : les dates que le pipeline ne voit pas (décision FDA, lecture d'essai, congrès, résultats des émetteurs
+  étrangers), avec un lien vers l'annonce.
+- `values.js` : tes principes. Les formulations actuelles sont un premier jet, à réécrire avec tes mots.
+- `coverage.js` : les tuiles de la bibliothèque (nom, racine, une ligne de métier). Ajouter une valeur au suivi complet,
+  c'est le workflow *Ajouter une valeur* ; l'ajouter ici la fait apparaître dans la bibliothèque.
+- La **thèse** d'une valeur suivie s'écrit dans `config/assumptions/<TICKER>.yaml`, champ `thesis` ; elle apparaît dans
+  son dossier.
+
+**Règle :** le repo est public. N'y mets que ce que tu publierais sous ton nom. Ce qui vient de ton travail en entreprise
+reste dans la copie privée.
+
+## La marée : prédire, puis être noté
+
+1. Dans la marée (ou depuis un dossier, « Écrire une prédiction »), choisis la valeur. Pour une valeur en suivi complet, la
+   période publiée est préremplie, avec en regard le dernier chiffre publié, le modèle naïf et le consensus.
+2. Trois types de prévisions, combinables dans un même fichier :
+   - **résultats** (CA, marges, résultat, BPA, FCF) avec un **intervalle à 80 %** ;
+   - **questions oui / non** avec une probabilité, notées par le **score de Brier** ; tu tranches l'issue toi-même dans le
+     fichier une fois connue (`outcome: null` → `true` ou `false`) ;
+   - **objectifs de cours** à une date, vérifiés sur la clôture de ce jour-là (XLV compris).
+3. **Enregistrer sur GitHub** ouvre `config/predictions/<TICKER>/<date>-<période>.yaml` déjà rempli : clique *Commit changes*.
+   Le brouillon reste dans ton navigateur tant que tu ne l'as pas enregistré.
+4. **L'heure du commit fait foi.** Pour des résultats, seule la dernière version commitée avant 0 h (heure de New York) le
+   jour de la publication est notée ; une version plus tardive est marquée « enregistrée trop tard ».
+5. Le tableau de la marée cumule : chiffres tombés dans l'intervalle (bien calibré, c'est environ 80 %), écart moyen, biais
+   (trop optimiste ou trop prudent), victoires contre le consensus, score de Brier, écart des objectifs de cours.
+
+Écriture à la main possible : `config/predictions/_modele.yaml`.
+
+## La copie privée (hors GitHub)
+
+`mangrove-prive.zip` contient le même site, à ouvrir depuis ton disque (double-clic sur `index.html`, Chrome ou Edge).
+
+- Tes documents d'entreprise vont dans `library/` **de cette copie seulement** ; ce dossier n'est jamais commité.
+- Ouverte depuis le disque, la page ne peut pas lire de fichiers JSON locaux : elle lit les **données de marché publiques**
+  sur le site en ligne (`publicSite` dans `assets/config.js`). Ce sont uniquement des lectures ; rien de la copie n'est envoyé.
+  Sans connexion (ou si le réseau de l'entreprise bloque github.io), la bibliothèque, tes documents, le calendrier manuel et
+  les principes restent disponibles ; un message l'indique en bas de page.
+- Pour mettre à jour le site de la copie sans toucher à tes documents : remplace `index.html` et `assets/` par ceux du repo,
+  garde `library/`.
+- Avant d'y mettre quoi que ce soit, vérifie que la politique de ton employeur autorise ce stockage.
 
 ## Comment ça marche
 
 ```
-GitHub Actions (2×/jour ouvré, ou à chaque modification des hypothèses)
+GitHub Actions (2×/jour ouvré, à chaque modification de config/, pipeline/ ou du site)
    │
    ├─ SEC EDGAR (XBRL companyfacts + submissions)      ── états financiers, dépôts
    ├─ Yahoo Finance (yfinance) → Stooq → cache          ── cours, divisions, options, consensus, date de résultats
    └─ FRED DGS10 → Trésor US                            ── taux sans risque
    │
    ▼
-pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.json  ──►  GitHub Pages (docs/)
-                                                          │
-                                                          └─ history.json = la « base de données » (un instantané par jour)
+pipeline/  normalize → ratios → feed → predictions  ──►  docs/data/*.json  ──►  GitHub Pages (docs/)
 ```
 
-- **Le site ne publie aucune valeur DCF** (depuis le 16 novembre 2026, voir la dernière section). L'onglet *Valorisation* est un calculateur : il part de la croissance qui justifie le cours actuel et chaque visiteur règle ses hypothèses. Son modèle s'enregistre dans son navigateur (`localStorage`, clé `mangrove-dcf-<TICKER>`) et se recalcule sur les derniers comptes.
-- `config/assumptions/<TICKER>.yaml` garde la thèse, les pairs, les valeurs de départ du calculateur (bloc `dcf:`) et, pour les biotechs, le modèle rNPV et les catalyseurs. Modifie-le sur GitHub (icône crayon → *Commit*) : le workflow se relance.
-- Pour les biotechs, chaque variation de la rNPV est **décomposée** dans le feed : effet des nouvelles données financières, effet de tes hypothèses, effet des paramètres de marché.
+Le site (`docs/index.html`, `docs/assets/`, `docs/library/`) n'a ni dépendance ni étape de build : HTML, CSS et JavaScript
+simples, une scène WebGL dessinée à la main (`assets/js/scene.js`), des graphiques en SVG.
 
-## Prédictions : s'entraîner à prévoir
-
-1. Onglet **Prédictions** d'une valeur : le contexte (8 derniers trimestres, modèle naïf, guidance, consensus) est affiché.
-2. Saisis tes prévisions (CA, marges, résultat, BPA, FCF), un **intervalle à 80 %**, des questions oui / non avec une
-   probabilité, des objectifs de cours, et ton raisonnement.
-3. **Enregistrer sur GitHub** ouvre un nouveau fichier `config/predictions/<TICKER>/…yaml` pré-rempli : clique *Commit changes*.
-   **L'heure du commit fait foi** : seule la dernière version commitée avant 00:00 (New York) le jour de la publication compte.
-4. À la publication, le pipeline vérifie tout seul : erreur, intervalle, comparaison au consensus figé la veille, à la guidance
-   et au modèle naïf, « surprise bien anticipée » (ton chiffre et le réel du même côté du consensus), score de Brier.
-5. La page **Prédictions** cumule : erreur moyenne, **biais** (trop optimiste / pessimiste), taux de réussite des intervalles
-   (cible 80 %), victoires contre le consensus et le naïf, calibration des probabilités.
-
-Écriture à la main possible : voir `config/predictions/_modele.yaml`. La guidance de la société se renseigne dans
-`config/assumptions/<TICKER>.yaml` (section `guidance`). Le consensus est relevé chaque jour dans `docs/data/<T>/consensus.json`.
-
-## Espace membres (bêta fermée)
-
-Comptes, prédictions enregistrées en base, classement et portefeuilles fictifs, pour un petit groupe sur invitation.
-Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, offre gratuite), le site reste sur GitHub Pages.
-
-- **Toutes les règles sont dans la base** (`supabase/migrations/0001_community.sql`) : date limite, archivage des versions,
-  prévisions des autres invisibles avant la limite, argent fictif modifiable uniquement par les fonctions d'exécution.
-  Un membre qui appellerait l'API directement ne peut pas tricher. Testé sur un vrai PostgreSQL (`tests/test_db.py`).
-- **Le pipeline** (`pipeline/community.py`) ouvre les périodes, publie les derniers cours, exécute les ordres à la clôture
-  suivante, calcule le consensus de la communauté et note chaque prédiction (mêmes règles que le registre Git).
-- Sans compte, l'onglet Prédictions garde le mode « fichier GitHub » ci-dessous.
-- **Badges** (`supabase/migrations/0002_badges.sql`) : statuts Supporter (1 barre, attribué par un administrateur),
-  Members (2, à l'adhésion), Founders (3, fondateur et 10 premiers membres), VIP (4, podium du classement dès 6 membres
-  classés, ou attribué) ; 11 succès automatiques (première prédiction, raisonnement, multi-valeurs, premier ordre,
-  CA à moins de 1 %, mieux que la foule, mieux que Wall Street, régulier, bien calibré, oracle, portefeuille +10 %).
-  Chaque badge crée une notification (cloche + animation). Personne ne peut s'attribuer un badge.
-- **Succès à 4 niveaux** (bronze, argent, or, platine ; `0003_social.sql`) : les plus durs récompensent la précision et la
-  calibration, jamais le volume, et exigent un minimum de résultats (ex. Chirurgien : CA à 0,25 % ; Fléau de Wall Street :
-  bat le consensus 3 publications de suite ; Maître de la calibration : 20 intervalles, 75 à 85 % de réussite ; Alpha :
-  portefeuille qui bat le S&P 500 sur 90 jours). Rareté affichée (% des membres qui l'ont).
-- **Succès ajoutés** (`0004_achievements.sql`) : Racine (inscription), Visionnaire (10 premiers inscrits), Maître du Sharpe
-  (Sharpe annualisé >= 2 sur 90 jours, portefeuille investi à 50 % ou plus ; sur 30 jours l'erreur type du Sharpe
-  annualisé est d'environ 3,5, donc trop dépendant de la chance), secteurs (« Adepte de la tech »… selon `families` dans
-  `config/universe.yaml`, rempli depuis le code SIC à l'ajout d'une valeur) et Touche-à-tout (3 secteurs), ancienneté
-  (1 mois à 10 ans).
-- **Options** (`0005_options.sql`, `docs/assets/options-lab.js`) : onglet Options enrichi (grecques par strike, skew 25Δ par
-  échéance, max pain, historique de l'IV 30 j, constructeur de stratégies avec payoff à l'échéance et aujourd'hui, points
-  morts, probabilité de gain log-normale, grecques agrégées) et paper trading d'options : achat, revente avant l'échéance
-  et vente couverte (`0007_trading.sql` : call vendu = 100 actions détenues bloquées par contrat, put vendu = strike × 100 $
-  de liquidités réservées ; une option achetée ne couvre pas une option vendue, faute de règles de marge),
-  exécution à la clôture suivante au prix demandé (ask) à l'achat et offert (bid) à la vente, dénouement au comptant à
-  l'échéance à la valeur intrinsèque (le vendeur la paie). Les cotations du soir (après 16:00 New York) servent aux exécutions ; Yahoo ne publie pas de bid / ask
-  avant l'ouverture. Succès : Premier contrat, Levier gagnant (position soldée à +100 % ou plus).
-- **Exécution des ordres sur actions** (`pipeline/execution.py`, `0007_trading.sql`, `docs/assets/trade-ticket.js`) : barres
-  quotidiennes seulement, donc modèle séance par séance. Écart acheteur-vendeur estimé d'après le volume moyen en dollars
-  (10 pb × (ADV / 10 M$)^-0,5, entre 1 et 150 pb, au moins un cent), impact de marché en racine carrée
-  (0,5 × σ quotidienne × √(Q / V)), 10 % du volume de la séance au plus (exécutions partielles, prix moyen pondéré).
-  Ordre au marché : clôture de la première séance dont la clôture était inconnue, ± demi-écart + impact. Ordre à cours
-  limité : actif dès la séance suivante (même séance s'il est passé avant 9 h 30 New York), exécuté à la limite si le
-  marché la traverse strictement (ou à l'ouverture en cas de gap), sans écart ni impact, valable 30 jours. Le ticket
-  d'ordre montre la fourchette estimée, l'impact, la part du volume, le moment d'exécution et, pour une limite, la
-  probabilité d'être touchée en 30 jours (marche aléatoire sans tendance). Logos : services publics d'images de logos,
-  initiales en repli.
-- **Titres** : chaque badge d'argent ou plus donne un titre, affiché à côté du pseudo (choisi dans *Mon compte*, vérifié par la base).
-- **Profils** (`#/membre/<pseudo>`) : statut, titre, statistiques, badges, portefeuilles visibles et prédictions
-  après la date limite. **Liste des membres** avec e-mails et dernières connexions : administrateurs seulement.
-- **Messagerie privée** : lisible uniquement par les deux membres (pas par les administrateurs) ; blocage, 30 messages
-  par 10 minutes, signalement (seul le message signalé est transmis aux administrateurs). Pas de chiffrement de bout en
-  bout : les messages sont stockés dans la base Supabase. Rafraîchissement toutes les 8 secondes dans une conversation.
-
-
-
-## Biotech : rNPV, catalyseurs, essais cliniques
-
-Onglet **Biotech** d'une valeur (dès qu'elle est dans la famille « santé » ou que son fichier d'hypothèses contient
-un bloc `rnpv:`, `catalysts:` ou `trials:`) et page **Biotech** du menu (calendrier de toutes les valeurs).
-
-- **rNPV** (`pipeline/rnpv.py`, jumeau navigateur `docs/assets/rnpv.js`, parité testée) : somme des programmes, chacun
-  = flux (montée vers le pic de ventes, plateau, chute après la perte d'exclusivité, marge, impôt, coûts de
-  développement restants) × probabilité d'arriver sur le marché, actualisés ; + trésorerie nette - frais centraux.
-  Probabilités par défaut : taux historiques de passage de phase par aire thérapeutique (BIO, Informa, QLS,
-  2011-2020). Avec `primary: true`, la rNPV est la valeur affichée en tête de fiche (BBIO) : c'est la seule valeur
-  que le site publie lui-même.
-- **Catalyseurs** : date, type (PDUFA, résultats, comité...), programme lié. Calculés : saut du cours en cas de
-  succès / d'échec, probabilité impliquée par le cours, mouvement anticipé par les options (volatilité ordinaire
-  retirée via l'échéance précédente), comparaison au mouvement attendu par le modèle. Une fois l'événement passé,
-  écrire `outcome: success` (ou `failure`, `mixed`) : les prédictions des membres sont notées.
-- **Essais** : ClinicalTrials.gov (API v2), promoteurs listés dans `trials: {sponsors: [...]}`. Le feed signale
-  les nouveaux essais, changements de statut (arrêt, suspension), retards de date de fin principale et résultats publiés.
-- **Prédictions de catalyseurs** (migration `0006_catalysts.sql`) : probabilité donnée avant 00:00 New York le
-  jour de l'événement, cachée aux autres tant qu'ils n'ont pas donné la leur, score de Brier contre le taux historique.
-
-Modèle de bloc : `config/assumptions/BBIO.yaml`. Les pics de ventes y sont des hypothèses de départ à retravailler.
-
-- **Biotechs sans chiffre d'affaires** (stade clinique) : acceptées par « Ajouter une valeur ». Le calculateur DCF n'est
-  pas proposé (pas de chiffre d'affaires) et la valeur affichée vient du bloc `rnpv:` à ajouter (le workflow le rappelle en avertissement).
-- **Autonomie financière** : trésorerie / consommation moyenne des 4 derniers trimestres.
-- **Bilan des catalyseurs passés** : la veille de chaque événement, probabilités, sauts attendus et mouvement des
-  options sont figés (`docs/data/<T>/catalyst_history.json`) ; après, le site affiche la réaction réelle du cours.
-- Un catalyseur peut exister sans programme rNPV (grande pharma) : donner `stage` et `area` pour la probabilité de base.
+L'ancien espace membres (Supabase) n'a plus d'interface sur le site. Sa base et ses migrations restent dans le repo et le
+workflow continue de les maintenir ; rien n'est supprimé côté données.
 
 ## Méthode
 
-**Reconstruction des états financiers** (`pipeline/normalize.py`) - le XBRL de la SEC n'est pas utilisable tel quel :
-flux de trésorerie des 10-Q publiés en cumul (3/6/9 mois) → trimestres reconstruits par différence ; T4 = exercice - 9 mois ;
-retraitements → valeur la plus récemment déposée ; changements d'étiquettes XBRL → liste ordonnée d'étiquettes par ligne ;
-exercices de 52/53 semaines → tolérance sur les dates. Toutes les lignes sont converties dans un **schéma canonique interne**
-(`revenue`, `operating_income`, `fcf`…) : c'est ce qui permettra d'ajouter plus tard des sources IFRS/ESEF (Europe).
+**Reconstruction des états financiers** (`pipeline/normalize.py`) : flux de trésorerie des 10-Q publiés en cumul → trimestres
+reconstruits par différence ; T4 = exercice − 9 mois ; retraitements → valeur la plus récemment déposée ; changements
+d'étiquettes XBRL → liste ordonnée d'étiquettes par ligne ; exercices de 52/53 semaines → tolérance sur les dates. Émetteurs
+20-F (IFRS) : comptes convertis en dollars, dernier exercice au lieu des douze derniers mois.
 
-**Calculateur DCF** (`docs/assets/dcf.js` et `docs/assets/my-dcf.js` ; `pipeline/valuation.py` en est le jumeau Python et
-ne sert plus qu'à préparer les chiffres de départ et aux tests de parité) - FCFF = EBIT × (1 - t) + D&A - capex - ΔBFR ;
-croissance explicite puis fondu linéaire vers g ; marge qui converge vers une cible ; valeur terminale de Gordon (option :
-réinvestissement = g / ROIC terminal) ; convention mi-année ; WACC CAPM (rf FRED, bêta 2 ans hebdo vs SPY ajusté Blume,
-écarté si R² < 0,05). La rémunération en actions n'est pas réintégrée (c'est un coût réel). DCF inversé : croissance constante
-qui justifie le cours, utilisée comme point de départ du calculateur.
+**Prédictions** (`pipeline/predictions.py`) : date de publication = premier 8-K 2.02 / 10-Q / 10-K déposé après la fin de
+période ; échéance = 0 h New York ce jour-là ; versions lues dans l'historique Git. Le consensus BPA de Yahoo est généralement
+non-GAAP : affiché, jamais noté.
 
-**Prédictions** (`pipeline/predictions.py`) - date de publication = premier 8-K 2.02 / 10-Q / 10-K déposé après la fin de
-période ; date limite = 00:00 New York ce jour-là (prudent : impossible de compter une prévision faite après les chiffres) ;
-versions lues dans l'historique Git (`git log --follow`). Le consensus BPA de Yahoo est généralement non-GAAP : affiché, jamais noté.
+**Modèle naïf** : séquentiel (dernier trimestre × dernière croissance) ou saisonnier (même trimestre de l'an dernier ×
+croissance sur un an), au choix par valeur dans `config/assumptions/<TICKER>.yaml` (`predictions.naive`).
 
-**Options** (`pipeline/options.py`) - IV recalculée par Black-Scholes sur le milieu bid/ask ; IV 30/90 j par interpolation de la
-variance totale ; choc de résultats implicite = √(T₂ (σ₂² - σ₁²)) entre l'échéance juste avant et juste après la publication.
-
-**Pont VE → fonds propres** - + trésorerie et placements + participations en actions - dette financière
-(dette long terme, part courante et emprunts court terme, dettes de location-financement) - intérêts minoritaires.
-Les loyers de location simple sont déjà déduits de l'EBIT en normes US : leur dette n'est donc pas ajoutée.
-
-**Modèle naïf** (prédictions) - séquentiel (dernier trimestre × dernière croissance) ou saisonnier (même trimestre
-de l'an dernier × croissance sur un an), au choix par valeur dans `predictions.naive` ; Walmart : saisonnier.
-
-**Comparables** - multiples TTM (VE/CA, VE/EBITDA, P/E, Capi/FCF), médiane des pairs, multiples négatifs ou > 500x exclus.
-Limite assumée : des multiples passés de pairs moins dynamiques sous-évaluent une entreprise en hypercroissance.
+**Comparables** : multiples sur douze mois (VE/CA, VE/EBITDA, P/E, Capi/FCF) ; multiples négatifs ou > 500x exclus.
 
 ## Développement local
 
 ```bash
 pip install -r requirements.txt
-python -m pytest -q                                   # 198 tests, dont 41 demandent une base (normalisation, DCF, feed, prédictions, options, ajout de valeur, parité Python/JS, base membres*)
-
-# Aperçu hors-ligne avec des données SYNTHÉTIQUES (jamais publiées)
-python tests/fixtures/make_fixtures.py
-python -m pipeline.build --fixtures tests/fixtures --out /tmp/site/data
-cp -r docs/assets docs/index.html /tmp/site/ && python -m http.server -d /tmp/site 8000
-
-# Données réelles (nécessite un accès réseau à sec.gov)
-SEC_USER_AGENT="Nom email@exemple.com" python -m pipeline.build
+python -m pytest -q        # 184 tests ; ceux de la base demandent TEST_DATABASE_URL (PostgreSQL jetable), sinon ignorés
+python -m http.server -d docs 8000      # le site avec les données publiées dans docs/data
 ```
 
-\* Les tests de la base membres demandent un PostgreSQL jetable : `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres`
-(sinon ils sont ignorés). En CI, un conteneur Postgres 16 est fourni par le workflow.
+Les tests du formulaire de prédiction tournent sous node (`tests/js/`, et `tests/test_site_predictions.py` qui fait noter
+par le pipeline un fichier écrit par le code du site). En CI, node 22 et un PostgreSQL 16 sont fournis par le workflow.
 
-Les fixtures reproduisent volontairement les pièges du vrai XBRL (cumuls YTD, T4 absent, exercices de 53 semaines,
-retraitement, changement d'étiquette) et les tests vérifient chaque reconstruction contre la vérité connue.
+## Limites
 
-## Limites (honnêtes)
-
-- Cours de **clôture**, pas de temps réel ; sources de cours gratuites non officielles (repli automatique, signalé dans l'interface).
-- **Consensus** : seulement le prochain trimestre (CA et BPA moyens, haut, bas) via Yahoo ; l'historique se construit jour après jour.
-- **Options** : données Yahoo différées ; la qualité dépend de la liquidité des strikes.
-- Couverture **sociétés déposant à la SEC** : américaines, et étrangères en 20-F (IFRS, converties en dollars,
-  dernier exercice au lieu du TTM). Les sociétés européennes non cotées aux États-Unis (rapports ESEF) restent à faire.
-- Les hypothèses de départ de chaque valeur sont un **point de départ**, pas une prévision.
-
-## Pistes pour la suite
-
-Forecasting par segment
-(Data Center, Gaming…) à partir des tableaux XBRL dimensionnels · extraction des KPI des communiqués 8-K · ventes
-d'Attruby et des concurrents par trimestre dans le modèle biotech · couverture européenne via filings.xbrl.org / ESAP ·
-alertes par e-mail.
+- Cours de **clôture**, pas de temps réel ; sources de cours gratuites non officielles (repli automatique).
+- **Consensus** : seulement le prochain trimestre, via Yahoo.
+- Émetteurs **20-F** (Sanofi, Novo Nordisk, AstraZeneca) : pas de trimestres, donc pas de prévisions de résultats notées.
+- Les dates de résultats « estimées » viennent de Yahoo ou d'une médiane historique : à confirmer avec la société.
 
 ---
-Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, Stooq. Graphiques :
-[TradingView Lightweight Charts™](https://www.tradingview.com/) (Apache 2.0) et Apache ECharts (Apache 2.0).
-Outil personnel d'étude - pas un conseil en investissement.
-
-## Interface : design « Estuary » (Mangrove, novembre 2026)
-
-- **Principe** : de l'eau de nuit. Fond sarcelle presque noir, panneaux en verre qui laissent passer la lumière de l'eau ;
-  la couleur reste réservée aux données (vert / rouge pour le sens du marché, ambre pour les alertes, six teintes validées
-  pour les séries). Une seule couleur de marque, le sarcelle bioluminescent (`--bio`), pour ce qui est actif ou sélectionné.
-- **Ligne d'eau** : chaque titre de panneau est posé sur un filet dont le premier segment s'allume, la ligne sur laquelle
-  le logo est dessiné. Le menu est rangé par profondeur : la canopée (tableau de bord, feed), la ligne d'eau (biotech,
-  prédictions, options), le banc (espace membres), les racines (méthodologie).
-- **Typographies** auto-hébergées dans `docs/assets/fonts/` (licence SIL OFL) : Syne (titres), Hanken Grotesk (interface)
-  et Martian Mono (chiffres). Aucun appel à Google Fonts.
-- **Effets** (`docs/assets/fx.js`, tout est facultatif, le site fonctionne sans) : fond animé en WebGL2 (lumière à travers
-  une surface d'eau, que le pointeur fait onduler), changements de page par l'API View Transitions, pastille glissante sous
-  l'onglet actif, séquence d'ouverture une fois par session (le logo se dessine), horloge de New York.
-- **Accessibilité** : les effets se coupent avec le réglage système « réduire les animations » ou le bouton de la barre du
-  haut (mémorisé) ; contrastes du texte au-dessus de 4,5:1 ; focus clavier visible partout.
-- Les couleurs des graphiques viennent des variables CSS (`T.C` dans `core.js`) : changer une teinte se fait dans `:root`
-  de `app.css`.
-
-## Ajouts du 11-12 novembre 2026
-
-- **Page de présentation** (`#/bienvenue`, `docs/assets/views-landing.js`) en français et en anglais : tout ce qu'elle montre
-  vient des mêmes fichiers JSON que le terminal. Un visiteur sans compte qui ouvre la racine du site y arrive une fois
-  (clé `mangrove-seen` dans `localStorage`) ; ensuite la racine est le tableau de bord.
-- **Demandes d'invitation** (`supabase/migrations/0008_invite_requests.sql`) : formulaire sans compte sur la page de
-  présentation, plafonné à 50 demandes par jour ; la table n'est lisible que par les administrateurs, via la page
-  Membres (créer un code à usage unique, supprimer l'adresse). L'envoi du code reste manuel.
-- **Mot de passe oublié** (`#/compte/mot-de-passe`) : le lien de l'e-mail revient avec la session dans le fragment
-  d'adresse ; les jetons sont lus au chargement, retirés de l'adresse, puis transmis à Supabase. Pour que l'e-mail parte
-  vers un membre, il faut un SMTP personnalisé dans Supabase (Authentication → Emails) : le service par défaut n'écrit
-  qu'aux membres de l'équipe du projet. L'adresse du site doit figurer dans Authentication → URL Configuration.
-- **Capex convergent** (`capex_pct_revenue_target`, `capex_years_to_target` dans les hypothèses) : le capex passe en
-  ligne droite du niveau actuel à une cible ; `auto` = amortissements + NOPAT × croissance terminale / ROIC terminal.
-  Sans la clé, rien ne change. Appliqué à AMZN.
-- **Surface de volatilité** (`docs/assets/vol-surface.js`, WebGL sans bibliothèque) dans Options → Grecques et skew :
-  options hors de la monnaie seulement, cotations vides ou à écart de plus de 60 % écartées, échéances à moins de
-  3 jours ignorées, aucune extrapolation au-delà des strikes cotés, variance totale interpolée entre deux échéances.
-  Un tableau des valeurs accompagne le dessin.
-- **Transition partagée** (`fx.js`) : en cliquant une valeur de la liste de gauche, son cours traverse l'écran jusqu'à
-  l'en-tête de la fiche.
-
-## Retrait du DCF maison (16 novembre 2026)
-
-Le site ne publie plus de valeur DCF ni de modèle DCF. Un modèle automatique donnait des valeurs très éloignées
-des cours (Walmart 54 $ pour un cours de 128 $, Alphabet 119 $ pour 295 $) et produisait chaque jour des
-événements « valeur DCF -1,4 % » sans information. Un DCF vaut ce que valent ses hypothèses : elles reviennent
-à celui qui lit.
-
-**Retiré** : la tuile « Valeur pondérée (scénarios) » et « DCF scénario base » en tête de fiche, le panneau
-« Verdict du modèle », les scénarios bear / base / bull, les colonnes « Valeur base / Valeur pondérée / Potentiel »
-du tableau de bord, l'indicateur « Potentiel DCF pondéré » des portefeuilles, la fourchette de scénarios de la page
-de présentation, l'historique « valeur vs cours », les événements de réévaluation DCF du feed (49 anciens
-événements supprimés) et les boutons « Copier en YAML / Enregistrer sur GitHub ».
-
-**À la place** :
-
-- **Onglet Valorisation = « Ton modèle DCF »** (`docs/assets/my-dcf.js`, testé par `tests/js/my_dcf.test.js`).
-  Le point de départ est le cours lui-même : la croissance constante du chiffre d'affaires qui le justifie
-  (DCF inversé), toutes les autres entrées venant des comptes. L'écart avec le cours n'apparaît que lorsque le
-  visiteur déplace un curseur. *Enregistrer* garde les valeurs des curseurs dans le navigateur ; chiffre
-  d'affaires, trésorerie, dette et nombre d'actions viennent toujours des dernières données, donc le modèle suit
-  les nouvelles publications. Les deux tables de sensibilité sont calculées dans le navigateur autour de ce modèle
-  (parité avec `valuation.sensitivity` vérifiée par `tests/test_dcf_parity.py`).
-- **En tête de fiche et en synthèse** : « Ta valeur (ton DCF) » si un modèle est enregistré, sinon une invitation
-  à le construire. S'ajoutent une tuile « Croissance du CA (TTM) » et le tableau des multiples face aux pairs.
-- **Tableau de bord** : colonnes 1 an, VE/CA, P/E à la place des trois colonnes de valeur.
-- **Page de présentation** : un curseur du calculateur, en direct (« le cours suppose 18,9 % par an. Et toi ? »).
-- **Pipeline** : `valuation.json` ne contient plus que les entrées du calculateur (`dcf.inputs`, `dcf.sources`),
-  les comparables et les repères de prix. `universe.json` perd `value_base`, `value_weighted`, `upside`,
-  `upside_weighted` et gagne `r_1y`, `pe`, `ev_sales`. `feed.py` ne crée d'événements de valorisation et de
-  franchissement que pour les rNPV.
-
-**Conservé, à trancher** : la rNPV des biotechs (seule valeur encore publiée par le site, avec des pics de ventes
-qui restent des hypothèses de départ), et la valeur implicite des comparables (« Comparables (médiane) »), qui est
-un repère de marché mais souffre du même défaut mécanique pour les sociétés en forte croissance. Les blocs
-`scenarios:` des fichiers d'hypothèses ne sont plus lus.
-
-**Limites** : le modèle personnel vit dans un seul navigateur (pas de synchronisation avec le compte membre). Le
-point de départ dépend lui-même des entrées tirées des comptes : pour Walmart, « le cours suppose 17 % de
-croissance par an » dit surtout que la marge et le coût du capital de départ sont à régler.
+Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, Stooq.
+Outil personnel d'étude, pas un conseil en investissement.

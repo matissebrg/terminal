@@ -486,7 +486,7 @@ def run(src, only: list[str] | None = None) -> int:
                                             "benchmark_names": universe.get("benchmarks", {})})
             write(OUT / t / "valuation.json", {
                 "meta": meta, "ticker": t, "price": price,
-                # calculator inputs only (docs/assets/my-dcf.js): no result, no scenarios, no sensitivity
+                # calculator inputs only (formerly read by the browser calculator): no result, no scenarios, no sensitivity
                 "dcf": {"inputs": {k: v for k, v in resolved.items() if not k.startswith("_")},
                         "sources": resolved["_sources"]},
                 "comps": comp, "target": target_snap,

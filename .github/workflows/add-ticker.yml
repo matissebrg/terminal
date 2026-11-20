@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       ticker:
-        description: "Ticker US (ex. WMT). Classes avec un tiret : BRK-B"
+        description: "Ticker US, ou plusieurs séparés par des virgules (ex. LLY,MRK). Classes avec un tiret : BRK-B"
         required: true
       peers:
-        description: "Pairs pour les comparables, séparés par des virgules (ex. COST,TGT,KR)"
+        description: "Pairs pour les comparables, séparés par des virgules (ex. MRK,SNY,NVO,AZN). Une valeur n'est jamais son propre pair"
         required: false
         default: ""
       sector:
@@ -67,20 +67,26 @@ jobs:
           # entrées passées par variables d'environnement (jamais interpolées dans le script) ; espaces retirés
           trim() { local v="$1"; v="${v#"${v%%[![:space:]]*}"}"; printf '%s' "${v%"${v##*[![:space:]]}"}"; }
           IN_TICKER="$(trim "$IN_TICKER")"; IN_ETF="$(trim "$IN_ETF")"; IN_PEERS="$(trim "$IN_PEERS")"
-          if ! [[ "$IN_TICKER" =~ ^[A-Za-z]{1,6}(-[A-Za-z])?$ ]]; then echo "::error::Ticker invalide : $IN_TICKER"; exit 1; fi
           if [[ -n "$IN_ETF" ]] && ! [[ "$IN_ETF" =~ ^[A-Za-z]{1,6}$ ]]; then echo "::error::ETF invalide : $IN_ETF"; exit 1; fi
-          args=("$IN_TICKER" --peers "$IN_PEERS")
-          [[ -n "$IN_SECTOR" ]] && args+=(--sector "$IN_SECTOR")
-          [[ -n "$IN_INDUSTRY" ]] && args+=(--industry "$IN_INDUSTRY")
-          [[ -n "$IN_ETF" ]] && args+=(--etf "$IN_ETF")
-          [[ -n "$IN_ETF_NAME" ]] && args+=(--etf-name "$IN_ETF_NAME")
-          python -m pipeline.scaffold "${args[@]}" | tee scaffold.log
+          IFS=',' read -ra TICKERS <<< "$IN_TICKER"
+          : > scaffold.log
+          for T in "${TICKERS[@]}"; do
+            T="$(trim "$T")"; [[ -z "$T" ]] && continue
+            if ! [[ "$T" =~ ^[A-Za-z]{1,6}(-[A-Za-z])?$ ]]; then echo "::error::Ticker invalide : $T"; exit 1; fi
+            args=("$T" --peers "$IN_PEERS")
+            [[ -n "$IN_SECTOR" ]] && args+=(--sector "$IN_SECTOR")
+            [[ -n "$IN_INDUSTRY" ]] && args+=(--industry "$IN_INDUSTRY")
+            [[ -n "$IN_ETF" ]] && args+=(--etf "$IN_ETF")
+            [[ -n "$IN_ETF_NAME" ]] && args+=(--etf-name "$IN_ETF_NAME")
+            echo "== $T" | tee -a scaffold.log
+            python -m pipeline.scaffold "${args[@]}" | tee -a scaffold.log
+          done
           {
             echo "### Valeur ajoutée"
             echo '```'
             cat scaffold.log
             echo '```'
-            echo "Les hypothèses sont un point de départ tiré de l'historique : modifie config/assumptions/${IN_TICKER^^}.yaml."
+            echo "Les hypothèses sont un point de départ tiré de l'historique : modifie config/assumptions/<TICKER>.yaml."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Enregistrer et relancer la mise à jour du site

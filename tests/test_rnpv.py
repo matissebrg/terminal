@@ -1,7 +1,5 @@
 """rNPV engine: base rates, programme maths, catalyst maths, browser parity."""
 import json
-import shutil
-import subprocess
 from datetime import date
 from pathlib import Path
 
@@ -9,7 +7,6 @@ import pytest
 
 from pipeline import rnpv
 
-JS = Path(__file__).resolve().parent.parent / "docs" / "assets" / "rnpv.js"
 VD = date(2026, 10, 31)
 
 CFG = {
@@ -66,20 +63,6 @@ def test_royalty_asset_has_no_costs():
     s2030 = next(s for s in roy["series"] if s["year"] == 2030)
     assert s2030["risked_cf"] == pytest.approx(rnpv.sales_curve({**rnpv.DEFAULTS, **CFG["assets"][1]}, 2030) * 0.30 * 0.79)
 
-
-@pytest.mark.skipif(shutil.which("node") is None, reason="node non installé")
-def test_js_matches_python():
-    py = run()
-    script = f"""const R = require({json.dumps(str(JS))});
-process.stdout.write(JSON.stringify(R.value({json.dumps(CFG)}, {json.dumps(CTX)})));"""
-    js = json.loads(subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout)
-    assert js["value_per_share"] == pytest.approx(py["value_per_share"], rel=1e-12)
-    for a, b in zip(js["assets"], py["assets"]):
-        for k in ("rnpv", "revenue_pv", "dev_pv", "value_if_success", "implied_pos", "move_up", "move_down", "expected_abs_move"):
-            if b[k] is None:
-                assert a[k] is None, (a["name"], k)
-            else:
-                assert a[k] == pytest.approx(b[k], rel=1e-10, abs=1e-6), (a["name"], k)
 
 
 def test_options_event_move_strips_ordinary_volatility():
