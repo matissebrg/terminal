@@ -15,6 +15,22 @@
   var $ = function (id) { return document.getElementById(id); };
   var qa = function (sel, el) { return Array.prototype.slice.call((el || document).querySelectorAll(sel)); };
 
+  /* ---------- light mode for slow machines ----------
+     For two seconds after load, watch the frame rhythm; if most frames take longer than ~28 ms, the PC is struggling:
+     body.lite drops the decorative extras (bubbles, sheen, pointer lamp, floating cards) and slows the waves. */
+  (function () {
+    var times = [], last = 0, start = performance.now();
+    function probe(now) {
+      if (last) times.push(now - last);
+      last = now;
+      if (now - start < 2200) return requestAnimationFrame(probe);
+      times.sort(function (a, b) { return a - b; });
+      var med = times[times.length >> 1] || 16;
+      if (med > 28) { document.body.classList.add('lite'); window.MG && (MG.lite = true); }
+    }
+    requestAnimationFrame(probe);
+  })();
+
   /* ---------- headings surface through a waterline ---------- */
   qa('.sec-head h2').forEach(function (h) {
     if (h.querySelector('.rise')) return;
@@ -29,7 +45,6 @@
     { el: [$('feed')], kids: '.entry', step: 90, total: 1500 },
     { el: qa('.horizon'), kids: '.mast', step: 110, total: 2200 },
     { el: qa('.tide-card'), kids: '.g', step: 140, total: 2600 },
-    { el: qa('.roots-art'), kids: '.veil', step: 0, total: 3400 },
     { el: [$('values')], kids: '.value', step: 120, total: 1900 },
     { el: [$('lib-roots')], kids: '.tile, .col h3', step: 55, total: 2000 },
     { el: qa('.closing'), kids: '.mark, .word, .base', step: 160, total: 1600 }
@@ -99,6 +114,63 @@
   }, { rootMargin: '80px 0px' });
   qa('.hero, .horizon, .tide-card, .roots-art, .closing').concat(boxes).forEach(function (el) { oio.observe(el); });
 
+  /* ---------- waves: redraw the wave canvases while they are on screen ----------
+     Time-based, so a slow frame never makes the water jump; if a frame costs too much (old PC), drop to 30 fps. */
+  var waves = (window.MG && MG.waves) || [], live = new Set(), wraf = 0, t0w = 0, slow = 1;
+  /* Each field redraws at its own steady rate (30 fps for the sea, 20 for the score card's lines): a steady rhythm
+     reads as smooth, and it costs a fraction of 60 fps. Time-based, so a late frame never makes the water jump. If a
+     redraw still costs too much (old PC), the rate is lowered a notch. */
+  function wtick(now) {
+    wraf = 0;
+    if (!live.size || document.body.classList.contains('still') || document.hidden) { t0w = 0; return; }
+    if (!t0w) t0w = now - (waves[0].t || 0) * 1000;
+    var t = (now - t0w) / 1000;
+    live.forEach(function (wv) {
+      var every = 1000 / (wv.fps * (window.MG && MG.lite ? 0.67 : slow));
+      if (wv.at && now - wv.at < every - 4) return;
+      wv.at = now; wv.t = t;
+      var c0 = performance.now(); wv.draw(t);
+      wv.cost = (wv.cost || 0) * 0.9 + (performance.now() - c0) * 0.1;
+      if (wv.cost > 6 && slow > 0.6) slow = 0.67;
+    });
+    wraf = requestAnimationFrame(wtick);
+  }
+  function wkick() { if (!wraf && live.size) wraf = requestAnimationFrame(wtick); }
+  if (waves.length) {
+    var wio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var wv = waves.filter(function (x) { return x.el === e.target; })[0];
+        if (!wv) return;
+        if (e.isIntersecting) live.add(wv); else live.delete(wv);
+      });
+      wkick();
+    });
+    waves.forEach(function (wv) { wio.observe(wv.el); });
+    document.addEventListener('visibilitychange', wkick);
+    new MutationObserver(wkick).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  /* ---------- the roots grow down: a 3 s render (Blender) played once, the first time the section comes into view.
+     The poster is its first frame (only the surface), so nothing jumps; the video stops on its last frame, which is
+     the still picture shown without motion. Loaded only when needed (preload none), sized to the screen. */
+  var rootsArt = document.querySelector('.roots-art'), grow = rootsArt && rootsArt.querySelector('video.roots-grow');
+  if (grow && grow.canPlayType('video/mp4')) {
+    rootsArt.classList.add('has-video');
+    var gio = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      gio.disconnect();
+      grow.src = 'assets/video/roots-grow-' + (innerWidth <= 720 ? 640 : 1040) + '.mp4';
+      grow.addEventListener('error', function () { rootsArt.classList.remove('has-video'); });   // the still picture shows
+      var p = grow.play();
+      if (p && p.catch) p.catch(function () { rootsArt.classList.remove('has-video'); });
+    }, { threshold: 0.35 });
+    gio.observe(rootsArt);
+    new MutationObserver(function () {                   // the pause buttons hold the growth too
+      if (!grow.src || grow.ended) return;
+      if (document.body.classList.contains('still')) grow.pause(); else if (grow.paused) grow.play().catch(function () {});
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
   /* ---------- light sweeping over the chrome: the tree's own alpha masks the band ---------- */
   var stage = $('stage'), tree = stage && stage.querySelector('.tree');
   function maskTree() {
@@ -122,7 +194,8 @@
     }
     window.addEventListener('pointermove', function (e) {
       tx = e.clientX; ty = e.clientY;
-      if (!raf && document.body.classList.contains('below') && !document.body.classList.contains('still')) raf = requestAnimationFrame(step);
+      var c = document.body.classList;
+      if (!raf && c.contains('below') && !c.contains('still') && !c.contains('lite')) raf = requestAnimationFrame(step);
     }, { passive: true });
   }
 })();

@@ -14,6 +14,11 @@ from mathutils import Vector
 
 OUT, W, H, SAMPLES = sys.argv[-5], int(sys.argv[-4]), int(sys.argv[-3]), int(sys.argv[-2])
 SHOT = sys.argv[-1]
+# 'grow' = the roots shot, animated: every root grows down from the surface while the camera sinks with them.
+# Renders frames GROW_FIRST..GROW_LAST (env vars, default the whole 1..72) as OUT####.png.
+GROW = SHOT == "grow"
+if GROW:
+    SHOT = "roots"
 
 PAPER = "#EDF0EC"      # page colour above water (keep in sync with --brume in the CSS)
 ABYSS = "#04110F"      # page colour below water (--abysse)
@@ -352,5 +357,41 @@ cam.rotation_euler = (target - cam_loc).to_track_quat("-Z", "Y").to_euler()
 sc.collection.objects.link(cam)
 sc.camera = cam
 
-bpy.ops.render.render(write_still=True)
-print("RENDERED", OUT)
+if not GROW:
+    bpy.ops.render.render(write_still=True)
+    print("RENDERED", OUT)
+else:
+    import os
+    FRAMES = 72                     # 3 s at 24 fps
+    sc.render.fps = 24
+    sc.frame_start = int(os.environ.get("GROW_FIRST", 1))
+    sc.frame_end = int(os.environ.get("GROW_LAST", FRAMES))
+    sc.render.image_settings.color_depth = "8"
+    sc.render.filepath = OUT
+    # each root grows along its own length (bevel factor), from where it meets the surface down to its tip,
+    # one after another, easing out
+    rnd = random.Random(11)
+    roots = [o for o in sc.objects if o.name.startswith(("root", "aerial"))]
+    rnd.shuffle(roots)
+    for i, ob in enumerate(roots):
+        cu = ob.data
+        cu.bevel_factor_mapping_end = "SPLINE"
+        f0 = 2 + i * 1.6 + rnd.uniform(0, 3)
+        f1 = f0 + rnd.uniform(34, 46)
+        cu.bevel_factor_end = 0.42 if ob.name.startswith("root") else 0.5
+        cu.keyframe_insert("bevel_factor_end", frame=f0)
+        cu.bevel_factor_end = 1.0
+        cu.keyframe_insert("bevel_factor_end", frame=min(f1, FRAMES - 2))
+        for fc in (cu.animation_data.action.fcurves if hasattr(cu.animation_data.action, "fcurves") else []):
+            for kp in fc.keyframe_points:
+                kp.interpolation = "SINE"
+                kp.easing = "EASE_OUT"
+    # the camera sinks with the roots
+    for f, (cz, tz) in ((1, (-0.75, -0.45)), (FRAMES, (-1.55, -1.75))):
+        loc, tgt = Vector((0.4, -7.4, cz)), Vector((0, 0, tz))
+        cam.location = loc
+        cam.rotation_euler = (tgt - loc).to_track_quat("-Z", "Y").to_euler()
+        cam.keyframe_insert("location", frame=f)
+        cam.keyframe_insert("rotation_euler", frame=f)
+    bpy.ops.render.render(animation=True)
+    print("RENDERED FRAMES", sc.frame_start, sc.frame_end)

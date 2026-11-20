@@ -125,7 +125,7 @@
       </div>
     </div>
     <div class="horizon">
-      <div class="sea"><svg id="waves" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      <div class="sea"><canvas id="waves" aria-hidden="true"></canvas></div>
       <div class="line" aria-hidden="true"></div>
       <div class="tl-scroll" tabindex="0" aria-label="Calendrier des six prochains mois, défile de côté sur petit écran">
         <div class="tl" id="timeline"></div>
@@ -149,7 +149,7 @@
         <p class="sub">Mes prévisions, écrites avant la publication et horodatées par Git. Quand la marée monte avec les résultats, chacune est notée, juste ou fausse.</p>
       </div>
       <div class="tide-card">
-        <svg id="tide-lines" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <canvas id="tide-lines" aria-hidden="true"></canvas>
         <div class="tide-rise" aria-hidden="true"></div>
         <div class="pearl" aria-hidden="true"></div>
         <div class="gauges" id="gauges"></div>
@@ -224,7 +224,7 @@
         <source type="image/webp" srcset="assets/img/roots-760.webp 760w, assets/img/roots-1200.webp 1200w, assets/img/roots-2000.webp 2000w" sizes="100vw">
         <img src="assets/img/roots-1200.webp" width="2000" height="1250" alt="Les racines du palétuvier, sous l’eau, éclairées par la surface" loading="lazy" decoding="async">
       </picture>
-      <div class="veil" aria-hidden="true"></div>
+      <video class="roots-grow" muted playsinline preload="none" poster="assets/img/roots-start-1200.webp" width="1040" height="650" aria-hidden="true" tabindex="-1"></video>
       <div class="sec-head">
         <p class="meter">−8 m, dans les racines</p>
         <h2 id="racines-title">Les <em>racines</em></h2>

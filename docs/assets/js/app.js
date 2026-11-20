@@ -522,43 +522,46 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) { setMenu(false); menuBtn.focus(); } });
 
   /* fine-line wave fields, drawn once: the sea under the horizon and the tide card */
-  /* Static wave fields, drawn twice as wide as their box and periodic over 1440 units, so the CSS can slide them
-     left by half their width forever without a seam (a transform on one layer: no repaint). */
-  function waveField(svg, o) {
-    if (!svg) return;
-    var W = 1440, H = o.h, TAU = Math.PI * 2, out = '';
-    for (var k = (o.only ? o.only[0] : 0); k < (o.only ? o.only[1] : o.n); k++) {
-      var t = k / (o.n - 1), y0 = o.y0 + Math.pow(t, o.persp) * (H - o.y0), amp = o.amp * (0.25 + t), ph = k * 0.55;
-      var c1 = Math.max(1, Math.round(o.freq * (1 - t * 0.35) * W / TAU)), c2 = Math.max(1, Math.round(c1 * 0.37));
-      var d = '';
-      for (var x = 0; x <= 2 * W; x += 24) {
-        var swell = Math.sin(x / W * TAU + 0.6) * o.swell * t;
-        var y = y0 + Math.sin(x / W * TAU * c1 + ph) * amp + Math.sin(x / W * TAU * c2 + ph * 1.7) * amp * 0.6 + swell;
-        d += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1);
+  /* Wave fields drawn on a canvas: each line is a sum of travelling sines, so the waves really move along the lines
+     (motion.js calls draw(t) each frame while the block is on screen; without motion they are drawn once, still).
+     One small canvas redrawn is far lighter for a PC without a graphics card than sliding big layers. */
+  function WaveField(canvas, o) {
+    var ctx = canvas.getContext('2d'), w = 0, h = 0, dpr = 1;
+    function size() {
+      var r = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, o.dpr || 1);   // soft lines: 1x pixels are plenty, and half the work at 1.5x
+      w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    }
+    function draw(t) {
+      if (!w) size();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = o.color; ctx.lineWidth = 1;
+      var sy = h / o.h, step = o.step || 10, TAU = Math.PI * 2;
+      for (var k = 0; k < o.n; k++) {
+        var f = k / (o.n - 1), y0 = (o.y0 + Math.pow(f, o.persp) * (o.h - o.y0)) * sy, amp = o.amp * (0.2 + f) * sy;
+        var k1 = TAU / (o.len * (1.25 - f * 0.45)), k2 = k1 * 2.3, sp = o.speed * (0.35 + f), ph = k * 0.55;
+        ctx.globalAlpha = o.op0 + (o.op1 - o.op0) * f;
+        ctx.beginPath();
+        for (var x = -step; x <= w + step; x += step) {
+          var y = y0 + Math.sin(x * k1 - t * sp + ph) * amp + Math.sin(x * k2 + t * sp * 1.6 + ph * 1.7) * amp * 0.45 +
+                  Math.sin(x / w * TAU * 0.5 + 0.6 + t * 0.15) * o.swell * f * sy;
+          if (x === -step) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
       }
-      out += '<path d="' + d + '" stroke-opacity="' + (o.op0 + (o.op1 - o.op0) * t).toFixed(3) + '"/>';
+      ctx.globalAlpha = 1;
     }
-    svg.setAttribute('viewBox', '0 0 ' + 2 * W + ' ' + H);
-    svg.innerHTML = '<g fill="none" stroke="' + o.color + '" stroke-width="1" vector-effect="non-scaling-stroke">' + out + '</g>';
+    return { el: canvas, size: size, draw: draw, fps: o.fps || 60 };
   }
-  /* The sea under the waterline in three bands (far, middle, near), each its own layer: the CSS slides them at
-     different speeds and lifts them gently, so the lines ripple against each other like small waves. */
-  (function () {
-    var far = $('waves'); if (!far) return;
-    var o = { h: 260, n: 36, y0: 4, persp: 1.7, amp: 5.5, freq: 0.013, swell: 18, color: '#E4EEEA', op0: 0.5, op1: 0.16 };
-    var bands = [far];
-    for (var j = 1; j < 3; j++) {
-      var sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      sv.setAttribute('preserveAspectRatio', 'none'); sv.setAttribute('aria-hidden', 'true'); sv.setAttribute('class', 'wl wl' + j);
-      far.parentNode.appendChild(sv); bands.push(sv);
-    }
-    far.setAttribute('class', 'wl wl0');
-    bands.forEach(function (sv, j) {
-      var lo = Math.floor(o.n * j / 3), hi = Math.floor(o.n * (j + 1) / 3);
-      waveField(sv, Object.assign({}, o, { only: [lo, hi], seed: j }));
-    });
-  })();
-  waveField($('tide-lines'), { h: 600, n: 44, y0: 150, persp: 1.25, amp: 7, freq: 0.0045, swell: 120, color: '#7FE7C6', op0: 0.04, op1: 0.2 });
+  var waves = [];
+  if ($('waves')) waves.push(WaveField($('waves'), { h: 260, n: 30, y0: 4, persp: 1.7, amp: 2.8, len: 170, speed: 1.1, swell: 16, color: '#E4EEEA', op0: 0.5, op1: 0.17, step: 12, fps: 30 }));
+  if ($('tide-lines')) waves.push(WaveField($('tide-lines'), { h: 600, n: 40, y0: 150, persp: 1.25, amp: 7, len: 520, speed: 0.45, swell: 110, color: '#7FE7C6', op0: 0.05, op1: 0.22, step: 16, fps: 20 }));
+  waves.forEach(function (wv) { wv.size(); wv.draw(0); });
+  var wrt = 0;
+  window.addEventListener('resize', function () { clearTimeout(wrt); wrt = setTimeout(function () { waves.forEach(function (wv) { wv.size(); wv.draw(wv.t || 0); }); }, 150); });
+  window.MG.waves = waves;
 
   function renderAll() {
     renderFeed(); renderWaterline(); fillTypes(); renderLibrary();

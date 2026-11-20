@@ -107,14 +107,16 @@ Blender exportés en WebP, ce qui garde la page fluide sur un PC de bureau sans 
   `#3FE3A6` (le vert du logo) comme seul accent. La barre de navigation passe en verre sombre quand on passe sous l'eau.
 - **Polices** : Newsreader (titres, instance « display » à opsz 72, deux fichiers) et Geist (texte). 124 Ko au total, voir
   `assets/fonts/LICENSE.txt`.
-- **Mouvement** (`assets/js/motion.js` + fin de `mangrove.css`) : uniquement `transform` et `opacity`, donc calculé par le
-  compositeur sans bloquer la page. Un mouvement par profondeur : les titres remontent à la surface, les mâts du calendrier
-  sortent de l'eau, la marée monte dans la carte des scores et les chiffres défilent, les principes pendent au bout de
-  racines qui poussent, les tuiles de la bibliothèque montent du fond et tracent leur courbe. En continu : un reflet passe
-  sur l'arbre en chrome, les vagues dérivent, des bulles montent dans les sections sombres, une lumière suit la souris sous
-  l'eau. Défilement lié (Chrome/Edge, `animation-timeline`) : le texte du premier écran s'efface, l'arbre et les racines
-  bougent en parallaxe. Les boucles ne tournent que quand leur bloc est à l'écran ; tout s'arrête avec « réduire les
-  animations » du système ou les boutons pause (premier écran et pied de page).
+- **Mouvement** (`assets/js/motion.js` + fin de `mangrove.css`) : un mouvement par profondeur. Les titres remontent à la
+  surface, les mâts du calendrier sortent de l'eau, la marée monte dans la carte des scores et les chiffres défilent, les
+  racines poussent vers le bas (vidéo de 3 s rendue dans Blender, 87 Ko, jouée une fois quand la section arrive), les
+  principes pendent au bout de leur racine, les tuiles montent du fond et tracent leur courbe. En continu : un reflet
+  passe sur l'arbre en chrome, les vagues de la ligne d'eau et de la carte des scores ondulent (canvas redessiné à
+  30 et 20 images/s, rythme fixe), des bulles montent, une lumière suit la souris sous l'eau. Au survol, une carte de
+  l'orbite grandit et l'orbite s'arrête. Défilement lié (Chrome/Edge) : le texte du premier écran s'efface, l'arbre et
+  les racines bougent en parallaxe. Le reste ne bouge que par `transform`/`opacity`. Les boucles ne tournent que quand
+  leur bloc est à l'écran ; si la machine peine (images de plus de 28 ms au chargement), le mode léger retire bulles,
+  reflet et lumière. Tout s'arrête avec « réduire les animations » du système ou les boutons pause.
 - **Logo** : `assets/brand/mangrove-mark.svg` (aussi dans `assets/js/mark.js` pour l'insérer dans la page) ; icônes PNG
   générées depuis `favicon.svg` avec `rsvg-convert`.
 
@@ -126,6 +128,10 @@ python3 tools/render/mangrove_scene.py hero.png  2400 1500 96 hero
 python3 tools/render/mangrove_scene.py roots.png 2400 1500 64 roots
 python3 tools/render/postprocess.py hero  hero.png  docs/assets/img
 python3 tools/render/postprocess.py roots roots.png docs/assets/img
+# les racines qui poussent (72 images, ~10 min sur 2 cœurs), puis la vidéo, l'affiche et l'image fixe
+python3 tools/render/mangrove_scene.py /tmp/grow/f_ 1040 650 24 grow
+GROW_FIRST=72 GROW_LAST=72 python3 tools/render/mangrove_scene.py /tmp/grow/big_ 2000 1250 48 grow
+python3 tools/render/roots_video.py /tmp/grow docs/assets
 ```
 
 Le fond du rendu « hero » est exactement la couleur de la page : `postprocess.py` détoure l'arbre par distance à cette couleur,
