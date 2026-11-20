@@ -1,1 +1,43 @@
-{"events":[{"id":"dcbd932c34bb","date":"2026-11-19","ts":"2026-11-19T21:00:00Z","ticker":"VEEV","type":"price","title":"VEEV -5,2 % sur la séance","detail":"Clôture à 262,92 $.","values":{"change":-0.0515151515151514,"close":262.92}},{"id":"779842407c22","date":"2026-11-06","ticker":"VEEV","type":"filing","ts":"2026-11-06T05:16:43Z","title":"VEEV a publié son communiqué de résultats (8-K 2.02)","detail":"Période close le 2026-11-05.","url":"https://www.sec.gov/Archives/edgar/data/1393052/000139305226000039/veev-20261105.htm","values":{"form":"8-K","accession":"0001393052-26-000039"}},{"id":"60cde0d9de13","date":"2026-10-30","ticker":"VEEV","type":"coverage","title":"VEEV : couverture initiée","detail":"Premiers comptes reconstruits à partir des données SEC.","values":{"price":310.34}}],"updated":"2026-11-20"}
+{
+ "events": [
+  {
+   "id": "dcbd932c34bb",
+   "date": "2026-11-19",
+   "ts": "2026-11-19T21:00:00Z",
+   "ticker": "VEEV",
+   "type": "price",
+   "title": "VEEV -5,2 % sur la séance",
+   "detail": "Clôture à 262,92 $.",
+   "values": {
+    "change": -0.0515151515151514,
+    "close": 262.92
+   }
+  },
+  {
+   "id": "779842407c22",
+   "date": "2026-11-06",
+   "ticker": "VEEV",
+   "type": "filing",
+   "ts": "2026-11-06T05:16:43Z",
+   "title": "VEEV a publié son communiqué de résultats (8-K 2.02)",
+   "detail": "Période close le 2026-11-05.",
+   "url": "https://www.sec.gov/Archives/edgar/data/1393052/000139305226000039/veev-20261105.htm",
+   "values": {
+    "form": "8-K",
+    "accession": "0001393052-26-000039"
+   }
+  },
+  {
+   "id": "60cde0d9de13",
+   "date": "2026-10-30",
+   "ticker": "VEEV",
+   "type": "coverage",
+   "title": "VEEV : couverture initiée",
+   "detail": "Premiers comptes reconstruits à partir des données SEC.",
+   "values": {
+    "price": 310.34
+   }
+  }
+ ],
+ "updated": "2026-11-20"
+}
