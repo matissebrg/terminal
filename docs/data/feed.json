@@ -1,6 +1,30 @@
 {
  "events": [
   {
+   "id": "00392c30c395",
+   "date": "2026-11-20",
+   "ts": "2026-11-20T14:05:08Z",
+   "ticker": "MRK",
+   "type": "coverage",
+   "title": "MRK : couverture initiée",
+   "detail": "Premiers comptes reconstruits à partir des données SEC.",
+   "values": {
+    "price": 132.81
+   }
+  },
+  {
+   "id": "7a43497102c7",
+   "date": "2026-11-20",
+   "ts": "2026-11-20T14:05:04Z",
+   "ticker": "LLY",
+   "type": "coverage",
+   "title": "LLY : couverture initiée",
+   "detail": "Premiers comptes reconstruits à partir des données SEC.",
+   "values": {
+    "price": 1351.12
+   }
+  },
+  {
    "id": "dcbd932c34bb",
    "date": "2026-11-19",
    "ts": "2026-11-19T21:00:00Z",
