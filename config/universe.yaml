@@ -24,12 +24,28 @@ tickers:
     industry: Logiciels cloud pour l'industrie pharmaceutique
     peers: [CRM, ORCL, CERT]
     benchmarks: [SPY, XLV]
+  LLY:
+    name: ELI LILLY & Co
+    sector: Pharmaceutical preparations
+    industry: Pharmaceutical preparations
+    peers: [MRK, SNY, NVO, AZN]
+    benchmarks: [SPY, XLV]
+  MRK:
+    name: Merck & Co., Inc.
+    sector: Pharmaceutical preparations
+    industry: Pharmaceutical preparations
+    peers: [LLY, SNY, NVO, AZN]
+    benchmarks: [SPY, XLV]
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
   CRM: Salesforce, Inc.
   ORCL: Oracle Corp
   CERT: Certara, Inc.
+  MRK: Merck & Co., Inc.
+  SNY: Sanofi
+  NVO: Novo Nordisk A S
+  AZN: Astrazeneca Plc
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
@@ -38,3 +54,14 @@ families:
   CRM: tech
   ORCL: tech
   CERT: tech
+  LLY: sante
+  MRK: sante
+  SNY: sante
+  NVO: sante
+  AZN: sante
+ciks:
+  LLY: 59478
+  MRK: 310158
+  SNY: 1121404
+  NVO: 353278
+  AZN: 901832

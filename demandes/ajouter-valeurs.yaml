@@ -1,5 +1,0 @@
-# Demande lue par .github/workflows/add-ticker.yml, puis supprimée par le workflow.
-ticker: LLY,MRK
-peers: LLY,MRK,SNY,NVO,AZN
-etf: XLV
-etf_name: Santé (ETF XLV)
