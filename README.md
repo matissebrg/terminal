@@ -109,8 +109,9 @@ Blender exportés en WebP, ce qui garde la page fluide sur un PC de bureau sans 
   `assets/fonts/LICENSE.txt`.
 - **Mouvement** (`assets/js/motion.js` + fin de `mangrove.css`) : un mouvement par profondeur. Les titres remontent à la
   surface, les mâts du calendrier sortent de l'eau, la marée monte dans la carte des scores et les chiffres défilent, les
-  racines poussent vers le bas (vidéo de 5 s rendue dans Blender, 1600 px, 0,9 Mo, 230 Ko sur téléphone, chargée et jouée
-  une fois quand la section arrive) et les principes n'apparaissent qu'une fois la pousse finie, les tuiles montent du fond et tracent leur courbe. En continu : un reflet
+  racines poussent vers le bas (rendu Blender de 3,8 s en 1920 px, puis une boucle de 4 s où elles ondulent dans le
+  courant, qui commence sur la dernière image de la pousse ; 2,5 Mo en tout, 0,4 Mo sur téléphone, chargés juste avant
+  la section) et les principes n'apparaissent qu'une fois la pousse finie, les tuiles montent du fond et tracent leur courbe. En continu : un reflet
   passe sur l'arbre en chrome, les vagues de la ligne d'eau et de la carte des scores ondulent (canvas redessiné à
   30 et 24 images/s, rythme fixe, à la densité de pixels de l'écran), des bulles montent, une lumière suit la souris sous l'eau. Au survol, une carte de
   l'orbite grandit et l'orbite s'arrête. Défilement lié (Chrome/Edge) : le texte du premier écran s'efface, l'arbre et
@@ -128,9 +129,10 @@ python3 tools/render/mangrove_scene.py hero.png  2400 1500 96 hero
 python3 tools/render/mangrove_scene.py roots.png 2400 1500 64 roots
 python3 tools/render/postprocess.py hero  hero.png  docs/assets/img
 python3 tools/render/postprocess.py roots roots.png docs/assets/img
-# les racines qui poussent (120 images, ~30 min sur 2 cœurs), puis la vidéo, l'affiche et l'image fixe
-python3 tools/render/mangrove_scene.py /tmp/grow/f_ 1600 1000 24 grow
-GROW_FIRST=120 GROW_LAST=120 python3 tools/render/mangrove_scene.py /tmp/grow/big_ 2400 1500 48 grow
+# les racines qui poussent (92 images) puis ondulent (48 images) : ~1 h sur 2 cœurs ; puis vidéos, affiche, image fixe
+GROW_FRAMES=92 python3 tools/render/mangrove_scene.py /tmp/grow/f_ 1920 1200 24 grow
+python3 tools/render/mangrove_scene.py /tmp/grow/s_ 1920 1200 24 sway
+GROW_FRAMES=92 GROW_FIRST=92 GROW_LAST=92 python3 tools/render/mangrove_scene.py /tmp/grow/big_ 2400 1500 48 grow
 python3 tools/render/roots_video.py /tmp/grow docs/assets
 ```
 

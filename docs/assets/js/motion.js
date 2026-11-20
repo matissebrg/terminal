@@ -61,7 +61,7 @@
     rio.unobserve(el);
     qa(r.kids, el).forEach(function (k, i) { k.style.setProperty('--d', Math.min(i, 14) * r.step + 'ms'); });
     el.classList.add('in');
-    if (el.classList.contains('tide-card')) countUp(el);
+    if (el.classList.contains('tide-card')) { countUp(el); (window.MG && MG.waves || []).forEach(function (w) { if (w.el.parentNode === el && w.rise) w.rise(); }); }
     setTimeout(function () { el.classList.add('settled'); }, r.total + Math.min(qa(r.kids, el).length, 14) * r.step);
   }
   var held = new Set();     // containers that wait for something else before they reveal (the principles wait for the roots)
@@ -165,37 +165,58 @@
     new MutationObserver(wkick).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
 
-  /* ---------- the roots grow down: a 3 s render (Blender) played once, the first time the section comes into view.
-     The poster is its first frame (only the surface), so nothing jumps; the video stops on its last frame, which is
-     the still picture shown without motion. Loaded only when needed (preload none), sized to the screen. */
-  var rootsArt = document.querySelector('.roots-art'), grow = rootsArt && rootsArt.querySelector('video.roots-grow');
-  if (grow && grow.canPlayType('video/mp4')) {
+  /* ---------- the roots grow down, then sway forever ----------
+     Two renders (Blender): the growth (3.8 s, played once) and a 4 s loop of the grown roots swept by a current,
+     whose first frame is the growth's last. Both are fetched well before the section is reached, so playback starts
+     on a decoded video (no stall, no flash); the growth starts from its poster (its own first frame); when it ends
+     the loop underneath starts and the growth is hidden on the very same picture. Phones get 960 px versions. */
+  var rootsArt = document.querySelector('.roots-art');
+  var grow = rootsArt && rootsArt.querySelector('video.roots-grow'), sway = rootsArt && rootsArt.querySelector('video.roots-sway');
+  if (grow && sway && grow.canPlayType('video/mp4')) {
     rootsArt.classList.add('has-video');
-    /* the principles hang from the roots: they only come once the roots have finished growing */
     var vals = $('values');
-    if (vals) held.add(vals);
+    if (vals) held.add(vals);                                         // the principles hang from grown roots
     var release = function () {
       if (!vals || !held.has(vals)) return;
       held.delete(vals);
       var r = vals.getBoundingClientRect();
-      if (r.top < innerHeight && r.bottom > 0) reveal(vals);        // already on screen: reveal now; otherwise when scrolled to
+      if (r.top < innerHeight && r.bottom > 0) reveal(vals);
     };
     var fallback = function () { rootsArt.classList.remove('has-video'); release(); };   // the still picture shows
-    grow.addEventListener('timeupdate', function () { if (grow.duration && grow.currentTime > grow.duration - 0.35) release(); });
-    grow.addEventListener('ended', release);
-    var gio = new IntersectionObserver(function (entries) {
-      if (!entries[0].isIntersecting) return;
-      gio.disconnect();
-      grow.src = 'assets/video/roots-grow-' + (innerWidth <= 720 ? 960 : 1600) + '.mp4';
+    var size = innerWidth <= 720 ? 960 : 1920;
+    var fetched = false;
+    function fetchVideos() {
+      if (fetched) return; fetched = true;
+      grow.preload = 'auto'; grow.src = 'assets/video/roots-grow-' + size + '.mp4'; grow.load();
+      sway.preload = 'auto'; sway.src = 'assets/video/roots-sway-' + size + '.mp4'; sway.load();
       grow.addEventListener('error', fallback);
-      var p = grow.play();
-      if (p && p.catch) p.catch(fallback);
-    }, { threshold: 0.35 });
-    gio.observe(rootsArt);
-    new MutationObserver(function () {                   // the pause buttons hold the growth too
-      if (!grow.src || grow.ended) return;
-      if (document.body.classList.contains('still')) grow.pause(); else if (grow.paused) grow.play().catch(function () {});
-    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+    new IntersectionObserver(function (en, o) { if (en[0].isIntersecting) { o.disconnect(); fetchVideos(); } },
+      { rootMargin: '0px 0px 1400px 0px' }).observe(rootsArt);
+    var started = false;
+    function start() {
+      if (started) return; started = true;
+      fetchVideos();
+      var go = function () { var p = grow.play(); if (p && p.catch) p.catch(fallback); };
+      if (grow.readyState >= 3) go(); else grow.addEventListener('canplay', go, { once: true });
+    }
+    new IntersectionObserver(function (en, o) { if (en[0].isIntersecting) { o.disconnect(); start(); } }, { threshold: 0.3 }).observe(rootsArt);
+    grow.addEventListener('timeupdate', function () { if (grow.duration && grow.currentTime > grow.duration - 0.3) release(); });
+    grow.addEventListener('ended', function () {
+      release();
+      var p = sway.play();
+      if (p && p.then) p.then(function () { grow.classList.add('done'); }).catch(function () {});   // if the loop cannot play, the growth's last frame stays
+    });
+    /* the pause buttons hold the roots too; the loop also rests while the section is off screen */
+    var swayOn = true;
+    function syncPlay() {
+      var still = document.body.classList.contains('still') || document.hidden;
+      if (grow.src && !grow.ended && started) { if (still) grow.pause(); else if (grow.paused) grow.play().catch(function () {}); }
+      if (grow.classList.contains('done')) { if (still || !swayOn) sway.pause(); else if (sway.paused) sway.play().catch(function () {}); }
+    }
+    new MutationObserver(syncPlay).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('visibilitychange', syncPlay);
+    new IntersectionObserver(function (en) { swayOn = en[0].isIntersecting; syncPlay(); }).observe(rootsArt);
   }
 
   /* ---------- light sweeping over the chrome: the tree's own alpha masks the band ---------- */
