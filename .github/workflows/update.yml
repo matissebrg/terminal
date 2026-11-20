@@ -72,7 +72,7 @@ jobs:
         continue-on-error: true   # un souci de base ne doit pas bloquer la mise à jour des cours
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          ARCHER_ADMIN_EMAIL: ${{ secrets.ARCHER_ADMIN_EMAIL }}
+          MANGROVE_ADMIN_EMAIL: ${{ secrets.MANGROVE_ADMIN_EMAIL || secrets.ARCHER_ADMIN_EMAIL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           # journal publié avec le site : dbadmin n'écrit jamais les secrets, seulement leur forme

@@ -1,5 +1,6 @@
-Archivo (c) The Archivo Project Authors, https://github.com/Omnibus-Type/Archivo
-Martian Mono (c) The Martian Mono Project Authors, https://github.com/evilmartians/mono
+Hanken Grotesk (c) The Hanken Grotesk Project Authors, https://github.com/marcologous/hanken-grotesk
 Syne (c) The Syne Project Authors, https://gitlab.com/bonjour-monde/fonderie/syne-typeface
+Martian Mono (c) The Martian Mono Project Authors, https://github.com/evilmartians/mono
 All three under the SIL Open Font License 1.1: https://openfontlicense.org
-Files from the Fontsource packages @fontsource-variable/archivo and @fontsource-variable/martian-mono and @fontsource/syne.
+Files from the Fontsource packages @fontsource-variable/hanken-grotesk, @fontsource-variable/syne and
+@fontsource-variable/martian-mono.

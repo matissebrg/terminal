@@ -76,8 +76,8 @@ near(m2.upside, m2.value / 170 - 1, 1e-12);
 // a model saved when the company had no capex target still loads once it has one (unknown ids are skipped)
 assert(MD.mine("NVDA", Object.assign({}, I, { capex_pct_revenue_target: 0.03 }), price).value > 0);
 // corrupted storage is ignored
-store["archer-dcf-XOM"] = "{not json"; assert.strictEqual(MD.load("XOM"), null);
-store["archer-dcf-XOM"] = JSON.stringify({ v: { mt: "0.9", g0: null } });
+store["mangrove-dcf-XOM"] = "{not json"; assert.strictEqual(MD.load("XOM"), null);
+store["mangrove-dcf-XOM"] = JSON.stringify({ v: { mt: "0.9", g0: null } });
 near(MD.mine("XOM", I, price).value, price, 1e-6);                         // non-numbers skipped -> starting point
 MD.clear("NVDA");
 assert.strictEqual(MD.load("NVDA"), null); assert.strictEqual(MD.mine("NVDA", I, price), null);

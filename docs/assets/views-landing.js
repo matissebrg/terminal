@@ -68,7 +68,7 @@
       src: "Sources: SEC EDGAR filings, ClinicalTrials.gov, closing prices. Charts: TradingView Lightweight Charts, Apache ECharts.",
     },
   };
-  const getLang = () => { const s = store.get("archer-lang"); return s === "fr" || s === "en" ? s : /^fr/i.test(navigator.language || "fr") ? "fr" : "en"; };
+  const getLang = () => { const s = store.get("mangrove-lang"); return s === "fr" || s === "en" ? s : /^fr/i.test(navigator.language || "fr") ? "fr" : "en"; };
   const nf = (lang) => (v, d = 2) => (T.isNum(v) ? new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-US", { minimumFractionDigits: d, maximumFractionDigits: d }).format(v) : "-");
   const money = (lang) => { const n = nf(lang); return (v, d = 2) => (T.isNum(v) ? (lang === "fr" ? n(v, d) + " $" : "$" + n(v, d)) : "-"); };
   const pct = (lang) => { const n = nf(lang); return (v, d = 0) => (T.isNum(v) ? (v > 0 ? "+" : "") + n(v * 100, d) + (lang === "fr" ? " %" : "%") : "-"); };
@@ -138,7 +138,7 @@
   async function render(view) {
     const lang = getLang(), L = TXT[lang], M = money(lang), P = pct(lang);
     document.body.classList.add("landing");
-    store.set("archer-seen", "1");
+    store.set("mangrove-seen", "1");
     const [u, bio, pred, feed] = await Promise.all([T.get("universe.json"), T.get("biotech.json").catch(() => null), T.get("predictions.json").catch(() => null),
       T.get("feed.json").catch(() => null)]);
     const latest = T.sortEvents ? T.sortEvents((feed || {}).events || []).slice(0, 5) : [];
@@ -240,7 +240,7 @@
       inp.addEventListener("input", () => draw(false));
       draw(true);
     }
-    T.$("#lpLang").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b || b.dataset.k === lang) return; store.set("archer-lang", b.dataset.k); T.render(); });
+    T.$("#lpLang").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b || b.dataset.k === lang) return; store.set("mangrove-lang", b.dataset.k); T.render(); });
     const ask = view.querySelector("[data-ask]");
     if (ask) ask.addEventListener("click", (e) => { e.preventDefault(); T.$("#lpBeta").scrollIntoView({ behavior: calm() ? "auto" : "smooth", block: "center" }); const f = T.$("#lpForm [name=email]"); if (f) f.focus({ preventScroll: true }); });
     const form = T.$("#lpForm");
@@ -263,9 +263,9 @@
   // First visit without an account: the site root opens the front door once.
   T.landing = {
     shouldShow: async () => {
-      if (store.get("archer-seen")) return false;
+      if (store.get("mangrove-seen")) return false;
       if (T.members && T.members.ready) { try { await T.members.ready; } catch (e) { /* ignore */ } }
-      if (T.user) { store.set("archer-seen", "1"); return false; }
+      if (T.user) { store.set("mangrove-seen", "1"); return false; }
       return true;
     },
   };

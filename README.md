@@ -3,29 +3,33 @@
 # Mangrove Terminal
 
 Terminal personnel de recherche **santé (pharma et biotech)** et d'entraînement à la prévision, consultable partout
-(GitHub Pages) et mis à jour automatiquement (GitHub Actions). Anciennement *Archer Terminal* : le moteur (pipeline,
-base Supabase, prédictions, portefeuilles fictifs) est le même, l'interface a été refondue et recentrée sur la santé.
+(GitHub Pages) et mis à jour automatiquement (GitHub Actions). Anciennement *Archer Terminal* : mêmes fonctionnalités (pipeline, base Supabase, prédictions,
+portefeuilles fictifs, options, rNPV), nouvelle identité et périmètre recentré sur la santé.
 
 **Site :** `https://matissebrg.github.io/terminal/`
 
-### Périmètre santé (`docs/assets/config.js`, bloc `window.MANGROVE`)
+### Périmètre
 
-- **Affiché** : les valeurs de la famille `sante` de `config/universe.yaml`, plus Veeva (logiciels pour les laboratoires).
-- **Masqué, pas supprimé** : NVDA, WMT, GOOG, XOM, AMZN restent calculées par le pipeline pour que les prédictions déjà
-  ouvertes dessus continuent d'être notées. Pour les retirer complètement, les enlever de `config/universe.yaml`
-  une fois ces prédictions résolues.
-- **Bientôt** : Sanofi (SNY) et Regeneron (REGN) ont une fiche « bientôt » ; les **comparables boursiers** (onglet
-  Secteur, tableaux de multiples) sont en refonte pour la santé. Pour réactiver les comparables : `comparablesSoon: false`.
-  Le catalyseur FDA de REGN reste dans le calendrier Biotech (données publiques, prédictions de catalyseurs possibles).
+- **Couvertes** : les biotechs de `config/universe.yaml` et Veeva (logiciels pour les laboratoires). Les anciennes
+  valeurs hors santé (NVDA, WMT, GOOG, XOM, AMZN) et leurs données ont été retirées du terminal.
+- **Bientôt** (`docs/assets/config.js`, `window.MANGROVE`) : Sanofi (SNY) et Regeneron (REGN) ont une fiche « bientôt » ;
+  les **comparables boursiers** (onglet Secteur, tableaux de multiples) sont en refonte pour la santé
+  (`comparablesSoon: false` pour les réafficher).
 - **Page d'accueil** (`#/bienvenue`) : un manglier 3D en chrome liquide (`docs/assets/mangrove-scene.js`, WebGL) ; la caméra
   descend avec le défilement : la canopée (valeurs suivies, feed), la ligne d'eau (catalyseurs, prédictions), les racines
-  (comptes SEC, ton modèle). Coupé si l'effet est désactivé ou « réduire les animations ».
-- Les clés de stockage du navigateur gardent le préfixe `archer-` (modèles DCF enregistrés, langue, effets) pour que
-  personne ne perde ses réglages. Les noms de succès stockés en base (ex. « Archer ») se changent dans Supabase.
+  (comptes SEC, ton modèle). Coupé si les effets sont désactivés ou si « réduire les animations » est actif.
+- **Design « Estuary »** (`docs/assets/app.css`) : Syne pour les titres, Hanken Grotesk pour l'interface, Martian Mono pour
+  les chiffres ; panneaux en verre posés sur la « ligne d'eau » ; lumière d'eau animée en fond (`fx.js`).
+
+**Changement de nom (anciennement Archer Terminal)** : les réglages enregistrés dans le navigateur (`archer-*`) sont
+déplacés une fois vers `mangrove-*` au chargement ; la migration `0009_mangrove.sql` renomme les badges visibles et
+préfixe les nouveaux codes d'invitation `MANGROVE-` ; la table d'historique des migrations est renommée
+`mangrove_migrations` par `pipeline.dbadmin` sans rejouer les migrations. Secret GitHub : `MANGROVE_ADMIN_EMAIL`
+(l'ancien `ARCHER_ADMIN_EMAIL` reste lu en secours). L'identifiant interne du badge d'inscription reste `archer`.
 
 | Page | Contenu |
 |---|---|
-| Tableau de bord | valeurs suivies (cours, performance, multiples), indices santé, taux sans risque, prochains catalyseurs, feed |
+| Tableau de bord | valeurs couvertes (cours, performance, multiples), indices santé, taux sans risque, prochains catalyseurs, feed |
 | Synthèse | cours, ta valeur si tu as enregistré un modèle (ou la rNPV pour une biotech), repères de prix, chiffres clés TTM, thèse |
 | États financiers | compte de résultat, bilan, flux - annuel / trimestriel, variations N-1, liens EDGAR, export CSV |
 | Ratios | 25 ratios (rentabilité, rendement du capital, croissance, coûts, bilan, efficacité, allocation) |
@@ -57,7 +61,7 @@ pipeline/  normalize → ratios → valuation → feed  ──►  docs/data/*.j
                                                           └─ history.json = la « base de données » (un instantané par jour)
 ```
 
-- **Le site ne publie aucune valeur DCF** (depuis le 16 novembre 2026, voir la dernière section). L'onglet *Valorisation* est un calculateur : il part de la croissance qui justifie le cours actuel et chaque visiteur règle ses hypothèses. Son modèle s'enregistre dans son navigateur (`localStorage`, clé `archer-dcf-<TICKER>`) et se recalcule sur les derniers comptes.
+- **Le site ne publie aucune valeur DCF** (depuis le 16 novembre 2026, voir la dernière section). L'onglet *Valorisation* est un calculateur : il part de la croissance qui justifie le cours actuel et chaque visiteur règle ses hypothèses. Son modèle s'enregistre dans son navigateur (`localStorage`, clé `mangrove-dcf-<TICKER>`) et se recalcule sur les derniers comptes.
 - `config/assumptions/<TICKER>.yaml` garde la thèse, les pairs, les valeurs de départ du calculateur (bloc `dcf:`) et, pour les biotechs, le modèle rNPV et les catalyseurs. Modifie-le sur GitHub (icône crayon → *Commit*) : le workflow se relance.
 - Pour les biotechs, chaque variation de la rNPV est **décomposée** dans le feed : effet des nouvelles données financières, effet de tes hypothèses, effet des paramètres de marché.
 
@@ -96,7 +100,7 @@ Hébergé sur [Supabase](https://supabase.com) (Postgres + authentification, off
   calibration, jamais le volume, et exigent un minimum de résultats (ex. Chirurgien : CA à 0,25 % ; Fléau de Wall Street :
   bat le consensus 3 publications de suite ; Maître de la calibration : 20 intervalles, 75 à 85 % de réussite ; Alpha :
   portefeuille qui bat le S&P 500 sur 90 jours). Rareté affichée (% des membres qui l'ont).
-- **Succès ajoutés** (`0004_achievements.sql`) : Archer (inscription), Visionnaire (10 premiers inscrits), Maître du Sharpe
+- **Succès ajoutés** (`0004_achievements.sql`) : Racine (inscription), Visionnaire (10 premiers inscrits), Maître du Sharpe
   (Sharpe annualisé >= 2 sur 90 jours, portefeuille investi à 50 % ou plus ; sur 30 jours l'erreur type du Sharpe
   annualisé est d'environ 3,5, donc trop dépendant de la chance), secteurs (« Adepte de la tech »… selon `families` dans
   `config/universe.yaml`, rempli depuis le code SIC à l'ajout d'une valeur) et Touche-à-tout (3 secteurs), ancienneté
@@ -217,7 +221,7 @@ retraitement, changement d'étiquette) et les tests vérifient chaque reconstruc
 - **Options** : données Yahoo différées ; la qualité dépend de la liquidité des strikes.
 - Couverture **sociétés déposant à la SEC** : américaines, et étrangères en 20-F (IFRS, converties en dollars,
   dernier exercice au lieu du TTM). Les sociétés européennes non cotées aux États-Unis (rapports ESEF) restent à faire.
-- Les hypothèses de départ de NVDA sont un **point de départ** posé le 27/10/2026, pas une prévision.
+- Les hypothèses de départ de chaque valeur sont un **point de départ**, pas une prévision.
 
 ## Pistes pour la suite
 
@@ -231,19 +235,21 @@ Sources : SEC EDGAR, FRED (Federal Reserve Bank of St. Louis), Yahoo Finance, St
 [TradingView Lightweight Charts™](https://www.tradingview.com/) (Apache 2.0) et Apache ECharts (Apache 2.0).
 Outil personnel d'étude - pas un conseil en investissement.
 
-## Interface (refonte de novembre 2026)
+## Interface : design « Estuary » (Mangrove, novembre 2026)
 
-- **Principe** : l'interface est monochrome (blanc chrome sur fond noir) ; la couleur est réservée aux données (vert / rouge
-  pour le sens du marché, ambre pour les alertes, six teintes validées pour les séries). Les panneaux sont des cadres
-  d'instrument : filet fin et crochets d'angle qui s'ouvrent sous le pointeur ou le focus clavier.
-- **Typographies** auto-hébergées dans `docs/assets/fonts/` (licence SIL OFL) : Archivo (texte, et sa largeur étendue pour
-  les titres) et Martian Mono (chiffres). Plus aucun appel à Google Fonts.
-- **Effets** (`docs/assets/fx.js`, tout est facultatif, le site fonctionne sans) : fond animé en WebGL2 (lignes de niveau
-  qui se déforment sous le pointeur), changements de page par l'API View Transitions, repère glissant sous l'onglet actif,
-  séquence d'ouverture une fois par session, horloge de New York.
+- **Principe** : de l'eau de nuit. Fond sarcelle presque noir, panneaux en verre qui laissent passer la lumière de l'eau ;
+  la couleur reste réservée aux données (vert / rouge pour le sens du marché, ambre pour les alertes, six teintes validées
+  pour les séries). Une seule couleur de marque, le sarcelle bioluminescent (`--bio`), pour ce qui est actif ou sélectionné.
+- **Ligne d'eau** : chaque titre de panneau est posé sur un filet dont le premier segment s'allume, la ligne sur laquelle
+  le logo est dessiné. Le menu est rangé par profondeur : la canopée (tableau de bord, feed), la ligne d'eau (biotech,
+  prédictions, options), le banc (espace membres), les racines (méthodologie).
+- **Typographies** auto-hébergées dans `docs/assets/fonts/` (licence SIL OFL) : Syne (titres), Hanken Grotesk (interface)
+  et Martian Mono (chiffres). Aucun appel à Google Fonts.
+- **Effets** (`docs/assets/fx.js`, tout est facultatif, le site fonctionne sans) : fond animé en WebGL2 (lumière à travers
+  une surface d'eau, que le pointeur fait onduler), changements de page par l'API View Transitions, pastille glissante sous
+  l'onglet actif, séquence d'ouverture une fois par session (le logo se dessine), horloge de New York.
 - **Accessibilité** : les effets se coupent avec le réglage système « réduire les animations » ou le bouton de la barre du
-  haut (mémorisé) ; contrastes du texte au-dessus de 4,5:1 ; focus clavier visible partout ; sur écran tactile le fond est
-  une image fixe.
+  haut (mémorisé) ; contrastes du texte au-dessus de 4,5:1 ; focus clavier visible partout.
 - Les couleurs des graphiques viennent des variables CSS (`T.C` dans `core.js`) : changer une teinte se fait dans `:root`
   de `app.css`.
 
@@ -251,7 +257,7 @@ Outil personnel d'étude - pas un conseil en investissement.
 
 - **Page de présentation** (`#/bienvenue`, `docs/assets/views-landing.js`) en français et en anglais : tout ce qu'elle montre
   vient des mêmes fichiers JSON que le terminal. Un visiteur sans compte qui ouvre la racine du site y arrive une fois
-  (clé `archer-seen` dans `localStorage`) ; ensuite la racine est le tableau de bord.
+  (clé `mangrove-seen` dans `localStorage`) ; ensuite la racine est le tableau de bord.
 - **Demandes d'invitation** (`supabase/migrations/0008_invite_requests.sql`) : formulaire sans compte sur la page de
   présentation, plafonné à 50 demandes par jour ; la table n'est lisible que par les administrateurs, via la page
   Membres (créer un code à usage unique, supprimer l'adresse). L'envoi du code reste manuel.

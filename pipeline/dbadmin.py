@@ -1,7 +1,7 @@
 """Database administration for the members' space (Supabase), run by GitHub Actions.
 
     python -m pipeline.dbadmin migrate        # apply supabase/migrations/*.sql not yet applied
-    python -m pipeline.dbadmin founder        # record ARCHER_ADMIN_EMAIL as the founder's e-mail
+    python -m pipeline.dbadmin founder        # record MANGROVE_ADMIN_EMAIL as the founder's e-mail
     python -m pipeline.dbadmin check          # shape of the secrets + connection test (never prints them)
 
 Connection: SUPABASE_DB_URL (use the *Session pooler* URI: GitHub runners have no IPv6).
@@ -111,7 +111,7 @@ def check() -> int:
     from .community import describe_key
     print("SUPABASE_DB_URL      :", describe_url())
     print("SUPABASE_SERVICE_KEY :", describe_key(os.environ.get("SUPABASE_SERVICE_KEY", "")) if os.environ.get("SUPABASE_SERVICE_KEY") else "absent")
-    print("ARCHER_ADMIN_EMAIL   :", "présent" if os.environ.get("ARCHER_ADMIN_EMAIL", "").strip() else "absent")
+    print("MANGROVE_ADMIN_EMAIL   :", "présent" if (os.environ.get("MANGROVE_ADMIN_EMAIL") or os.environ.get("ARCHER_ADMIN_EMAIL", "")).strip() else "absent")
     if _url():
         with _connect() as c:
             v = c.execute("select current_user, version()").fetchone()
@@ -121,11 +121,16 @@ def check() -> int:
 
 def migrate() -> int:
     with _connect() as c:
-        c.execute("""create table if not exists public.archer_migrations (
+        # the table was called archer_migrations before the Mangrove rename: keep its history, change only the name
+        c.execute("""do $$ begin
+            if to_regclass('public.archer_migrations') is not null and to_regclass('public.mangrove_migrations') is null then
+              alter table public.archer_migrations rename to mangrove_migrations;
+            end if; end $$""")
+        c.execute("""create table if not exists public.mangrove_migrations (
                        filename text primary key, sha256 text not null, applied_at timestamptz not null default now())""")
-        c.execute("alter table public.archer_migrations enable row level security")
-        c.execute("revoke all on public.archer_migrations from anon, authenticated")
-        done = {r[0]: r[1] for r in c.execute("select filename, sha256 from public.archer_migrations")}
+        c.execute("alter table public.mangrove_migrations enable row level security")
+        c.execute("revoke all on public.mangrove_migrations from anon, authenticated")
+        done = {r[0]: r[1] for r in c.execute("select filename, sha256 from public.mangrove_migrations")}
         applied = 0
         for f in sorted(MIGRATIONS.glob("*.sql")):
             sha = hashlib.sha256(f.read_bytes()).hexdigest()
@@ -138,7 +143,7 @@ def migrate() -> int:
             try:
                 with c.transaction():
                     c.execute(f.read_text())
-                    c.execute("insert into public.archer_migrations (filename, sha256) values (%s, %s)", (f.name, sha))
+                    c.execute("insert into public.mangrove_migrations (filename, sha256) values (%s, %s)", (f.name, sha))
             except Exception as exc:  # noqa: BLE001
                 diag = getattr(exc, "diag", None)
                 where = f" (contexte : {safe(diag.context)})" if diag is not None and diag.context else ""
@@ -150,9 +155,9 @@ def migrate() -> int:
 
 
 def founder() -> int:
-    email = os.environ.get("ARCHER_ADMIN_EMAIL", "").strip()
+    email = (os.environ.get("MANGROVE_ADMIN_EMAIL") or os.environ.get("ARCHER_ADMIN_EMAIL", "")).strip()
     if not email:
-        print("ARCHER_ADMIN_EMAIL absent : le fondateur devra recevoir un code d'invitation.")
+        print("MANGROVE_ADMIN_EMAIL absent : le fondateur devra recevoir un code d'invitation.")
         return 0
     with _connect() as c:
         c.execute("""insert into public.app_config (key, value) values ('admin_email', %s)

@@ -1,11 +1,11 @@
 /* Visual effects layer. Everything here is decoration on top of a page that works without it:
-   - animated background field (WebGL2 fragment shader: contour lines of a slow noise terrain that the pointer lifts)
+   - animated background (WebGL2 fragment shader: caustic light through moving water, stirred by the pointer)
    - light following the pointer along panel frames
    - route changes through the View Transitions API
    - sliding marker under the active tab
    - one boot sequence per browser session, a short decode of the headline figures
    - market clock and the effects switch in the top bar
-   Effects are off when the visitor asks for reduced motion or has switched them off (localStorage "archer-fx" = "off");
+   Effects are off when the visitor asks for reduced motion or has switched them off (localStorage "mangrove-fx" = "off");
    <html class="fx-off"> then also stills the CSS side. */
 (function () {
   "use strict";
@@ -13,7 +13,7 @@
   const mq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
   const store = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } } };
   const FX = (window.FX = {
-    pref: () => store.get("archer-fx") !== "off",
+    pref: () => store.get("mangrove-fx") !== "off",
     on: () => FX.pref() && !mq.matches,
   });
   const sync = () => root.classList.toggle("fx-off", !FX.on());
@@ -43,15 +43,17 @@ float snoise(vec2 v) {
 }
 void main() {
   vec2 uv = gl_FragCoord.xy / uRes.y, pp = uP / uRes.y;
-  float d = distance(uv, pp);
-  float h = snoise(uv * 1.15 + vec2(uT * 0.016, 0.0)) * 0.62 + snoise(uv * 2.4 - vec2(0.0, uT * 0.012)) * 0.26 + snoise(uv * 5.0 + uT * 0.008) * 0.07;
-  h += uPa * 0.42 * exp(-d * d * 11.0);                       // the pointer lifts the terrain: contours bend around it
-  float k = h * 7.0, f = abs(fract(k) - 0.5), w = fwidth(k);
-  float line = 1.0 - smoothstep(0.0, w * 1.15, f);             // one contour per level
-  float major = mod(floor(k), 4.0) < 0.5 ? 1.0 : 0.38;         // every fourth level is brighter
-  float vig = smoothstep(1.25, 0.25, distance(gl_FragCoord.xy / uRes, vec2(0.62, 0.55)));
-  float a = line * major * (0.07 + 0.13 * vig) + uPa * 0.04 * exp(-d * d * 22.0);
-  vec3 col = mix(vec3(0.24, 0.80, 0.68), vec3(0.80, 0.97, 0.91), line * major);
+  float t = uT * 0.06, d = distance(uv, pp);
+  // light through a moving water surface: two ridged-noise layers, domain-warped, make the caustic web
+  vec2 w = uv * 1.6 + vec2(snoise(uv * 0.8 + t * 0.4), snoise(uv * 0.8 - t * 0.35)) * 0.35;
+  float n1 = 1.0 - abs(snoise(w * 2.2 + vec2(t, -t * 0.7)));
+  float n2 = 1.0 - abs(snoise(w * 3.1 - vec2(t * 0.8, t * 0.5) + 4.0));
+  float c = pow(n1, 9.0) * 0.7 + pow(n2, 11.0) * 0.5;
+  c += uPa * 0.35 * exp(-d * d * 18.0) * (0.5 + 0.5 * sin(d * 60.0 - uT * 3.0));   // the pointer stirs the water
+  float depth = gl_FragCoord.y / uRes.y;                                            // brighter towards the surface
+  float vig = smoothstep(1.3, 0.2, distance(gl_FragCoord.xy / uRes, vec2(0.6, 0.85)));
+  float a = c * (0.05 + 0.16 * depth) * (0.4 + 0.6 * vig) + 0.03 * depth * vig;
+  vec3 col = mix(vec3(0.16, 0.62, 0.55), vec3(0.75, 1.0, 0.93), clamp(c, 0.0, 1.0));
   o = vec4(col * a, a);
 }`;
   const bg = { gl: null, raf: 0, t0: performance.now(), px: -9999, py: -9999, pa: 0, pTarget: 0, last: 0 };
@@ -255,7 +257,7 @@ void main() {
     const label = () => { const on = FX.pref(); b.setAttribute("aria-pressed", String(on));
       const t = on ? (mq.matches ? "Effets visuels activés, mais suspendus : ton système demande de réduire les animations" : "Effets visuels activés. Cliquer pour les couper") : "Effets visuels coupés. Cliquer pour les activer";
       b.title = t; b.setAttribute("aria-label", t); };
-    b.addEventListener("click", () => { store.set("archer-fx", FX.pref() ? "off" : "on"); apply(); label(); });
+    b.addEventListener("click", () => { store.set("mangrove-fx", FX.pref() ? "off" : "on"); apply(); label(); });
     tr.insertBefore(b, tr.firstChild); tr.insertBefore(mk, tr.firstChild);
     label(); clock(); setInterval(clock, 20000);
   }

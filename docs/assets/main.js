@@ -61,7 +61,7 @@
     window.addEventListener("hashchange", T.render);
     // charts draw their labels on a canvas: wait (briefly) for the two typefaces so the first render uses them
     if (document.fonts && document.fonts.load) {
-      await Promise.race([Promise.all([document.fonts.load('500 12px "Archivo"'), document.fonts.load('500 12px "Martian Mono"'), document.fonts.load('800 24px "Syne"')]).catch(() => {}),
+      await Promise.race([Promise.all([document.fonts.load('500 12px "Hanken Grotesk"'), document.fonts.load('500 12px "Martian Mono"'), document.fonts.load('700 14px "Syne"')]).catch(() => {}),
         new Promise((r) => setTimeout(r, 700))]);
     }
     T.render();

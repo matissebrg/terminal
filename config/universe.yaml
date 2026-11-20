@@ -1,21 +1,20 @@
-# Univers suivi par le terminal.
+# Mangrove : valeurs couvertes (santé : pharma, biotech, et Veeva pour les logiciels des laboratoires).
 #
 # Ajouter une valeur : GitHub > Actions > « Ajouter une valeur » > Run workflow (ticker + pairs).
 # Le workflow remplit ce fichier, crée config/assumptions/<TICKER>.yaml à partir de l'historique
-# SEC, puis relance la mise à jour du site. En local : python -m pipeline.scaffold WMT --peers COST,TGT
+# SEC, puis relance la mise à jour du site. En local : python -m pipeline.scaffold VRTX --peers ALNY,BMRN
 #
 # Par valeur :
 #   peers       pairs pour les comparables (seuls leurs états financiers et leur cours sont récupérés)
 #   benchmarks  indices affichés dans l'onglet Performance (le bêta est toujours mesuré contre SPY)
 #   next_earnings  date des prochains résultats ; par défaut, estimation Yahoo. Quand la société
 #                  l'annonce :  next_earnings: {date: 2026-11-18, confirmed: true}
+#
+# Annoncées mais pas encore couvertes (fiche « bientôt » sur le site) : Sanofi (SNY), Regeneron (REGN).
+# Elles se déclarent dans docs/assets/config.js (window.MANGROVE.comingSoon), pas ici.
 
 benchmarks:
   SPY: S&P 500 (ETF SPY)
-  SOXX: Semi-conducteurs (ETF iShares SOXX)
-  XLP: Consommation de base (ETF XLP)
-  XLK: Technologie (ETF XLK)
-  XLE: Énergie (ETF XLE)
   IBB: Biotechnologie (ETF IBB)
   XLV: Santé (ETF XLV)
   XSW: Logiciels (ETF XSW)
@@ -23,36 +22,6 @@ benchmarks:
 beta_benchmark: SPY
 
 tickers:
-  NVDA:
-    name: NVIDIA Corporation
-    sector: Semi-conducteurs
-    industry: GPU, accélérateurs IA, réseau data center
-    peers: [AMD, AVGO, QCOM, INTC, MRVL]
-    benchmarks: [SPY, SOXX]
-  WMT:
-    name: Walmart Inc.
-    sector: Distribution
-    industry: Hypermarchés, clubs-entrepôts (Sam's Club), e-commerce, publicité
-    peers: [COST, TGT, KR, BJ, DG, AMZN]
-    benchmarks: [SPY, XLP]
-  GOOG:
-    name: Alphabet Inc.
-    sector: Internet et logiciels
-    industry: Recherche en ligne, publicité, cloud, YouTube
-    peers: [MSFT, META, PLTR, ORCL]
-    benchmarks: [SPY, XLK]
-  XOM:
-    name: ExxonMobil Holdings Corp
-    sector: Énergie
-    industry: Pétrole et gaz intégrés, raffinage, chimie
-    peers: [CVX, COP, EOG, OXY]
-    benchmarks: [SPY, XLE]
-  AMZN:
-    name: Amazon Com Inc
-    sector: Retail-catalog & mail-order houses
-    industry: Retail-catalog & mail-order houses
-    peers: [TGT, DG, WMT, COST, BJ, KR]
-    benchmarks: [SPY, XLP]
   BBIO:
     name: BridgeBio Pharma, Inc.
     sector: Biotechnologie
@@ -62,12 +31,6 @@ tickers:
     - BMRN
     - SRPT
     benchmarks: [SPY, IBB]
-  REGN:
-    name: Regeneron Pharmaceuticals, Inc.
-    sector: Biotechnologie
-    industry: Anticorps (Dupixent, Eylea), oncologie, ophtalmologie, maladies rares
-    peers: [MRK, BMY, AMGN, UL, AZN]
-    benchmarks: [SPY, XLV]
   VEEV:
     name: Veeva Systems Inc
     sector: Logiciels
@@ -119,38 +82,20 @@ tickers:
 
 # Noms affichés pour les pairs (les données viennent de la SEC)
 peer_names:
-  AMD: Advanced Micro Devices
-  AVGO: Broadcom
-  QCOM: Qualcomm
-  INTC: Intel
-  MRVL: Marvell Technology
-  COST: Costco
-  TGT: Target
-  KR: Kroger
-  BJ: BJ's Wholesale Club
-  DG: Dollar General
-  AMZN: Amazon
-  MSFT: Microsoft Corp
-  META: Meta Platforms, Inc.
-  PLTR: Palantir Technologies Inc.
+  ALNY: Alnylam Pharmaceuticals
+  BMRN: BioMarin Pharmaceutical
+  SRPT: Sarepta Therapeutics, Inc.
+  CRM: Salesforce, Inc.
   ORCL: Oracle Corp
-  CVX: Chevron Corp
-  COP: Conocophillips
-  EOG: Eog Resources Inc
-  OXY: Occidental Petroleum Corp
+  CERT: Certara, Inc.
   MRK: Merck & Co., Inc.
   BMY: Bristol Myers Squibb Co
-  AMGN: Amgen Inc
-  UL: Unilever Plc
-  AZN: Astrazeneca Plc
-  CRM: Salesforce, Inc.
-  CERT: Certara, Inc.
   PFE: Pfizer Inc
-  SRPT: Sarepta Therapeutics, Inc.
   DYN: Dyne Therapeutics, Inc.
   INSM: INSMED Inc
   EXEL: Exelixis, Inc.
   IDYA: IDEAYA Biosciences, Inc.
+  AZN: Astrazeneca Plc
   XENE: Xenon Pharmaceuticals Inc.
   NBIX: Neurocrine Biosciences Inc
   VRTX: Vertex Pharmaceuticals Inc / Ma
@@ -158,43 +103,13 @@ peer_names:
 
 # Secteur de chaque valeur (badges « Adepte de… ») : tech, conso, sante, finance, energie, industrie.
 # Rempli automatiquement à l'ajout d'une valeur (code SIC de la SEC), modifiable à la main.
-  ALNY: Alnylam Pharmaceuticals
-  BMRN: BioMarin Pharmaceutical
 families:
-  NVDA: tech
-  AMD: tech
-  AVGO: tech
-  QCOM: tech
-  INTC: tech
-  MRVL: tech
-  SOXX: tech
-  GOOG: tech
-  MSFT: tech
-  META: tech
-  PLTR: tech
   ORCL: tech
-  XLK: tech
-  WMT: conso
-  COST: conso
-  TGT: conso
-  KR: conso
-  BJ: conso
-  DG: conso
-  AMZN: conso
-  XLP: conso
-  XOM: energie
-  CVX: energie
-  COP: energie
-  EOG: energie
-  OXY: energie
   BBIO: sante
-  REGN: sante
   MRK: sante
   BMY: sante
-  AMGN: sante
-  UL: conso
   AZN: sante
-  VEEV: tech
+  VEEV: sante
   CRM: tech
   CERT: tech
   SMMT: sante
@@ -214,58 +129,5 @@ families:
   AGIO: sante
   VRTX: sante
   PTCT: sante
-
-# CIK SEC (identifiant fixe), rempli automatiquement à l'ajout d'une valeur.
   ALNY: sante
   BMRN: sante
-ciks:
-  NVDA: 1045810
-  AMD: 2488
-  AVGO: 1730168
-  QCOM: 804328
-  INTC: 50863
-  MRVL: 1835632
-  WMT: 104169
-  COST: 909832
-  TGT: 27419
-  KR: 56873
-  BJ: 1531152
-  DG: 29534
-  AMZN: 1018724
-  GOOG: 1652044
-  MSFT: 789019
-  META: 1326801
-  PLTR: 1321655
-  ORCL: 1341439
-  XOM: 2115436
-  CVX: 93410
-  COP: 1163165
-  EOG: 821189
-  OXY: 797468
-  BBIO: 1743881
-  REGN: 872589
-  MRK: 310158
-  BMY: 14272
-  AMGN: 318154
-  UL: 217410
-  AZN: 901832
-  VEEV: 1393052
-  CRM: 1108524
-  CERT: 1827090
-  SMMT: 1599298
-  PFE: 78003
-  CAPR: 1133869
-  SRPT: 873303
-  DYN: 1818794
-  SVRA: 1160308
-  INSM: 1104506
-  COGT: 1622229
-  EXEL: 939767
-  IDYA: 1676725
-  MLYS: 1933414
-  PRAX: 1689548
-  XENE: 1582313
-  NBIX: 914475
-  AGIO: 1439222
-  VRTX: 875320
-  PTCT: 1070081

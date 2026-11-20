@@ -44,7 +44,7 @@ def test_accept_creates_one_code_and_delete_removes_the_address(world):
     with pytest.raises(psycopg.errors.RaiseException, match="administrateurs"):
         member.q("select public.accept_invite_request(%s)", (rid,))
     code = admin.q("select public.accept_invite_request(%s)", (rid,))[0][0]
-    assert code.startswith("ARCHER-") and admin.q("select public.accept_invite_request(%s)", (rid,))[0][0] == code
+    assert code.startswith("MANGROVE-") and admin.q("select public.accept_invite_request(%s)", (rid,))[0][0] == code
     assert _su(url, "select max_uses, note from public.invite_codes where code = %s", (code,)) == [(1, "demande new.person@example.com")]
     newcomer = Client(url, _new_user(url, "new.person@example.com"))          # the code works
     newcomer.q("select public.join_with_code(%s, 'newcomer')", (code,))

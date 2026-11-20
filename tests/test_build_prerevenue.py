@@ -27,7 +27,7 @@ def test_prerevenue_biotech_builds(tmp_path, monkeypatch):
         "benchmarks": {"SPY": "S&P 500"}, "families": {"PRE": "sante"},
         "tickers": {"PRE": {"name": "Pre Bio", "sector": "Biotechnologie", "industry": "x", "peers": ["AMD"],
                             "benchmarks": ["SPY"]}}}))
-    nvda = yaml.safe_load((Path(build.ROOT) / "config" / "assumptions" / "NVDA.yaml").read_text())
+    nvda = yaml.safe_load((FIX / "assumptions_NVDA.yaml").read_text())   # a complete assumptions file, kept as a fixture
     nvda["rnpv"] = {"primary": True, "discount_rate": 0.1, "horizon": 2040, "net_cash": 5e8,
                     "assets": [{"name": "Lead", "stage": "filed", "area": "rare", "launch_year": 2028, "peak_sales": 1e9}]}
     nvda["catalysts"] = [{"id": "lead-pdufa", "date": "2030-01-15", "kind": "pdufa", "asset": "Lead", "confirmed": True}]

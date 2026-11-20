@@ -4,7 +4,7 @@
 (function () {
   "use strict";
   const T = window.T, F = T.fmt, C = () => T.C;
-  const cfg = window.ARCHER_CONFIG || {};
+  const cfg = window.MANGROVE || {};
   const M = (T.members = { configured: !!(cfg.supabaseUrl && cfg.supabaseKey && window.supabase) });
 
   M.QUESTIONS = [

@@ -81,7 +81,7 @@
   };
   const baseEc = () => ({
     backgroundColor: "transparent",
-    textStyle: { fontFamily: "Archivo, system-ui, sans-serif", color: T.C.text2 },
+    textStyle: { fontFamily: "\"Hanken Grotesk\", system-ui, sans-serif", color: T.C.text2 },
     animationDuration: 350,
     grid: { left: 8, right: 14, top: 26, bottom: 8, containLabel: true },
     tooltip: {
@@ -219,7 +219,7 @@ document.addEventListener("scroll", (e) => {
 }, true);
 
 // Tab strips that overflow (phones): fade the clipped edge and keep the active tab in view
-function archerTabs() {
+function tabStrips() {
   document.querySelectorAll(".tabs").forEach((t) => {
     const upd = () => {
       t.classList.toggle("fade-r", t.scrollLeft + t.clientWidth < t.scrollWidth - 2);
@@ -234,6 +234,6 @@ function archerTabs() {
     upd();
   });
 }
-new MutationObserver(() => { clearTimeout(archerTabs._t); archerTabs._t = setTimeout(archerTabs, 60); })
+new MutationObserver(() => { clearTimeout(tabStrips._t); tabStrips._t = setTimeout(tabStrips, 60); })
   .observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener("resize", archerTabs);
+window.addEventListener("resize", tabStrips);

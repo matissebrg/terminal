@@ -61,7 +61,7 @@
         <stop offset="0" stop-color="${c[0]}"/><stop offset=".45" stop-color="${c[1]}"/><stop offset=".7" stop-color="${c[2]}"/><stop offset="1" stop-color="${c[3]}"/></linearGradient></defs>
         <path d="M24 2.5l18.6 10.75v21.5L24 45.5 5.4 34.75v-21.5z" fill="#07090d" stroke="url(#mg${lv})" stroke-width="${lv >= 3 ? 2 : 1.6}"/>
         <path d="M24 6.5l15.2 8.8v17.4L24 41.5 8.8 32.7V15.3z" fill="none" stroke="rgba(255,255,255,.08)"/></svg>
-      <span class="medal-icon">${b.icon === "archer" ? `<img src="assets/brand/archer-mark.png" alt="" style="width:${Math.round(size * 0.5)}px;height:auto">` : svg(b.icon, Math.round(size * 0.44))}</span></span>`; };
+      <span class="medal-icon">${b.icon === "roots" || b.icon === "archer" ? `<img src="assets/brand/mangrove-mark.png" alt="" style="width:${Math.round(size * 0.5)}px;height:auto">` : svg(b.icon, Math.round(size * 0.44))}</span></span>`; };
 
   B.tierImg = (b, h = 22) => `<img class="tier-img" src="assets/badges/${b.image}" alt="${T.esc(b.name)}" title="${T.esc(b.name)} : ${T.esc(b.description)}" style="height:${h}px">`;
 
@@ -177,7 +177,7 @@
 
   // ------------------------------------------------------------------ notifications : cloche + toasts
   let notes = [], open = false, timer = null;
-  const SHOWN = "archer-toasted";
+  const SHOWN = "mangrove-toasted";
   const shown = () => { try { return new Set(JSON.parse(localStorage.getItem(SHOWN) || "[]")); } catch (e) { return new Set(); } };
   const remember = (id) => { try { const s = shown(); s.add(id); localStorage.setItem(SHOWN, JSON.stringify([...s].slice(-200))); } catch (e) { /* noop */ } };
 

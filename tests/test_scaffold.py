@@ -35,8 +35,8 @@ class FakeSec:
 @pytest.fixture()
 def repo(tmp_path):
     (tmp_path / "config" / "assumptions").mkdir(parents=True)
-    shutil.copy(ROOT / "config" / "universe.yaml", tmp_path / "config" / "universe.yaml")
-    shutil.copy(ROOT / "config" / "assumptions" / "NVDA.yaml", tmp_path / "config" / "assumptions" / "NVDA.yaml")
+    shutil.copy(ROOT / "tests" / "fixtures" / "universe_sample.yaml", tmp_path / "config" / "universe.yaml")   # mixed sectors: needed by the family tests
+    shutil.copy(ROOT / "tests" / "fixtures" / "assumptions_NVDA.yaml", tmp_path / "config" / "assumptions" / "NVDA.yaml")
     return tmp_path
 
 

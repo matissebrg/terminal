@@ -18,7 +18,7 @@
   const DCF = root.DCF || (typeof require !== "undefined" ? require("./dcf.js") : null);
   const isNum = (x) => typeof x === "number" && isFinite(x);
   const clone = (x) => JSON.parse(JSON.stringify(x));
-  const KEY = (tk) => "archer-dcf-" + tk;
+  const KEY = (tk) => "mangrove-dcf-" + tk;
 
   /** The calculator needs revenue, a share count and a growth path. */
   function usable(I) {

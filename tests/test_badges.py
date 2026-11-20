@@ -49,7 +49,7 @@ def test_notifications_are_private_and_can_be_marked_read(club):
     uid, m = club["members"][0]
     mine = m.q("select title, kind, user_id from public.notifications")
     assert {r[0] for r in mine} == {"Nouveau badge : Members", "Nouveau badge : Founders",
-                                    "Nouveau badge : Archer", "Nouveau badge : Visionnaire"}
+                                    "Nouveau badge : Racine", "Nouveau badge : Visionnaire"}
     assert all(r[2] == uid for r in mine)                       # nobody else's notifications
     assert m.q("select public.mark_notifications_read(null)")[0][0] == 4
     assert m.q("select count(*) from public.notifications where read_at is null")[0][0] == 0

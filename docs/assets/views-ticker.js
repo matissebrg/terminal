@@ -57,6 +57,8 @@
   });
 
   // ================================================================== helpers
+  // benchmark lines keep one colour each, whatever the page (SPY grey, healthcare indices in fixed series slots)
+  const benchColor = (k) => ({ SPY: C().neutral, IBB: C().series[5], XLV: C().series[3], XSW: C().series[4] }[k] || C().muted);
   // header tile of the visitor's saved DCF (nothing when there is none)
   const myKpi = (tk, mine) => (mine ? `<div class="kpi hl" id="myKpi"><div class="l"><a href="#/t/${tk}/valorisation">Ta valeur (ton DCF)</a></div><div class="v">${F.px(mine.value)}</div><div class="s ${T.cls(mine.upside)}">${F.pct(mine.upside, 1, true)} vs cours</div></div>` : "");
   function refreshMyKpi(tk, I, price) {
@@ -76,9 +78,8 @@
     } else if (mode === "cmp" && benchmarks) {
       const s = chart.addLineSeries({ color: T.colorOf(tk), lineWidth: 2, title: tk });
       s.setData(bars.map((b) => ({ time: b.t, value: b.ac })));
-      const bc = { SPY: C().neutral, SOXX: C().series[5] };
       Object.entries(benchmarks).forEach(([k, arr]) => {
-        const l = chart.addLineSeries({ color: bc[k] || C().muted, lineWidth: 2, title: k });
+        const l = chart.addLineSeries({ color: benchColor(k), lineWidth: 2, title: k });
         l.setData(arr.map(([t, v]) => ({ time: t, value: v })));
       });
     } else {
@@ -124,7 +125,7 @@
         return `<b>${T.esc(r.label)}</b><br>${F.px(r.low)} - ${F.px(r.high)}${T.isNum(r.mid) ? `<br>Point central ${F.px(r.mid)}` : ""}`;
       } },
       xAxis: T.axis({ type: "value", min: xmin, max: xmax, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
-      yAxis: T.axis({ type: "category", data: labels, inverse: true, axisLabel: { color: C().text2, fontFamily: "Archivo", width: 180, overflow: "break" }, splitLine: { show: false } }),
+      yAxis: T.axis({ type: "category", data: labels, inverse: true, axisLabel: { color: C().text2, fontFamily: "Hanken Grotesk", width: 180, overflow: "break" }, splitLine: { show: false } }),
       series: [
         { type: "bar", stack: "r", data: rows.map((r) => r.low), itemStyle: { color: "transparent" }, silent: true, barWidth: 14 },
         { type: "bar", stack: "r", data: rows.map((r, i) => ({ value: r.high - r.low,
@@ -656,7 +657,7 @@
       if (chart) { chart.remove(); }
       T.$("#pch").innerHTML = "";
       chart = priceChart(T.$("#pch"), px.bars, { mode: st.mode, range: st.range, benchmarks: px.benchmarks, tk });
-      T.$("#plg").innerHTML = st.mode === "cmp" ? [[tk, T.colorOf(tk)], ["SPY", C().neutral], ["SOXX", C().series[5]]].filter(([k]) => ser[k])
+      T.$("#plg").innerHTML = st.mode === "cmp" ? [[tk, T.colorOf(tk)], ...Object.keys(px.benchmarks || {}).map((k) => [k, benchColor(k)])].filter(([k]) => ser[k])
         .map(([k, c]) => `<span><i style="background:${c}"></i>${k}</span>`).join("") + '<span class="muted">variation en % depuis le début de la fenêtre</span>' : "";
     };
     onSeg("pmode", (k) => { st.mode = k; draw(); });

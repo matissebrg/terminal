@@ -260,7 +260,7 @@ def reporting_currency(facts_json: dict) -> str:
 def _unit_and_rate(facts_json: dict, unit: str) -> tuple[str, float]:
     """Canonical units are USD; a non-USD filer is read in its own currency and converted at the rate
     set by normalize() (spot rate: growth rates and margins are unchanged, levels are in today's $)."""
-    cur, rate = facts_json.get("_archer_money", ("USD", 1.0))
+    cur, rate = facts_json.get("_money", ("USD", 1.0))
     if unit == "USD":
         return cur, rate
     if unit == "USD/shares":
@@ -410,7 +410,7 @@ def normalize(facts_json: dict, max_years: int = 10, max_quarters: int = 16,
         rate = fx(cur) if fx else None
         if not rate:
             raise ValueError(f"comptes publiés en {cur} : taux de change {cur}/USD indisponible")
-    facts_json = {**facts_json, "_archer_money": (cur, float(rate))}
+    facts_json = {**facts_json, "_money": (cur, float(rate))}
     standard = "ifrs" if facts_json.get("facts", {}).get("ifrs-full") and not any(
         (facts_json.get("facts", {}).get("us-gaap") or {}).get(t) for t in ("Revenues", "NetIncomeLoss", "Assets")) else "us-gaap"
     years = fiscal_years(facts_json)

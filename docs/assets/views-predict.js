@@ -171,7 +171,7 @@
     const keys = Object.keys(M);
     const hist = M.revenue.history;
     const lastQ = hist.slice(-4);
-    const store = (() => { try { return JSON.parse(localStorage.getItem(`archer-draft-${tk}`) || "null"); } catch (e) { return null; } })();
+    const store = (() => { try { return JSON.parse(localStorage.getItem(`mangrove-draft-${tk}`) || "null"); } catch (e) { return null; } })();
     const draft = Object.assign({ period: nx.label, metrics: {}, price: [], events: [], questions: {}, note: "", visibility: "group" }, store || {});
     if (draft.period !== nx.label && !(draft.period || "").startsWith("FY")) draft.period = nx.label;
     const fyLabel = nx.label && !db ? "FY" + nx.fy : null;
@@ -278,7 +278,7 @@
     (draft.price || []).forEach(pxRow);
     if (!db) T.$("#pev-presets").addEventListener("click", (e) => { const b = e.target.closest(".chip"); if (!b) return; evRow({ question: b.dataset.q }); update(); });
     T.$("#paddprice").onclick = () => { const dd = new Date(); dd.setMonth(dd.getMonth() + 3); pxRow({ date: dd.toISOString().slice(0, 10) }); update(); };
-    T.$("#preset").onclick = () => { try { localStorage.removeItem(`archer-draft-${tk}`); } catch (e) { /* noop */ } T.render(); };
+    T.$("#preset").onclick = () => { try { localStorage.removeItem(`mangrove-draft-${tk}`); } catch (e) { /* noop */ } T.render(); };
 
     // ---------------- chart
     let chart;
@@ -330,7 +330,7 @@
         tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, formatter: (ps) => { const r = rows[ps[0].dataIndex];
           return `<b>${r.label}</b>${T.isNum(r.mid) ? `<br>${F.n(r.mid, 2)} Md$` : ""}${T.isNum(r.lo) && T.isNum(r.hi) ? `<br>${F.n(r.lo, 2)} à ${F.n(r.hi, 2)} Md$` : ""}`; } },
         xAxis: T.axis({ type: "value", min: Math.floor((lo - pad) * 2) / 2, max: Math.ceil((hi + pad) * 2) / 2, axisLabel: { color: C().muted, formatter: (v) => F.n(v, 0) } }),
-        yAxis: T.axis({ type: "category", data: rows.map((r) => r.label), inverse: true, splitLine: { show: false }, axisLabel: { color: C().text2, fontFamily: "Archivo" } }),
+        yAxis: T.axis({ type: "category", data: rows.map((r) => r.label), inverse: true, splitLine: { show: false }, axisLabel: { color: C().text2, fontFamily: "Hanken Grotesk" } }),
         series: [
           { type: "bar", stack: "r", silent: true, barWidth: 10, itemStyle: { color: "transparent" }, data: rows.map((r) => (T.isNum(r.lo) && T.isNum(r.hi) ? r.lo : 0)) },
           { type: "bar", stack: "r", barWidth: 10, data: rows.map((r) => ({ value: T.isNum(r.lo) && T.isNum(r.hi) ? r.hi - r.lo : 0, itemStyle: { color: r.color, opacity: 0.35, borderRadius: 5 } })) },
@@ -396,7 +396,7 @@
     }
     function update() {
       const d = collect();
-      try { localStorage.setItem(`archer-draft-${tk}`, JSON.stringify(d)); } catch (e) { /* noop */ }
+      try { localStorage.setItem(`mangrove-draft-${tk}`, JSON.stringify(d)); } catch (e) { /* noop */ }
       const errs = validate(d);
       T.$("#pvalid").innerHTML = errs.length ? errs.map((e) => `<span class="warn">• ${T.esc(e)}</span>`).join("<br>") : '<span class="up">Prêt à être enregistré.</span>';
       if (db) {
@@ -430,7 +430,7 @@
         try {
           const row = await MB.savePrediction(dbs.pred, toRow(d));
           dbs.pred = row; dbs.versions = (dbs.versions || 0) + 1;
-          try { localStorage.removeItem(`archer-draft-${tk}`); } catch (e) { /* noop */ }
+          try { localStorage.removeItem(`mangrove-draft-${tk}`); } catch (e) { /* noop */ }
           msg.className = "note up"; msg.textContent = `Enregistrée le ${F.dateTime(row.updated_at)} ✓ (version ${dbs.versions})`;
           btn.textContent = "Mettre à jour ma prédiction";
           MB.renderTickerPredictions(T.$("#plist"), tk, nx.label);

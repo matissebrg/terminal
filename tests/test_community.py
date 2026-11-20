@@ -166,7 +166,7 @@ def test_fill_bar_rules():
 
 def test_public_url_from_site_config(tmp_path, monkeypatch):
     f = tmp_path / "config.js"
-    f.write_text('window.ARCHER_CONFIG = { supabaseUrl: "https://abc.supabase.co", supabaseKey: "sb_publishable_x" };')
+    f.write_text('window.MANGROVE = { supabaseUrl: "https://abc.supabase.co", supabaseKey: "sb_publishable_x" };')
     assert community.public_url(f) == "https://abc.supabase.co"
     assert community.public_url(tmp_path / "missing.js") == ""
     monkeypatch.delenv("SUPABASE_URL", raising=False)
