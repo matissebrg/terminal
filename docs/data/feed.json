@@ -1,6 +1,20 @@
 {
  "events": [
   {
+   "id": "c9d19289b0ba",
+   "date": "2026-11-25",
+   "ticker": "MRK",
+   "type": "trial",
+   "severity": "warn",
+   "title": "MRK : essai ATHENA-SSc-ILD arrêté",
+   "detail": "Phase 2 · Phase 2 Safety and Efficacy Study of Tulisokibart (MK-7240/PRA023) in Subjects With Systemic Sclerosis Associated With Interstitial Lung Disease (SSc-ILD) (MK-7240-007) (avant : en cours, recrutement terminé). Motif : The data did not support study endpoints..",
+   "url": "https://clinicaltrials.gov/study/NCT05270668",
+   "values": {
+    "nct": "NCT05270668",
+    "kind": "status"
+   }
+  },
+  {
    "id": "00392c30c395",
    "date": "2026-11-20",
    "ts": "2026-11-20T14:05:08Z",
