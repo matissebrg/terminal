@@ -1,27 +1,27 @@
 == VEEV
-    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.1s)
-    [http] sec 200 https://www.sec.gov/files/company_tickers.json (0.1s)
+    [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.4s)
+    [http] sec 200 https://www.sec.gov/files/company_tickers.json (0.2s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001393052.json (0.3s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0001393052.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001108524.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001827090.json (0.2s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.2s)
   cours 271.9
 == LLY
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000059478.json (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000059478.json (0.0s)
     [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000310158.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001121404.json (0.2s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000353278.json (0.1s)
-    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.1s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0001121404.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000353278.json (0.0s)
+    [http] sec 200 https://data.sec.gov/api/xbrl/companyfacts/CIK0000901832.json (0.0s)
     [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
   cours 1392.22
 == MRK
     [http] fred 200 https://fred.stlouisfed.org/graph/fredgraph.csv (0.0s)
     [http] sec 200 https://data.sec.gov/submissions/CIK0000310158.json (0.0s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
-    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.1s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.3s)
+    [http] ctgov 200 https://clinicaltrials.gov/api/v2/studies (0.3s)
   cours 140.29
-  [membres] {'periods': 21, 'prices': 11, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0, 'partial': 0, 'expired': 0}, 'options': {'quotes': 2460, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 4, 'scored': 0, 'crowd_metrics': 12, 'by_status': {}, 'by_period': {}}, 'portfolios': 2, 'badges': 0}
+  [membres] {'periods': 21, 'prices': 11, 'orders': {'filled': 0, 'rejected': 0, 'waiting': 0, 'partial': 0, 'expired': 0}, 'options': {'quotes': 2151, 'filled': 0, 'rejected': 0, 'waiting': 0, 'settled': 0}, 'predictions': {'total': 4, 'scored': 0, 'crowd_metrics': 12, 'by_status': {}, 'by_period': {}}, 'portfolios': 2, 'badges': 0}
